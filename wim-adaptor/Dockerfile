@@ -1,8 +1,9 @@
-FROM maven:3.3.9-jdk-7
+#FROM maven:3.3.9-jdk-7
+FROM maven:3.5.2-jdk-8
 MAINTAINER Dario Valocchi <d.valocchi@ucl.ac.uk>
 
-RUN apt-get update && apt-get install -y \
-  netcat
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  netcat && rm -rf /var/lib/apt/lists/*
 
 ADD adaptor /adaptor
 ADD broker.config /etc/son-mano/broker.config
