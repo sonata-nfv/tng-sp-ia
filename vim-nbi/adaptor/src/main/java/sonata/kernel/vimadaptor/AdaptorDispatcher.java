@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
 
+import sonata.kernel.vimadaptor.commons.GetVimVendors
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -43,6 +45,7 @@ public class AdaptorDispatcher implements Runnable {
   private AdaptorMux mux;
   private BlockingQueue<ServicePlatformMessage> myQueue;
   private Executor myThreadPool;
+  private GetVimVendors;
 
   private boolean stop = false;
 
@@ -60,6 +63,7 @@ public class AdaptorDispatcher implements Runnable {
     myThreadPool = Executors.newCachedThreadPool();
     this.mux = mux;
     this.core = core;
+	this.GetVimVendors = new GetVimVendors();
   }
 
   @Override
@@ -150,16 +154,18 @@ public class AdaptorDispatcher implements Runnable {
 
   private void handleServiceMsg(ServicePlatformMessage message) {
     if (message.getTopic().endsWith("deploy")) {
- // Redirect VIM
+      // Deprecated
       myThreadPool.execute(new DeployServiceCallProcessor(message, message.getSid(), mux));
     } else if (message.getTopic().endsWith("remove")) {
  // Redirect VIM
       Logger.info("Received a \"service.remove\" API call on topic: " + message.getTopic());
       myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), mux));
     } else if (message.getTopic().endsWith("prepare")) {
- // Redirect VIM GetVimCallProcessor
+ // Redirect VIM 
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new GetVimCallProcessor(message, message.getSid(), mux));
+	  ArrayList<String> vimVendors = this.GetVimVendors.GetVimVendors(message,"prepare");
+	  // Need create RedirectVimCallProcessor and new mux_wr
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), mux_wr));
      // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), mux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());
