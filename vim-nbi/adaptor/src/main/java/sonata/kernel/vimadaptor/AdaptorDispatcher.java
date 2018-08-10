@@ -63,7 +63,7 @@ public class AdaptorDispatcher implements Runnable {
     myThreadPool = Executors.newCachedThreadPool();
     this.mux = mux;
     this.core = core;
-	this.GetVimVendors = new GetVimVendors();
+    this.GetVimVendors = new GetVimVendors();
   }
 
   @Override
