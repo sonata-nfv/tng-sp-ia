@@ -106,10 +106,12 @@ public class AdaptorDispatcher implements Runnable {
   private void handleFunctionMessage(ServicePlatformMessage message) {
     if (message.getTopic().endsWith("deploy")) {
  // Redirect VIM
-      myThreadPool.execute(new DeployFunctionCallProcessor(message, message.getSid(), mux));
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"deploy");
+      // myThreadPool.execute(new DeployFunctionCallProcessor(message, message.getSid(), mux));
     } else if (message.getTopic().endsWith("scale")) {
  // Redirect VIM
-      myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), mux));
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"scale");
+      // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), mux));
     }
   }
 
@@ -160,7 +162,8 @@ public class AdaptorDispatcher implements Runnable {
     } else if (message.getTopic().endsWith("remove")) {
  // Redirect VIM
       Logger.info("Received a \"service.remove\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), mux));
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"remove");
+      // myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), mux));
     } else if (message.getTopic().endsWith("prepare")) {
  // Redirect VIM 
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
