@@ -30,15 +30,14 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import sonata.kernel.vimadaptor.commons.ServicePreparePayload;
-import sonata.kernel.vimadaptor.commons.SonataManifestMapper;
+//import sonata.kernel.vimadaptor.commons.ServicePreparePayload;
+//import sonata.kernel.vimadaptor.commons.SonataManifestMapper;
 //import sonata.kernel.vimadaptor.commons.VimPreDeploymentList;
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.vimadaptor.wrapper.VimRepo;
 
-import org.json.JSONObject;
+//import org.json.JSONObject;
 //import org.json.JSONTokener;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -46,11 +45,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Properties;
 
 
 public class GetVimVendors {
 	private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(GetVimType.class);
+      LoggerFactory.getLogger(GetVimVendors.class);
 	private Properties prop;
 
 	/**
@@ -72,7 +72,7 @@ public class GetVimVendors {
 	 * @return the list of vim Vendors or null 
 	 */
 	public ArrayList<String> GetVimVendors(ServicePlatformMessage message, String topic) {
-		if (topic.equals("prepare") {
+		if (topic.equals("prepare")) {
 			return this.GetVimVendorsPrepare(message);
 		} else {
 			return null;
@@ -101,9 +101,9 @@ public class GetVimVendors {
 			payload = mapper.readValue(message.getBody(), ServicePreparePayload.class);
 			Logger.info("payload parsed. Get VIMs");
 
-			vimUuids = payload.getVimList().getUuid();
-	//      for (VimPreDeploymentList vim : payload.getVimList()) {
-	//        ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapper(vim.getUuid());
+	        for (VimPreDeploymentList vim : payload.getVimList()) {
+                vimUuids.add(vim.getUuid());
+            }
 			if (vimUuids == null) {
 				Logger.error("Error retrieving the Vims uuid");
 				
@@ -113,7 +113,6 @@ public class GetVimVendors {
 
 			// Get the types from db
 			vimVendors = this.GetVimVendorsDB(vimUuids);
-	//      }
 
 		} catch (Exception e) {
 			Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);

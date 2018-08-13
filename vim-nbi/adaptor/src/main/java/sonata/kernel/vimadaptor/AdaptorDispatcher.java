@@ -31,11 +31,12 @@ import org.slf4j.LoggerFactory;
 
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
 
-import sonata.kernel.vimadaptor.commons.GetVimVendors
+import sonata.kernel.vimadaptor.commons.GetVimVendors;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.ArrayList;
 
 
 public class AdaptorDispatcher implements Runnable {
@@ -45,7 +46,7 @@ public class AdaptorDispatcher implements Runnable {
   private AdaptorMux mux;
   private BlockingQueue<ServicePlatformMessage> myQueue;
   private Executor myThreadPool;
-  private GetVimVendors;
+  private GetVimVendors getVimVendors;
 
   private boolean stop = false;
 
@@ -63,7 +64,7 @@ public class AdaptorDispatcher implements Runnable {
     myThreadPool = Executors.newCachedThreadPool();
     this.mux = mux;
     this.core = core;
-    this.GetVimVendors = new GetVimVendors();
+    this.getVimVendors = new GetVimVendors();
   }
 
   @Override
@@ -163,9 +164,9 @@ public class AdaptorDispatcher implements Runnable {
     } else if (message.getTopic().endsWith("prepare")) {
  // Redirect VIM 
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
-	  ArrayList<String> vimVendors = this.GetVimVendors.GetVimVendors(message,"prepare");
+	  ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"prepare");
 	  // Need create RedirectVimCallProcessor and new mux_wr
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), mux_wr));
+      //myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), mux_wr));
      // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), mux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());

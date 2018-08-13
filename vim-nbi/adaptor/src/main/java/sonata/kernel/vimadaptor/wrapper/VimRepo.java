@@ -1568,7 +1568,7 @@ public class VimRepo {
   }
 
 
-  public Properties parseConfigFile() {
+  public static Properties parseConfigFile() {
     Properties prop = new Properties();
     try {
       InputStreamReader in =
