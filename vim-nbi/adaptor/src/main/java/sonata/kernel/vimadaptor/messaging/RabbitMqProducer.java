@@ -39,10 +39,12 @@ public class RabbitMqProducer extends AbstractMsgBusProducer {
 
 
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(RabbitMqProducer.class);
+  private String direction;
 
 
-  public RabbitMqProducer(BlockingQueue<ServicePlatformMessage> muxQueue) {
+  public RabbitMqProducer(BlockingQueue<ServicePlatformMessage> muxQueue, String direction) {
     super(muxQueue);
+    this.direction = direction;
   }
 
   @Override
@@ -57,8 +59,15 @@ public class RabbitMqProducer extends AbstractMsgBusProducer {
     // TODO maps the specific Adaptor message to the proper SP topic
 
     try {
-      Channel channel = RabbitMqHelperSingleton.getInstance().getChannel();
-      String exchangeName = RabbitMqHelperSingleton.getInstance().getExchangeName();
+      Channel channel;
+      String exchangeName;
+      if (direction.equals("north")) {
+        channel = RabbitMqHelperSingleton.getInstance().getNorthChannel();
+        exchangeName = RabbitMqHelperSingleton.getInstance().getNorthExchangeName();
+      } else {
+        channel = RabbitMqHelperSingleton.getInstance().getSouthChannel();
+        exchangeName = RabbitMqHelperSingleton.getInstance().getSouthExchangeName();
+      }
       BasicProperties properties = new BasicProperties().builder().appId(AdaptorCore.APP_ID)
           .contentType(message.getContentType()).replyTo(message.getReplyTo()).deliveryMode(2)
           .correlationId(message.getSid()).build();

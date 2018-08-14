@@ -43,22 +43,34 @@ public class RabbitMqConsumer extends AbstractMsgBusConsumer implements MsgBusCo
   private String queueName;
 
   DefaultConsumer consumer;
+  private String direction;
 
-  public RabbitMqConsumer(BlockingQueue<ServicePlatformMessage> dispatcherQueue) {
+  public RabbitMqConsumer(BlockingQueue<ServicePlatformMessage> dispatcherQueue, String direction) {
     super(dispatcherQueue);
+    this.direction = direction;
   }
 
   @Override
   public void connectToBus() {
-    channel = RabbitMqHelperSingleton.getInstance().getChannel();
-    consumer = new AdaptorDefaultConsumer(channel, this);
-    queueName = RabbitMqHelperSingleton.getInstance().getQueueName();
+    if (direction.equals("north")) {
+      channel = RabbitMqHelperSingleton.getInstance().getNorthChannel();
+      consumer = new AdaptorDefaultConsumer(channel, this);
+      queueName = RabbitMqHelperSingleton.getInstance().getNorthQueueName();
+    } else {
+      channel = RabbitMqHelperSingleton.getInstance().getSouthChannel();
+      consumer = new AdaptorDefaultConsumer(channel, this);
+      queueName = RabbitMqHelperSingleton.getInstance().getSouthQueueName();
+    }
   }
 
   @Override
   public void run() {
     try {
-      channel = RabbitMqHelperSingleton.getInstance().getChannel();
+      if (direction.equals("north")) {
+        channel = RabbitMqHelperSingleton.getInstance().getNorthChannel();
+      } else {
+        channel = RabbitMqHelperSingleton.getInstance().getSouthChannel();
+      }
       Logger.info("Starting consumer thread");
       channel.basicConsume(queueName, true, consumer);
 

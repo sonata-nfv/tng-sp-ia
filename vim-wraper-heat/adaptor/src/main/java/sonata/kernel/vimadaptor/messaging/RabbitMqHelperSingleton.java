@@ -86,13 +86,13 @@ public class RabbitMqHelperSingleton {
       channel.queueDeclare(queueName, true, false, false, null);
       Logger.info("Binding queue to topics...");
 
-      channel.queueBind(queueName, exchangeName, "platform.management.plugin.register");
-      Logger.info("Bound to topic \"platform.platform.management.plugin.register\"");
+      //channel.queueBind(queueName, exchangeName, "platform.management.plugin.register");
+      //Logger.info("Bound to topic \"platform.platform.management.plugin.register\"");
 
-      channel.queueBind(queueName, exchangeName, "platform.management.plugin.deregister");
-      Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
+      //channel.queueBind(queueName, exchangeName, "platform.management.plugin.deregister");
+      //Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
 
-      channel.queueBind(queueName, exchangeName, "infrastructure.#");
+      channel.queueBind(queueName, exchangeName, "infrastructure.heat.#");
       Logger.info("[northbound] RabbitMqConsumer - bound to topic \"infrastructure.#\"");
 
     } catch (TimeoutException e) {

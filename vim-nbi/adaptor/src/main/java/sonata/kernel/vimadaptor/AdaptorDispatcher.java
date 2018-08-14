@@ -43,8 +43,10 @@ public class AdaptorDispatcher implements Runnable {
 
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdaptorDispatcher.class);
   private AdaptorCore core;
-  private AdaptorMux mux;
-  private BlockingQueue<ServicePlatformMessage> myQueue;
+  private AdaptorMux northMux;
+  private AdaptorMux southMux;
+  private BlockingQueue<ServicePlatformMessage> myNorthQueue;
+  private BlockingQueue<ServicePlatformMessage> mySouthQueue;
   private Executor myThreadPool;
   private GetVimVendors getVimVendors;
 
@@ -52,17 +54,21 @@ public class AdaptorDispatcher implements Runnable {
 
   /**
    * Create an AdaptorDispatcher attached to the queue. CallProcessor will be bind to the provided
-   * mux.
+   * northMux.
    * 
-   * @param queue the queue the dispatcher is attached to
+   * @param northQueue the queue the dispatcher is attached to
+   * @param southQueue the queue the dispatcher is attached to south
    * 
-   * @param mux the AdaptorMux the CallProcessors will be attached to
+   * @param northMux the AdaptorMux the CallProcessors will be attached to
+   * @param southMux the AdaptorMux the CallProcessors will be attached to south
    */
-  public AdaptorDispatcher(BlockingQueue<ServicePlatformMessage> queue, AdaptorMux mux,
-      AdaptorCore core) {
-    myQueue = queue;
+  public AdaptorDispatcher(BlockingQueue<ServicePlatformMessage> northQueue, BlockingQueue<ServicePlatformMessage> southQueue,
+      AdaptorMux northMux, AdaptorMux southMux, AdaptorCore core) {
+    this.myNorthQueue = northQueue;
+    this.mySouthQueue = southQueue;
     myThreadPool = Executors.newCachedThreadPool();
-    this.mux = mux;
+    this.northMux = northMux;
+    this.southMux = southMux;
     this.core = core;
     this.getVimVendors = new GetVimVendors();
   }
@@ -72,7 +78,7 @@ public class AdaptorDispatcher implements Runnable {
     ServicePlatformMessage message;
     do {
       try {
-        message = myQueue.take();
+        message = myNorthQueue.take();
 
         if (isRegistrationResponse(message)) {
           this.core.handleRegistrationResponse(message);
@@ -87,9 +93,23 @@ public class AdaptorDispatcher implements Runnable {
         } else if (isMonitoringMessage(message)) {
           this.handleMonitoringMessage(message);
         }
+
+
       } catch (InterruptedException e) {
         Logger.error(e.getMessage(), e);
       }
+
+      try {
+        message = mySouthQueue.take();
+
+        // Need to create processor for fw packets from Southbound interface to Northbound interface
+        //TODO
+        myThreadPool.execute(new FwVimCallProcessor(message, message.getSid(), northMux));
+
+      } catch (InterruptedException e) {
+        Logger.error(e.getMessage(), e);
+      }
+
     } while (!stop);
   }
 
@@ -107,11 +127,15 @@ public class AdaptorDispatcher implements Runnable {
     if (message.getTopic().endsWith("deploy")) {
  // Redirect VIM
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"deploy");
-      // myThreadPool.execute(new DeployFunctionCallProcessor(message, message.getSid(), mux));
+
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+      // myThreadPool.execute(new DeployFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("scale")) {
  // Redirect VIM
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"scale");
-      // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), mux));
+
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+      // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), northMux));
     }
   }
 
@@ -119,25 +143,25 @@ public class AdaptorDispatcher implements Runnable {
 
     if (message.getTopic().contains("compute")) { // compute menagement API
       if (message.getTopic().endsWith("add")) {
-        myThreadPool.execute(new AddVimCallProcessor(message, message.getSid(), mux));
+        myThreadPool.execute(new AddVimCallProcessor(message, message.getSid(), northMux));
       } else if (message.getTopic().endsWith("remove")) {
-        myThreadPool.execute(new RemoveVimCallProcessor(message, message.getSid(), mux));
+        myThreadPool.execute(new RemoveVimCallProcessor(message, message.getSid(), northMux));
       } else if (message.getTopic().endsWith("resourceAvailability")) {
-        myThreadPool.execute(new ResourceAvailabilityCallProcessor(message, message.getSid(), mux));
+        myThreadPool.execute(new ResourceAvailabilityCallProcessor(message, message.getSid(), northMux));
       } else if (message.getTopic().endsWith("list")) {
         Logger.info("Received a \"List VIMs\" API call on topic: " + message.getTopic());
-        myThreadPool.execute(new ListComputeVimCallProcessor(message, message.getSid(), mux));
+        myThreadPool.execute(new ListComputeVimCallProcessor(message, message.getSid(), northMux));
       }
     } else if (message.getTopic().contains("storage")) {
       // TODO Storage Management API
     } else if (message.getTopic().contains("network")) {
       if (message.getTopic().endsWith("add")) {
-        myThreadPool.execute(new AddVimCallProcessor(message, message.getSid(), mux));
+        myThreadPool.execute(new AddVimCallProcessor(message, message.getSid(), northMux));
       } else if (message.getTopic().endsWith("remove")) {
-        myThreadPool.execute(new RemoveVimCallProcessor(message, message.getSid(), mux));
+        myThreadPool.execute(new RemoveVimCallProcessor(message, message.getSid(), northMux));
       } else if (message.getTopic().endsWith("list")) {
         Logger.info("Received a \"List VIMs\" API call on topic: " + message.getTopic());
-        myThreadPool.execute(new ListNetworkVimCallProcessor(message, message.getSid(), mux));
+        myThreadPool.execute(new ListNetworkVimCallProcessor(message, message.getSid(), northMux));
       } else {
         Logger.info("Received an unknown menagement API call on topic: " + message.getTopic());
       }
@@ -158,25 +182,28 @@ public class AdaptorDispatcher implements Runnable {
   private void handleServiceMsg(ServicePlatformMessage message) {
     if (message.getTopic().endsWith("deploy")) {
       // Deprecated
-      myThreadPool.execute(new DeployServiceCallProcessor(message, message.getSid(), mux));
+      myThreadPool.execute(new DeployServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("remove")) {
  // Redirect VIM
       Logger.info("Received a \"service.remove\" API call on topic: " + message.getTopic());
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"remove");
-      // myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), mux));
+
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+      // myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("prepare")) {
  // Redirect VIM 
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
 	  ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"prepare");
-	  // Need create RedirectVimCallProcessor and new mux_wr
-      //myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), mux_wr));
-     // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), mux));
+	  // Need create RedirectVimCallProcessor with topic "infrastructure.heat.#
+      //TODO
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+     // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), mux));
+      myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.configure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new ConfigureNetworkCallProcessor(message, message.getSid(), mux));
+      myThreadPool.execute(new ConfigureNetworkCallProcessor(message, message.getSid(), northMux));
     }
   }
 

@@ -170,15 +170,15 @@ public class AdaptorDispatcher implements Runnable {
   }
 
   private boolean isFunctionMessage(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.function");
+    return message.getTopic().contains("infrastructure.heat.function");
   }
 
   private boolean isManagementMsg(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.management");
+    return message.getTopic().contains("infrastructure.heat.management");
   }
 
   private boolean isMonitoringMessage(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.monitoring");
+    return message.getTopic().contains("infrastructure.heat.monitoring");
   }
 
   private boolean isRegistrationResponse(ServicePlatformMessage message) {
@@ -187,6 +187,6 @@ public class AdaptorDispatcher implements Runnable {
   }
 
   private boolean isServiceMsg(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.service");
+    return message.getTopic().contains("infrastructure.heat.service");
   }
 }

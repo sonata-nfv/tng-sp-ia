@@ -58,18 +58,23 @@ public class RabbitMqHelperSingleton {
     return myInstance;
   }
 
-  private Channel channel;
+  private Channel northChannel;
+  private Channel southChannel;
 
-  private Connection connection;
+  private Connection northConnection;
+  private Connection southConnection;
 
-  private String exchangeName;
+  private String northExchangeName;
+  private String southExchangeName;
 
-  private String queueName;
+  private String northQueueName;
+  private String southQueueName;
 
   private RabbitMqHelperSingleton() {
     Properties brokerConfig = parseConfigFile();
     Logger.info("Connecting to broker...");
     ConnectionFactory cf = new ConnectionFactory();
+    ConnectionFactory scf = new ConnectionFactory();
     if (!brokerConfig.containsKey("broker_url") || !brokerConfig.containsKey("exchange")) {
       Logger.error("Missing broker url configuration.");
       System.exit(1);
@@ -78,22 +83,43 @@ public class RabbitMqHelperSingleton {
 
       Logger.info("Connecting to: " + brokerConfig.getProperty("broker_url"));
       cf.setUri(brokerConfig.getProperty("broker_url"));
-      connection = cf.newConnection();
-      channel = connection.createChannel();
-      exchangeName = brokerConfig.getProperty("exchange");
-      channel.exchangeDeclare(exchangeName, "topic");
-      queueName = exchangeName + "." + "InfraAbstract";
-      channel.queueDeclare(queueName, true, false, false, null);
+      northConnection = cf.newConnection();
+      northChannel = northConnection.createChannel();
+      northExchangeName = brokerConfig.getProperty("exchange");
+      northChannel.exchangeDeclare(northExchangeName, "topic");
+      northQueueName = northExchangeName + "." + "InfraAbstract";
+      northChannel.queueDeclare(northQueueName, true, false, false, null);
       Logger.info("Binding queue to topics...");
 
-      channel.queueBind(queueName, exchangeName, "platform.management.plugin.register");
+      northChannel.queueBind(northQueueName, northExchangeName, "platform.management.plugin.register");
       Logger.info("Bound to topic \"platform.platform.management.plugin.register\"");
 
-      channel.queueBind(queueName, exchangeName, "platform.management.plugin.deregister");
+      northChannel.queueBind(northQueueName, northExchangeName, "platform.management.plugin.deregister");
       Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
 
-      channel.queueBind(queueName, exchangeName, "infrastructure.#");
+      northChannel.queueBind(northQueueName, northExchangeName, "infrastructure.#");
       Logger.info("[northbound] RabbitMqConsumer - bound to topic \"infrastructure.#\"");
+
+
+      Logger.info("Connecting to: " + brokerConfig.getProperty("broker_url"));
+      scf.setUri(brokerConfig.getProperty("broker_url"));
+      southConnection = scf.newConnection();
+      southChannel = southConnection.createChannel();
+      southExchangeName = brokerConfig.getProperty("exchange");
+      southChannel.exchangeDeclare(southExchangeName, "topic");
+      southQueueName = southExchangeName + "." + "WraperHeat";
+      southChannel.queueDeclare(southQueueName, true, false, false, null);
+      Logger.info("Binding queue to topics...");
+
+      //northChannel.queueBind(northQueueName, northExchangeName, "platform.management.plugin.register");
+      //Logger.info("Bound to topic \"platform.platform.management.plugin.register\"");
+
+      //northChannel.queueBind(northQueueName, northExchangeName, "platform.management.plugin.deregister");
+      //Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
+
+      northChannel.queueBind(northQueueName, northExchangeName, "infrastructure.#");
+      Logger.info("[northbound] RabbitMqConsumer - bound to topic \"infrastructure.#\"");
+
 
     } catch (TimeoutException e) {
       Logger.error(e.getMessage(), e);
@@ -109,16 +135,28 @@ public class RabbitMqHelperSingleton {
 
   }
 
-  public Channel getChannel() {
-    return this.channel;
+  public Channel getNorthChannel() {
+    return this.northChannel;
   }
 
-  public String getExchangeName() {
-    return exchangeName;
+  public Channel getSouthChannel() {
+    return this.southChannel;
   }
 
-  public String getQueueName() {
-    return queueName;
+  public String getNorthExchangeName() {
+    return northExchangeName;
+  }
+
+  public String getSouthExchangeName() {
+    return southExchangeName;
+  }
+
+  public String getNorthQueueName() {
+    return northQueueName;
+  }
+
+  public String getSouthQueueName() {
+    return southQueueName;
   }
 
   /**

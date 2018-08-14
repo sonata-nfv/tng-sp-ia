@@ -106,10 +106,13 @@ public class AdaptorCore {
 
   private AdaptorDispatcher dispatcher;
   private HeartBeat heartbeat;
-  private AdaptorMux mux;
+  private AdaptorMux northMux;
+  private AdaptorMux southMux;
   private MsgBusConsumer northConsumer;
-
   private MsgBusProducer northProducer;
+  private MsgBusConsumer southConsumer;
+  private MsgBusProducer southProducer;
+
   private double rate;
   private String registrationSid;
   private String status;
@@ -122,19 +125,29 @@ public class AdaptorCore {
   /**
    * utility constructor for Tests. Allows attaching mock MsgBus to the adaptor plug-in Manager.
    * 
-   * @param muxQueue A Java BlockingQueue for the AdaptorMux
-   * @param dispatcherQueue A Java BlockingQueue for the AdaptorDispatcher
-   * @param consumer The consumer queuing messages in the dispatcher queue
-   * @param producer The producer de-queuing messages from the mux queue
+   * @param northMuxQueue A Java BlockingQueue for the AdaptorMux
+   * @param southMuxQueue A Java BlockingQueue for the AdaptorMux for south
+   * @param northDispatcherQueue A Java BlockingQueue for the AdaptorDispatcher
+   * @param southDispatcherQueue A Java BlockingQueue for the AdaptorDispatcher for south
+   * @param northConsumer The consumer queuing messages in the dispatcher queue
+   * @param northProducer The producer de-queuing messages from the mux queue
+   * @param southConsumer The consumer queuing messages in the dispatcher queue from south
+   * @param southProducer The producer de-queuing messages from the mux queue for south
    * @param rate of the heart-beat in beat/s
    */
-  public AdaptorCore(BlockingQueue<ServicePlatformMessage> muxQueue,
-      BlockingQueue<ServicePlatformMessage> dispatcherQueue, AbstractMsgBusConsumer consumer,
-      AbstractMsgBusProducer producer, double rate) {
-    mux = new AdaptorMux(muxQueue);
-    dispatcher = new AdaptorDispatcher(dispatcherQueue, mux, this);
-    northConsumer = consumer;
-    northProducer = producer;
+  public AdaptorCore(BlockingQueue<ServicePlatformMessage> northMuxQueue,
+      BlockingQueue<ServicePlatformMessage> southMuxQueue,
+      BlockingQueue<ServicePlatformMessage> northDispatcherQueue,
+      BlockingQueue<ServicePlatformMessage> southDispatcherQueue, AbstractMsgBusConsumer northConsumer,
+      AbstractMsgBusProducer northProducer, AbstractMsgBusConsumer southConsumer,
+                     AbstractMsgBusProducer southProducer, double rate) {
+    this.northMux = new AdaptorMux(northMuxQueue);
+    this.southMux = new AdaptorMux(southMuxQueue);
+    dispatcher = new AdaptorDispatcher(northDispatcherQueue, southDispatcherQueue, northMux, southMux,this);
+    this.northConsumer = northConsumer;
+    this.northProducer = northProducer;
+    this.southConsumer = southConsumer;
+    this.southProducer = southProducer;
     VimRepo repo = new VimRepo();
     WrapperBay.getInstance().setRepo(repo);
     status = "READY";
@@ -154,14 +167,20 @@ public class AdaptorCore {
     this.rate = rate;
     // instantiate the Adaptor:
     // - Mux and queue
-    BlockingQueue<ServicePlatformMessage> muxQueue =
+    BlockingQueue<ServicePlatformMessage> northMuxQueue =
         new LinkedBlockingQueue<ServicePlatformMessage>();
-    mux = new AdaptorMux(muxQueue);
+    this.northMux = new AdaptorMux(northMuxQueue);
+
+    BlockingQueue<ServicePlatformMessage> southMuxQueue =
+            new LinkedBlockingQueue<ServicePlatformMessage>();
+    this.southMux = new AdaptorMux(southMuxQueue);
 
     // - Dispatcher and queue
-    BlockingQueue<ServicePlatformMessage> dispatcherQueue =
+    BlockingQueue<ServicePlatformMessage> northDispatcherQueue =
         new LinkedBlockingQueue<ServicePlatformMessage>();
-    dispatcher = new AdaptorDispatcher(dispatcherQueue, mux, this);
+    BlockingQueue<ServicePlatformMessage> southDispatcherQueue =
+            new LinkedBlockingQueue<ServicePlatformMessage>();
+    dispatcher = new AdaptorDispatcher(northDispatcherQueue, southDispatcherQueue, northMux, southMux,this);
 
     // - Wrapper bay connection with the Database.
     VimRepo repo = new VimRepo();
@@ -169,9 +188,14 @@ public class AdaptorCore {
 
     // - Northbound interface
 
-    northConsumer = new RabbitMqConsumer(dispatcherQueue);
-    northProducer = new RabbitMqProducer(muxQueue);
-    
+    this.northConsumer = new RabbitMqConsumer(northDispatcherQueue, "north");
+    this.northProducer = new RabbitMqProducer(northMuxQueue,"north");
+
+    // - Southbound interface
+
+    this.southConsumer = new RabbitMqConsumer(southDispatcherQueue, "south");
+    this.southProducer = new RabbitMqProducer(southMuxQueue,"south");
+
     status = "RUNNING";
 
   }
@@ -260,12 +284,17 @@ public class AdaptorCore {
     northProducer.startProducing();
     northConsumer.startConsuming();
 
+    southProducer.connectToBus();
+    southConsumer.connectToBus();
+    southProducer.startProducing();
+    southConsumer.startConsuming();
+
     dispatcher.start();
 
     register();
     status = "RUNNING";
     // - Start pumping blood
-    this.heartbeat = new HeartBeat(mux, rate, this);
+    this.heartbeat = new HeartBeat(northMux, rate, this);
     new Thread(this.heartbeat).start();
   }
 
@@ -277,6 +306,8 @@ public class AdaptorCore {
     this.heartbeat.stop();
     northProducer.stopProducing();
     northConsumer.stopConsuming();
+    southProducer.stopProducing();
+    southConsumer.stopConsuming();
     dispatcher.stop();
   }
 
@@ -288,7 +319,7 @@ public class AdaptorCore {
     synchronized (writeLock) {
       try {
         this.registrationSid = message.getSid();
-        mux.enqueue(message);
+        northMux.enqueue(message);
         writeLock.wait(writeLockCoolDown);
       } catch (InterruptedException e) {
         Logger.error(e.getMessage(), e);
@@ -306,7 +337,7 @@ public class AdaptorCore {
     synchronized (writeLock) {
       try {
         this.registrationSid = message.getSid();
-        mux.enqueue(message);
+        northMux.enqueue(message);
         writeLock.wait(writeLockCoolDown);
       } catch (InterruptedException e) {
         Logger.error(e.getMessage(), e);
