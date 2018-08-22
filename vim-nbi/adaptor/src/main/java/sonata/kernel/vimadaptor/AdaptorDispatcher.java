@@ -25,6 +25,7 @@
  * @author Thomas Soenen, imec
  *
  * @author Michael Bredel (Ph.D.), NEC
+ * @author Carlos Marques (ALB)
  */
 
 package sonata.kernel.vimadaptor;
@@ -104,8 +105,7 @@ public class AdaptorDispatcher implements Runnable {
       try {
         message = mySouthQueue.take();
 
-        // Need to create processor for fw packets from Southbound interface to Northbound interface
-        //TODO
+        // Processor for fw packets from Southbound interface to Northbound interface
         myThreadPool.execute(new FwVimCallProcessor(message, message.getSid(), northMux));
 
       } catch (InterruptedException e) {
@@ -129,14 +129,12 @@ public class AdaptorDispatcher implements Runnable {
     if (message.getTopic().endsWith("deploy")) {
  // Redirect VIM
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"deploy");
-
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
       // myThreadPool.execute(new DeployFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("scale")) {
  // Redirect VIM
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"scale");
-
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
       // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("remove")) {
       myThreadPool.execute(new RemoveFunctionCallProcessor(message, message.getSid(), northMux));
@@ -191,16 +189,13 @@ public class AdaptorDispatcher implements Runnable {
  // Redirect VIM
       Logger.info("Received a \"service.remove\" API call on topic: " + message.getTopic());
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"remove");
-
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
       // myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("prepare")) {
  // Redirect VIM 
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
 	  ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"prepare");
-	  // Need create RedirectVimCallProcessor with topic "infrastructure.heat.#
-      //TODO
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
+	  myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
      // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());

@@ -82,7 +82,7 @@ public class RabbitMqHelperSingleton {
       channel = connection.createChannel();
       exchangeName = brokerConfig.getProperty("exchange");
       channel.exchangeDeclare(exchangeName, "topic");
-      queueName = exchangeName + "." + "WraperHeat";
+      queueName = exchangeName + "." + "Wrapers";
       channel.queueDeclare(queueName, true, false, false, null);
       Logger.info("Binding queue to topics...");
 
@@ -93,7 +93,7 @@ public class RabbitMqHelperSingleton {
       //Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
 
       channel.queueBind(queueName, exchangeName, "infrastructure.heat.#");
-      Logger.info("[northbound] RabbitMqConsumer - bound to topic \"infrastructure.#\"");
+      Logger.info("[northbound] RabbitMqConsumer - bound to topic \"infrastructure.heat.#\"");
 
     } catch (TimeoutException e) {
       Logger.error(e.getMessage(), e);

@@ -21,7 +21,7 @@
  * (www.sonata-nfv.eu).
  *
  * @author Dario Valocchi (Ph.D.), UCL
- * 
+ * @author Carlos Marques (ALB)
  */
 package sonata.kernel.vimadaptor.messaging;
 
@@ -107,7 +107,7 @@ public class RabbitMqHelperSingleton {
       southChannel = southConnection.createChannel();
       southExchangeName = brokerConfig.getProperty("exchange");
       southChannel.exchangeDeclare(southExchangeName, "topic");
-      southQueueName = southExchangeName + "." + "WraperHeat";
+      southQueueName = southExchangeName + "." + "Wrapers";
       southChannel.queueDeclare(southQueueName, true, false, false, null);
       Logger.info("Binding queue to topics...");
 
