@@ -1,8 +1,8 @@
 version: '2'
 services:
-  son-sp-infrabstract:
+  vim-nbi:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: vim-adaptor 
+    image: vim-nbi 
     entrypoint: /test.sh
     links:
      - postgres
