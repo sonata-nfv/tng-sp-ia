@@ -22,6 +22,8 @@
  *
  * @author Dario Valocchi (Ph.D.), UCL
  * 
+ * @author Thomas Soenen, imec
+ *
  * @author Guy Paz, Nokia
  * 
  */
@@ -55,6 +57,10 @@ public class HeatTemplate {
 
   public void putResource(String key, Object value) {
     this.resources.put(key, value);
+  }
+
+  public void removeResource(String key) {
+    this.resources.remove(key);
   }
 
   public void setResources(HashMap<String, Object> resources) {

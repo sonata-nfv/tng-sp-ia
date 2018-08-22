@@ -21,7 +21,9 @@
  * (www.sonata-nfv.eu).
  *
  * @author Dario Valocchi (Ph.D.), UCL
- * 
+ *
+ * @author Thomas Soenen, imec
+ *
  * @author Michael Bredel (Ph.D.), NEC
  */
 
@@ -136,6 +138,8 @@ public class AdaptorDispatcher implements Runnable {
 
       myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux),vimVendors);
       // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), northMux));
+    } else if (message.getTopic().endsWith("remove")) {
+      myThreadPool.execute(new RemoveFunctionCallProcessor(message, message.getSid(), northMux));
     }
   }
 
