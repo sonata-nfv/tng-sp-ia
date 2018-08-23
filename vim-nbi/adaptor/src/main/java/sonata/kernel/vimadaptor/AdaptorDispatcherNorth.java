@@ -115,12 +115,26 @@ public class AdaptorDispatcherNorth implements Runnable {
     if (message.getTopic().endsWith("deploy")) {
  // Redirect VIM
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"deploy");
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+      if (vimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Vims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+      }
       // myThreadPool.execute(new DeployFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("scale")) {
  // Redirect VIM
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"scale");
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+      if (vimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Vims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+      }
       // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("remove")) {
       myThreadPool.execute(new RemoveFunctionCallProcessor(message, message.getSid(), northMux));
@@ -175,13 +189,27 @@ public class AdaptorDispatcherNorth implements Runnable {
  // Redirect VIM
       Logger.info("Received a \"service.remove\" API call on topic: " + message.getTopic());
       ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"remove");
-      myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+      if (vimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Vims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+      }
       // myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("prepare")) {
  // Redirect VIM 
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
 	  ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"prepare");
-	  myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+	  if (vimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Vims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+      }
      // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());

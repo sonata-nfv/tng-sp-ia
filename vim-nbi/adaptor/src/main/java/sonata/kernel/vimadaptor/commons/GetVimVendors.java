@@ -282,7 +282,7 @@ public class GetVimVendors {
 				rs = stmt.executeQuery();
 
 				if (rs.next()) {
-					String vendorString = rs.getString("VENDOR").toUpperCase();
+					String vendorString = rs.getString("VENDOR").toLowerCase();
 					if (!vimVendors.contains(vendorString)) {
 						vimVendors.add(vendorString);						
 					}
