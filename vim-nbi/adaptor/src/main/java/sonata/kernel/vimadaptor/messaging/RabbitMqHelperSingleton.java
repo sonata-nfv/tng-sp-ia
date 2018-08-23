@@ -111,14 +111,14 @@ public class RabbitMqHelperSingleton {
       southChannel.queueDeclare(southQueueName, true, false, false, null);
       Logger.info("Binding queue to topics...");
 
-      //northChannel.queueBind(northQueueName, northExchangeName, "platform.management.plugin.register");
+      //southChannel.queueBind(southQueueName, southExchangeName, "platform.management.plugin.register");
       //Logger.info("Bound to topic \"platform.platform.management.plugin.register\"");
 
-      //northChannel.queueBind(northQueueName, northExchangeName, "platform.management.plugin.deregister");
+      //southChannel.queueBind(southQueueName, southExchangeName, "platform.management.plugin.deregister");
       //Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
 
-      northChannel.queueBind(northQueueName, northExchangeName, "infrastructure.#");
-      Logger.info("[northbound] RabbitMqConsumer - bound to topic \"infrastructure.#\"");
+      southChannel.queueBind(southQueueName, southExchangeName, "infrastructure.#");
+      Logger.info("[southbound] RabbitMqConsumer - bound to topic \"infrastructure.#\"");
 
 
     } catch (TimeoutException e) {

@@ -93,7 +93,7 @@ public class RabbitMqHelperSingleton {
       //Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
 
       channel.queueBind(queueName, exchangeName, "infrastructure.heat.#");
-      Logger.info("[northbound] RabbitMqConsumer - bound to topic \"infrastructure.heat.#\"");
+      Logger.info("[southbound] RabbitMqConsumer - bound to topic \"infrastructure.heat.#\"");
 
     } catch (TimeoutException e) {
       Logger.error(e.getMessage(), e);
