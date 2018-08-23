@@ -42,33 +42,30 @@ import java.util.concurrent.Executors;
 import java.util.ArrayList;
 
 
-public class AdaptorDispatcher implements Runnable {
+public class AdaptorDispatcherNorth implements Runnable {
 
-  private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdaptorDispatcher.class);
+  private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdaptorDispatcherNorth.class);
   private AdaptorCore core;
   private AdaptorMux northMux;
   private AdaptorMux southMux;
   private BlockingQueue<ServicePlatformMessage> myNorthQueue;
-  private BlockingQueue<ServicePlatformMessage> mySouthQueue;
   private Executor myThreadPool;
   private GetVimVendors getVimVendors;
 
   private boolean stop = false;
 
   /**
-   * Create an AdaptorDispatcher attached to the queue. CallProcessor will be bind to the provided
+   * Create an AdaptorDispatcherNorth attached to the queue. CallProcessor will be bind to the provided
    * northMux.
    * 
    * @param northQueue the queue the dispatcher is attached to
-   * @param southQueue the queue the dispatcher is attached to south
    * 
    * @param northMux the AdaptorMux the CallProcessors will be attached to
    * @param southMux the AdaptorMux the CallProcessors will be attached to south
    */
-  public AdaptorDispatcher(BlockingQueue<ServicePlatformMessage> northQueue, BlockingQueue<ServicePlatformMessage> southQueue,
-      AdaptorMux northMux, AdaptorMux southMux, AdaptorCore core) {
+  public AdaptorDispatcherNorth(BlockingQueue<ServicePlatformMessage> northQueue,
+                                AdaptorMux northMux, AdaptorMux southMux, AdaptorCore core) {
     this.myNorthQueue = northQueue;
-    this.mySouthQueue = southQueue;
     myThreadPool = Executors.newCachedThreadPool();
     this.northMux = northMux;
     this.southMux = southMux;
@@ -96,17 +93,6 @@ public class AdaptorDispatcher implements Runnable {
         } else if (isMonitoringMessage(message)) {
           this.handleMonitoringMessage(message);
         }
-
-
-      } catch (InterruptedException e) {
-        Logger.error(e.getMessage(), e);
-      }
-
-      try {
-        message = mySouthQueue.take();
-
-        // Processor for fw packets from Southbound interface to Northbound interface
-        myThreadPool.execute(new FwVimCallProcessor(message, message.getSid(), northMux));
 
       } catch (InterruptedException e) {
         Logger.error(e.getMessage(), e);

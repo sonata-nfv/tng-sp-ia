@@ -104,7 +104,8 @@ public class AdaptorCore {
     
   }
 
-  private AdaptorDispatcher dispatcher;
+  private AdaptorDispatcherNorth northDispatcher;
+  private AdaptorDispatcherSouth southDispatcher;
   private HeartBeat heartbeat;
   private AdaptorMux northMux;
   private AdaptorMux southMux;
@@ -127,11 +128,11 @@ public class AdaptorCore {
    * 
    * @param northMuxQueue A Java BlockingQueue for the AdaptorMux
    * @param southMuxQueue A Java BlockingQueue for the AdaptorMux for south
-   * @param northDispatcherQueue A Java BlockingQueue for the AdaptorDispatcher
-   * @param southDispatcherQueue A Java BlockingQueue for the AdaptorDispatcher for south
-   * @param northConsumer The consumer queuing messages in the dispatcher queue
+   * @param northDispatcherQueue A Java BlockingQueue for the AdaptorDispatcherNorth
+   * @param southDispatcherQueue A Java BlockingQueue for the AdaptorDispatcherNorth for south
+   * @param northConsumer The consumer queuing messages in the northDispatcher queue
    * @param northProducer The producer de-queuing messages from the mux queue
-   * @param southConsumer The consumer queuing messages in the dispatcher queue from south
+   * @param southConsumer The consumer queuing messages in the northDispatcher queue from south
    * @param southProducer The producer de-queuing messages from the mux queue for south
    * @param rate of the heart-beat in beat/s
    */
@@ -143,7 +144,8 @@ public class AdaptorCore {
                      AbstractMsgBusProducer southProducer, double rate) {
     this.northMux = new AdaptorMux(northMuxQueue);
     this.southMux = new AdaptorMux(southMuxQueue);
-    dispatcher = new AdaptorDispatcher(northDispatcherQueue, southDispatcherQueue, northMux, southMux,this);
+    northDispatcher = new AdaptorDispatcherNorth(northDispatcherQueue, northMux, southMux,this);
+    southDispatcher = new AdaptorDispatcherSouth(southDispatcherQueue, northMux, southMux);
     this.northConsumer = northConsumer;
     this.northProducer = northProducer;
     this.southConsumer = southConsumer;
@@ -180,8 +182,8 @@ public class AdaptorCore {
         new LinkedBlockingQueue<ServicePlatformMessage>();
     BlockingQueue<ServicePlatformMessage> southDispatcherQueue =
             new LinkedBlockingQueue<ServicePlatformMessage>();
-    dispatcher = new AdaptorDispatcher(northDispatcherQueue, southDispatcherQueue, northMux, southMux,this);
-
+    northDispatcher = new AdaptorDispatcherNorth(northDispatcherQueue, northMux, southMux,this);
+    southDispatcher = new AdaptorDispatcherSouth(southDispatcherQueue, northMux, southMux);
     // - Wrapper bay connection with the Database.
     VimRepo repo = new VimRepo();
     WrapperBay.getInstance().setRepo(repo);
@@ -289,7 +291,8 @@ public class AdaptorCore {
     southProducer.startProducing();
     southConsumer.startConsuming();
 
-    dispatcher.start();
+    northDispatcher.start();
+    southDispatcher.start();
 
     register();
     status = "RUNNING";
@@ -308,7 +311,8 @@ public class AdaptorCore {
     northConsumer.stopConsuming();
     southProducer.stopProducing();
     southConsumer.stopConsuming();
-    dispatcher.stop();
+    northDispatcher.stop();
+    southDispatcher.stop();
   }
 
   private void deregister() {
