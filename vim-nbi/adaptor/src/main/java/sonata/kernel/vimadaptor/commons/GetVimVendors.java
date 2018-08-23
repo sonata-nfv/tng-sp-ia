@@ -100,7 +100,7 @@ public class GetVimVendors {
 		Logger.info("Parsing payload...");
 		ServicePreparePayload payload = null;
 		ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-		ArrayList<String> vimUuids = null;
+		ArrayList<String> vimUuids = new ArrayList<String>();
 		ArrayList<String> vimVendors = null;
 
 		try {
@@ -110,7 +110,7 @@ public class GetVimVendors {
 	        for (VimPreDeploymentList vim : payload.getVimList()) {
                 vimUuids.add(vim.getUuid());
             }
-			if (vimUuids == null) {
+			if (vimUuids.isEmpty()) {
 				Logger.error("Error retrieving the Vims uuid");
 				
 				return null;
@@ -142,7 +142,7 @@ public class GetVimVendors {
         Logger.info("Parsing payload...");
         FunctionDeployPayload data = null;
         ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-        ArrayList<String> vimUuids = null;
+        ArrayList<String> vimUuids = new ArrayList<String>();
         ArrayList<String> vimVendors = null;
 
         try {
@@ -150,7 +150,7 @@ public class GetVimVendors {
             Logger.info("payload parsed");
             vimUuids.add(data.getVimUuid());
 
-            if (vimUuids == null) {
+            if (vimUuids.isEmpty()) {
                 Logger.error("Error retrieving the Vims uuid");
 
                 return null;
@@ -224,7 +224,7 @@ public class GetVimVendors {
         Logger.info("Parsing payload...");
         FunctionScalePayload data = null;
         ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-        ArrayList<String> vimUuids = null;
+        ArrayList<String> vimUuids = new ArrayList<String>();
         ArrayList<String> vimVendors = null;
 
         try {
@@ -232,7 +232,7 @@ public class GetVimVendors {
             Logger.info("payload parsed");
             vimUuids.add(data.getFunctionInstanceId());
 
-            if (vimUuids == null) {
+            if (vimUuids.isEmpty()) {
                 Logger.error("Error retrieving the Vims uuid");
 
                 return null;
@@ -260,7 +260,7 @@ public class GetVimVendors {
 	 */
 	private ArrayList<String> GetVimVendorsDB(ArrayList<String> vimUuids) {
 		  
-		ArrayList<String> vimVendors = null; 
+		ArrayList<String> vimVendors = new ArrayList<String>();
 		  
 		
 		Connection connection = null;
@@ -289,6 +289,10 @@ public class GetVimVendors {
 
 				}
 			}
+            if (vimVendors.isEmpty()) {
+                Logger.error("Error retrieving the Vims Type");
+                vimVendors = null;
+            }
 		} catch (SQLException e) {
 			Logger.error(e.getMessage());
 			vimVendors = null;
@@ -326,7 +330,7 @@ public class GetVimVendors {
         Connection connection = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        ArrayList<String> uuids = null;
+        ArrayList<String> uuids = new ArrayList<String>();
 
         try {
             Class.forName("org.postgresql.Driver");
@@ -345,7 +349,10 @@ public class GetVimVendors {
             while (rs.next()) {
                 uuids.add(rs.getString("VIM_UUID"));
             }
-
+            if (uuids.isEmpty()) {
+                Logger.error("Error retrieving the uuids");
+                uuids = null;
+            }
         } catch (SQLException e) {
             Logger.error(e.getMessage());
             uuids = null;
