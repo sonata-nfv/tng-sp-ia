@@ -105,7 +105,7 @@ public class RabbitMqHelperSingleton {
       scf.setUri(brokerConfig.getProperty("broker_url"));
       southConnection = scf.newConnection();
       southChannel = southConnection.createChannel();
-      southExchangeName = brokerConfig.getProperty("exchange");
+      southExchangeName = brokerConfig.getProperty("exchange") + "-" + "ia";
       southChannel.exchangeDeclare(southExchangeName, "topic");
       southQueueName = southExchangeName + "." + "Wrappers";
       southChannel.queueDeclare(southQueueName, true, false, false, null);

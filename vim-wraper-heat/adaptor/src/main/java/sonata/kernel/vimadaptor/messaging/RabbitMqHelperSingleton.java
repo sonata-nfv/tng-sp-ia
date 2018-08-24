@@ -80,7 +80,7 @@ public class RabbitMqHelperSingleton {
       cf.setUri(brokerConfig.getProperty("broker_url"));
       connection = cf.newConnection();
       channel = connection.createChannel();
-      exchangeName = brokerConfig.getProperty("exchange");
+      exchangeName = brokerConfig.getProperty("exchange") + "-" + "ia";
       channel.exchangeDeclare(exchangeName, "topic");
       queueName = exchangeName + "." + "HeatWrapper";
       channel.queueDeclare(queueName, true, false, false, null);
