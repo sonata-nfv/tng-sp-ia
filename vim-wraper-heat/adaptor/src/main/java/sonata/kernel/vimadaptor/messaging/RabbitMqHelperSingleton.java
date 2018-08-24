@@ -82,7 +82,7 @@ public class RabbitMqHelperSingleton {
       channel = connection.createChannel();
       exchangeName = brokerConfig.getProperty("exchange");
       channel.exchangeDeclare(exchangeName, "topic");
-      queueName = exchangeName + "." + "Wrapers";
+      queueName = exchangeName + "." + "HeatWrapper";
       channel.queueDeclare(queueName, true, false, false, null);
       Logger.info("Binding queue to topics...");
 

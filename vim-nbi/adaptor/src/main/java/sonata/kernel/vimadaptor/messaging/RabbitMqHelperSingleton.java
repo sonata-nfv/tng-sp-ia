@@ -107,7 +107,7 @@ public class RabbitMqHelperSingleton {
       southChannel = southConnection.createChannel();
       southExchangeName = brokerConfig.getProperty("exchange");
       southChannel.exchangeDeclare(southExchangeName, "topic");
-      southQueueName = southExchangeName + "." + "Wrapers";
+      southQueueName = southExchangeName + "." + "Wrappers";
       southChannel.queueDeclare(southQueueName, true, false, false, null);
       Logger.info("Binding queue to topics...");
 
