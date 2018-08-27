@@ -137,7 +137,17 @@ public class AdaptorDispatcherNorth implements Runnable {
       }
       // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("remove")) {
-      myThreadPool.execute(new RemoveFunctionCallProcessor(message, message.getSid(), northMux));
+      // Redirect VIM
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"scale");
+      if (vimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Vims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+      }
+      //myThreadPool.execute(new RemoveFunctionCallProcessor(message, message.getSid(), northMux));
     }
   }
 

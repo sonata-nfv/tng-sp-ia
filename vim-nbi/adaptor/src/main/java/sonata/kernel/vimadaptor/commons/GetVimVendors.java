@@ -76,8 +76,10 @@ public class GetVimVendors {
             return this.GetVimVendorsPrepare(message);
         } else if (topic.equals("deploy")) {
             return this.GetVimVendorsDeploy(message);
-        } else if (topic.equals("remove")) {
-            return this.GetVimVendorsRemove(message);
+        } else if (topic.equals("function.remove")) {
+            return this.GetVimVendorsFRemove(message);
+        } else if (topic.equals("service.remove")) {
+            return this.GetVimVendorsSRemove(message);
         } else if (topic.equals("scale")) {
             return this.GetVimVendorsScale(message);
 		} else {
@@ -89,7 +91,7 @@ public class GetVimVendors {
 	/**
 	 * Retrieve the vim Vendors from the info in the message received for service prepare.
 	 * 
-	 * @param message the message received from RebbitMQ
+	 * @param message the message received from RabbitMQ
 	 *
 	 * @return the list of vim Vendors or null 
 	 */
@@ -131,7 +133,7 @@ public class GetVimVendors {
     /**
      * Retrieve the vim Vendors from the info in the message received for service deploy.
      *
-     * @param message the message received from RebbitMQ
+     * @param message the message received from RabbitMQ
      *
      * @return the list of vim Vendors or null
      */
@@ -172,11 +174,11 @@ public class GetVimVendors {
     /**
      * Retrieve the vim Vendors from the info in the message received for service remove.
      *
-     * @param message the message received from RebbitMQ
+     * @param message the message received from RabbitMQ
      *
      * @return the list of vim Vendors or null
      */
-    private ArrayList<String> GetVimVendorsRemove(ServicePlatformMessage message) {
+    private ArrayList<String> GetVimVendorsSRemove(ServicePlatformMessage message) {
 
         Logger.info("Call received - sid: " + message.getSid());
         // process json message to get the service UUID from the request body
@@ -211,9 +213,50 @@ public class GetVimVendors {
     }
 
     /**
+     * Retrieve the vim Vendors from the info in the message received for function remove.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsFRemove(ServicePlatformMessage message) {
+
+        Logger.info("Call received - sid: " + message.getSid());
+        // process json message to get the service UUID from the request body
+        Logger.info("Process payload...");
+        FunctionRemovePayload data = null;
+        ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+        ArrayList<String> vimUuids = new ArrayList<String>();
+        ArrayList<String> vimVendors = null;
+
+        try {
+            data = mapper.readValue(message.getBody(), FunctionRemovePayload.class);
+            Logger.info("payload parsed");
+            vimUuids.add(data.getVimUuid());
+
+            if (vimUuids.isEmpty()) {
+                Logger.error("Error retrieving the Vims uuid");
+
+                return null;
+            }
+            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+
+            // Get the types from db
+            vimVendors = this.GetVimVendorsDB(vimUuids);
+
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
+
+            return null;
+        }
+
+        return vimVendors;
+    }
+
+    /**
      * Retrieve the vim Vendors from the info in the message received for service scale.
      *
-     * @param message the message received from RebbitMQ
+     * @param message the message received from RabbitMQ
      *
      * @return the list of vim Vendors or null
      */
