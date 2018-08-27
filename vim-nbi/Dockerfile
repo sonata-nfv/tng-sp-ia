@@ -1,7 +1,8 @@
 FROM maven:3.5.2-jdk-8
 MAINTAINER D.Valocchi <d.valocchi@ucl.ac.uk>
 
-RUN apt-get update && apt-get upgrade --no-install-recommends -y && apt-get install --no-install-recommends -y \
+#RUN apt-get update && apt-get upgrade --no-install-recommends -y && apt-get install --no-install-recommends -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
 #  python-pip \
 #  python-dev \
 #  build-essential \
