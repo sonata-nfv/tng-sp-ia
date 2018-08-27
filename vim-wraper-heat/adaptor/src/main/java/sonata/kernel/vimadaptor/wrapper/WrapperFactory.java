@@ -28,12 +28,7 @@ package sonata.kernel.vimadaptor.wrapper;
 
 import org.slf4j.LoggerFactory;
 
-import sonata.kernel.vimadaptor.wrapper.mock.ComputeMockWrapper;
-import sonata.kernel.vimadaptor.wrapper.mock.NetworkMockWrapper;
 import sonata.kernel.vimadaptor.wrapper.openstack.OpenStackHeatWrapper;
-import sonata.kernel.vimadaptor.wrapper.ovsWrapper.OvsWrapper;
-import sonata.kernel.vimadaptor.wrapper.sp.ComputeSPWrapper;
-import sonata.kernel.vimadaptor.wrapper.sp.NetworkSPWrapper;
 
 public class WrapperFactory {
 
@@ -52,10 +47,7 @@ public class WrapperFactory {
       Logger.debug("Factory - Creating Compute Wrapper.");
       output = createComputeWrapper(config);
     }
-    if (config.getWrapperType().equals(WrapperType.NETWORK)) {
-      Logger.debug("Factory - Creating Network Wrapper.");
-      output = createNetworkWrapper(config);
-    }
+
     if (config.getWrapperType().equals(WrapperType.STORAGE)) {
       Logger.debug("Factory - Creating Storage Wrapper.");
       output = createStorageWrapper(config);
@@ -72,12 +64,8 @@ public class WrapperFactory {
   private static ComputeWrapper createComputeWrapper(WrapperConfiguration config) {
     ComputeWrapper output = null;
 
-    if (config.getVimVendor().equals(ComputeVimVendor.MOCK)) {
-      output = new ComputeMockWrapper(config);
-    } else if (config.getVimVendor().equals(ComputeVimVendor.HEAT)) {
+    if (config.getVimVendor().equals(ComputeVimVendor.HEAT)) {
       output = new OpenStackHeatWrapper(config);
-    } else if (config.getVimVendor().equals(ComputeVimVendor.SPVIM)) {
-      output = new ComputeSPWrapper(config);
     }
     // TODO Extends with all wrappers or refactor with a more OO type
     // generation
@@ -85,17 +73,6 @@ public class WrapperFactory {
     return output;
   }
 
-  private static NetworkWrapper createNetworkWrapper(WrapperConfiguration config) {
-    NetworkWrapper output = null;
-    if (config.getVimVendor().equals(NetworkVimVendor.OVS)) {
-      output = new OvsWrapper(config);
-    } else if (config.getVimVendor().equals(NetworkVimVendor.NETWORKMOCK)) {
-      output = new NetworkMockWrapper(config);
-    } else if (config.getVimVendor().equals(NetworkVimVendor.SPVIM)) {
-      output = new NetworkSPWrapper(config);
-    }
-    return output;
-  }
 
   private static StorageWrapper createStorageWrapper(WrapperConfiguration config) {
     return null;
