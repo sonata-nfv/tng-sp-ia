@@ -1,12 +1,10 @@
 [![Build Status](http://jenkins.sonata-nfv.eu/buildStatus/icon?job=son-sp-infrabstract-vim)](http://jenkins.sonata-nfv.eu/job/son-sp-infrabstract-vim)
 
-# VIM Adaptor
-The VIM Adaptor is the component of the Infrastructure Abstraction Layer responsible to offer the functionalities of the underlying Virtual Infrastructure Managers to the SONATA Service Platform (SP) modules in a vendor-independent way.
-The adaptor can be used to attach virtual infrastructure points of presence (PoP), managed by a VIM. Once the VIM is attached to the SP, it can be used to deploy network services. 
-VIM from different vendors are connected to the VIM Adaptor using specific VIM Wrapper entities, which are in charge of executing VIM specific tasks that map to the generic functionalities exported to the SP. The integration between southbound interface of the adaptor and the VIM is therefore a responsibility of the Wrapper developer, when it comes to specify the medium and technologies used by adaptor and the VIM to interact, and of the SP operator, when it comes to configure credentials and endpoints to establish the connection. A repository is used to store the registered VIMs configuration and the VIM-dependant information on the deployed and running network services.
+# VIM Wrapper HEAT
+VIM from different vendors are connected to the VIM NBI using specific VIM Wrapper entities, which are in charge of executing VIM specific tasks that map to the generic functionalities exported to the SP. The integration between southbound interface of the wrapper and the VIM is therefore a responsibility of the Wrapper developer, when it comes to specify the medium and technologies used by wrapper and the VIM to interact, and of the SP operator, when it comes to configure credentials and endpoints to establish the connection. A repository is used to store the registered VIMs configuration and the VIM-dependant information on the deployed and running network services.
 
 ### Building
-* You can run 'docker build -t vim-adaptor .' in this folder to build the self-contained docker image of the VIM-adaptor 
+* You can run 'docker build -t vim-wraper-heat .' in this folder to build the self-contained docker image of the VIM-wrapper-heat 
 
 If you prefer to manually build the source code, please consider the following:
 
@@ -38,19 +36,14 @@ If you prefer to manually build the source code, please consider the following:
   * [libcurl4-gnutls-dev](http://packages.ubuntu.com/trusty/libcurl4-gnutls-dev)
   * [build-essential](http://packages.ubuntu.com/precise/build-essential)
 
-### Contributing
-
-You can contribute to this repository extending the set VIM supported by the adaptor.
-The VIM Adaptor architecture is based on VIM wrappers that implement technology dependant processes for deploying and managing VNFs. 
-You can extend the set of available VIM wrappers creating a subpackage of sonata.kernel.VimAdaptor.wrapper and extending the interfaces therein. 
 
 ## Usage
 
-This sofware exposes its API through an AMPQ interface implemented with Rabbitmq. In order to use it, the VIM adaptor must be connected to a message broker. Configuration for the connection can be set in ./Dockerfile for docker use, and in broker.config for direct use.
+This sofware exposes its API through an AMPQ interface implemented with Rabbitmq. In order to use it, the VIM Wrapper HEAT must be connected to a message broker. Configuration for the connection can be set in ./Dockerfile for docker use, and in broker.config for direct use.
 
 ### Test
 
-You can run Unit and Module tests using docker compose. Just run in `son-sp-infrabstract/vim-adaptor/`:
+You can run Unit and Module tests using docker compose. Just run in `son-sp-infrabstract/vim-wraper-heat/`:
 
 `docker-compose -f docker-compose-test.yml build`
 `docker-compose -f docker-compose-test.yml up`
@@ -76,10 +69,6 @@ This Software is published under Apache 2.0 license. Please see the LICENSE file
 #### Lead Developers
 
 The following lead developers are responsible for this repository and have admin rights. They can, for example, merge pull requests.
-
-* [Dario Valocchi](https://github.com/DarioValocchi) 
-
-#### Feedback-Channel
 
 
 * You may use the mailing list [sonata-dev@lists.atosresearch.eu](mailto:sonata-dev@lists.atosresearch.eu)
