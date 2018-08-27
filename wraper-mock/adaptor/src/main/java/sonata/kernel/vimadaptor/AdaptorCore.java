@@ -54,9 +54,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class AdaptorCore {
 
-  public static final String APP_ID = "sonata.kernel.WrapperHeat";
+  public static final String APP_ID = "sonata.kernel.WrapperMock";
   private static AdaptorCore core;
-  private static final String description = "VIM Wrapper for Heat";
+  private static final String description = "Wrapper for Mock";
   private static final org.slf4j.Logger Logger = LoggerFactory.getLogger(AdaptorCore.class);
   private static final String version = "0.0.1";
   private static final int writeLockCoolDown = 100000;
