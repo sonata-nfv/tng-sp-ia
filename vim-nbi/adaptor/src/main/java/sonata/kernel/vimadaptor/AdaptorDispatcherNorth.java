@@ -138,7 +138,7 @@ public class AdaptorDispatcherNorth implements Runnable {
       // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("remove")) {
       // Redirect VIM
-      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"scale");
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"function.remove");
       if (vimVendors == null) {
         this.northMux.enqueue(new ServicePlatformMessage(
                 "{\"request_status\":\"ERROR\",\"message\":\""
@@ -198,7 +198,7 @@ public class AdaptorDispatcherNorth implements Runnable {
     } else if (message.getTopic().endsWith("remove")) {
  // Redirect VIM
       Logger.info("Received a \"service.remove\" API call on topic: " + message.getTopic());
-      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"remove");
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"service.remove");
       if (vimVendors == null) {
         this.northMux.enqueue(new ServicePlatformMessage(
                 "{\"request_status\":\"ERROR\",\"message\":\""
