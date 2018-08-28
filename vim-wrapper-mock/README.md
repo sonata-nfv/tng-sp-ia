@@ -4,7 +4,7 @@
 VIM from different vendors are connected to the VIM NBI using specific VIM Wrapper entities, which are in charge of executing VIM specific tasks that map to the generic functionalities exported to the SP. The integration between southbound interface of the wrapper and the VIM is therefore a responsibility of the Wrapper developer, when it comes to specify the medium and technologies used by wrapper and the VIM to interact, and of the SP operator, when it comes to configure credentials and endpoints to establish the connection. A repository is used to store the registered VIMs configuration and the VIM-dependant information on the deployed and running network services.
 
 ### Building
-* You can run 'docker build -t vim-wraper-mock .' in this folder to build the self-contained docker image of the vim-wrapper-mock 
+* You can run 'docker build -t vim-wrapper-mock .' in this folder to build the self-contained docker image of the vim-wrapper-mock 
 
 If you prefer to manually build the source code, please consider the following:
 
