@@ -252,11 +252,11 @@
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.classic.version}</version>
 		</dependency>
-		<dependency>
+		<!--dependency>
 			<groupId>com.nokia.cb.sonata.mistral-client</groupId>
 			<artifactId>mistral-client</artifactId>
 			<version>${nokia.mistral-client.version}</version>
-		</dependency>
+		</dependency -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
