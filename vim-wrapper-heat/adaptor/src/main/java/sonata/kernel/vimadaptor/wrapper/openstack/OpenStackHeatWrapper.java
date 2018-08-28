@@ -914,16 +914,11 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       System.exit(1);
     }
 
-    OpenStackMistralClient mistralClient =
-        new OpenStackMistralClient(mistralUrl, getConfig().getVimEndpoint().toString(),
-            getConfig().getAuthUserName(), getConfig().getAuthPass(), getTenant());
-
     String stackUuid = WrapperBay.getInstance().getVimRepo()
         .getServiceInstanceVimUuid(data.getServiceInstanceId(), this.getConfig().getUuid());
 
     Logger.info("Scaling stack");
     // TODO - smendel - need to get the number of required instances from each vdu
-    mistralClient.scaleStack(stackUuid, "");
     // TODO - smendel - get execution result, if needed use polling - see deployFunction
 
     Logger.info("Creating function scale response");
