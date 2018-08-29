@@ -174,15 +174,15 @@ public class AdaptorDispatcher implements Runnable {
   }
 
   private boolean isFunctionMessage(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.mock.function");
+    return (message.getTopic().contains("infrastructure.mock.function") || message.getTopic().contains("infrastructure.networkmock.function"));
   }
 
   private boolean isManagementMsg(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.mock.management");
+    return (message.getTopic().contains("infrastructure.mock.management") || message.getTopic().contains("infrastructure.networkmock.management"));
   }
 
   private boolean isMonitoringMessage(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.mock.monitoring");
+    return (message.getTopic().contains("infrastructure.mock.monitoring") || message.getTopic().contains("infrastructure.networkmock.monitoring"));
   }
 
   private boolean isRegistrationResponse(ServicePlatformMessage message) {
@@ -191,6 +191,6 @@ public class AdaptorDispatcher implements Runnable {
   }
 
   private boolean isServiceMsg(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.mock.service");
+    return (message.getTopic().contains("infrastructure.mock.service") || message.getTopic().contains("infrastructure.networkmock.service"));
   }
 }

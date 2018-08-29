@@ -95,6 +95,9 @@ public class RabbitMqHelperSingleton {
       channel.queueBind(queueName, exchangeName, "infrastructure.mock.#");
       Logger.info("[southbound] RabbitMqConsumer - bound to topic \"infrastructure.mock.#\"");
 
+      channel.queueBind(queueName, exchangeName, "infrastructure.networkmock.#");
+      Logger.info("[southbound] RabbitMqConsumer - bound to topic \"infrastructure.networkmock.#\"");
+
     } catch (TimeoutException e) {
       Logger.error(e.getMessage(), e);
     } catch (KeyManagementException e) {
