@@ -1,8 +1,8 @@
 version: '2'
 services:
-  vim-wraper-heat:
+  vim-wraper-mock:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: vim-wraper-heat 
+    image: vim-wraper-mock 
     entrypoint: /test.sh
     links:
      - postgres

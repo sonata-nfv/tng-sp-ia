@@ -1,8 +1,8 @@
 version: '2'
 services:
-  vim-wraper-heat:
+  vim-wraper-ovs:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: vim-wraper-heat 
+    image: vim-wraper-ovs 
     entrypoint: /test.sh
     links:
      - postgres

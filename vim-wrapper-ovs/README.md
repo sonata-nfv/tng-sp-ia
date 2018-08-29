@@ -1,10 +1,10 @@
 [![Build Status](http://jenkins.sonata-nfv.eu/buildStatus/icon?job=son-sp-infrabstract-vim)](http://jenkins.sonata-nfv.eu/job/son-sp-infrabstract-vim)
 
-# VIM Wrapper HEAT
+# VIM Wrapper OVS
 VIM from different vendors are connected to the VIM NBI using specific VIM Wrapper entities, which are in charge of executing VIM specific tasks that map to the generic functionalities exported to the SP. The integration between southbound interface of the wrapper and the VIM is therefore a responsibility of the Wrapper developer, when it comes to specify the medium and technologies used by wrapper and the VIM to interact, and of the SP operator, when it comes to configure credentials and endpoints to establish the connection. A repository is used to store the registered VIMs configuration and the VIM-dependant information on the deployed and running network services.
 
 ### Building
-* You can run 'docker build -t vim-wrapper-heat .' in this folder to build the self-contained docker image of the VIM-wrapper-heat 
+* You can run 'docker build -t vim-wrapper-ovs .' in this folder to build the self-contained docker image of the VIM-wrapper-ovs 
 
 If you prefer to manually build the source code, please consider the following:
 
@@ -39,11 +39,11 @@ If you prefer to manually build the source code, please consider the following:
 
 ## Usage
 
-This sofware exposes its API through an AMPQ interface implemented with Rabbitmq. In order to use it, the VIM Wrapper HEAT must be connected to a message broker. Configuration for the connection can be set in ./Dockerfile for docker use, and in broker.config for direct use.
+This sofware exposes its API through an AMPQ interface implemented with Rabbitmq. In order to use it, the VIM Wrapper OVS must be connected to a message broker. Configuration for the connection can be set in ./Dockerfile for docker use, and in broker.config for direct use.
 
 ### Test
 
-You can run Unit and Module tests using docker compose. Just run in `son-sp-infrabstract/vim-wrapper-heat/`:
+You can run Unit and Module tests using docker compose. Just run in `son-sp-infrabstract/vim-wrapper-ovs/`:
 
 `docker-compose -f docker-compose-test.yml build`
 `docker-compose -f docker-compose-test.yml up`
