@@ -222,11 +222,31 @@ public class AdaptorDispatcherNorth implements Runnable {
       }
      // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
+ // Redirect VIM
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), northMux));
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"chain.deconfigure");
+      if (vimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Vims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+      }
+      //myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.configure")) {
+ // Redirect VIM
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new ConfigureNetworkCallProcessor(message, message.getSid(), northMux));
+      ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message,"chain.configure");
+      if (vimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Vims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+      }
+      //myThreadPool.execute(new ConfigureNetworkCallProcessor(message, message.getSid(), northMux));
     }
   }
 

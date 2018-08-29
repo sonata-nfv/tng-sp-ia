@@ -82,6 +82,10 @@ public class GetVimVendors {
             return this.GetVimVendorsSRemove(message);
         } else if (topic.equals("scale")) {
             return this.GetVimVendorsScale(message);
+        } else if (topic.equals("chain.configure")) {
+            return this.GetVimVendorsCConfigure(message);
+        } else if (topic.equals("chain.deconfigure")) {
+            return this.GetVimVendorsCDeconfigure(message);
 		} else {
 			return null;
 		}
@@ -172,47 +176,6 @@ public class GetVimVendors {
     }
 
     /**
-     * Retrieve the vim Vendors from the info in the message received for service remove.
-     *
-     * @param message the message received from RabbitMQ
-     *
-     * @return the list of vim Vendors or null
-     */
-    private ArrayList<String> GetVimVendorsSRemove(ServicePlatformMessage message) {
-
-        Logger.info("Call received - sid: " + message.getSid());
-        // process json message to get the service UUID from the request body
-        Logger.info("Process payload...");
-        JSONTokener tokener = new JSONTokener(message.getBody());
-        JSONObject jsonObject = (JSONObject) tokener.nextValue();
-        String instanceUuid = jsonObject.getString("instance_uuid");
-
-        ArrayList<String> vimUuids = null;
-        ArrayList<String> vimVendors = null;
-
-        try {
-            vimUuids = getComputeVimUuidFromInstance(instanceUuid);
-
-            if (vimUuids == null) {
-                Logger.error("Error retrieving the Vims uuid");
-
-                return null;
-            }
-            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
-
-            // Get the types from db
-            vimVendors = this.GetVimVendorsDB(vimUuids);
-
-        } catch (Exception e) {
-            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
-
-            return null;
-        }
-
-        return vimVendors;
-    }
-
-    /**
      * Retrieve the vim Vendors from the info in the message received for function remove.
      *
      * @param message the message received from RabbitMQ
@@ -235,6 +198,48 @@ public class GetVimVendors {
             vimUuids.add(data.getVimUuid());
 
             if (vimUuids.isEmpty()) {
+                Logger.error("Error retrieving the Vims uuid");
+
+                return null;
+            }
+            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+
+            // Get the types from db
+            vimVendors = this.GetVimVendorsDB(vimUuids);
+
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
+
+            return null;
+        }
+
+        return vimVendors;
+    }
+
+
+    /**
+     * Retrieve the vim Vendors from the info in the message received for service remove.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsSRemove(ServicePlatformMessage message) {
+
+        Logger.info("Call received - sid: " + message.getSid());
+        // process json message to get the service UUID from the request body
+        Logger.info("Process payload...");
+        JSONTokener tokener = new JSONTokener(message.getBody());
+        JSONObject jsonObject = (JSONObject) tokener.nextValue();
+        String instanceUuid = jsonObject.getString("instance_uuid");
+
+        ArrayList<String> vimUuids = null;
+        ArrayList<String> vimVendors = null;
+
+        try {
+            vimUuids = getComputeVimUuidFromInstance(instanceUuid);
+
+            if (vimUuids == null) {
                 Logger.error("Error retrieving the Vims uuid");
 
                 return null;
@@ -294,6 +299,90 @@ public class GetVimVendors {
         return vimVendors;
     }
 
+    /**
+     * Retrieve the vim Vendors from the info in the message received for service chain configure.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsCConfigure(ServicePlatformMessage message) {
+
+        Logger.info("Call received - sid: " + message.getSid());
+        // process json message to get the service UUID from the request body
+        Logger.info("Process payload...");
+        NetworkConfigurePayload data = null;
+        ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+        ArrayList<String> vimUuids = null;
+        ArrayList<String> vimVendors = null;
+
+        try {
+            data = mapper.readValue(message.getBody(), NetworkConfigurePayload.class);
+            Logger.info("payload parsed");
+            String serviceInstaceId = data.getServiceInstanceId();
+            vimUuids = getNetworkVimUuidFromInstance(serviceInstaceId);
+
+            if (vimUuids == null) {
+                Logger.error("Error retrieving the Vims uuid");
+
+                return null;
+            }
+            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+
+            // Get the types from db
+            vimVendors = this.GetVimVendorsDB(vimUuids);
+
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
+
+            return null;
+        }
+
+        return vimVendors;
+    }
+
+    /**
+     * Retrieve the vim Vendors from the info in the message received for service chain deconfigure.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsCDeconfigure(ServicePlatformMessage message) {
+
+        Logger.info("Call received - sid: " + message.getSid());
+        // process json message to get the service UUID from the request body
+        Logger.info("Process payload...");
+        NetworkDeconfigurePayload data = null;
+        ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+        ArrayList<String> vimUuids = null;
+        ArrayList<String> vimVendors = null;
+
+        try {
+            data = mapper.readValue(message.getBody(), NetworkDeconfigurePayload.class);
+            Logger.info("payload parsed");
+            String serviceInstaceId = data.getServiceInstanceId();
+            vimUuids = getNetworkVimUuidFromInstance(serviceInstaceId);
+
+            if (vimUuids == null) {
+                Logger.error("Error retrieving the Vims uuid");
+
+                return null;
+            }
+            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+
+            // Get the types from db
+            vimVendors = this.GetVimVendorsDB(vimUuids);
+
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
+
+            return null;
+        }
+
+        return vimVendors;
+    }
+
 	/**
 	 * Retrieve the vim Vendors from the vim uuids consulting the DB.
 	 * 
@@ -333,7 +422,7 @@ public class GetVimVendors {
 				}
 			}
             if (vimVendors.isEmpty()) {
-                Logger.error("Error retrieving the Vims Type");
+                Logger.error("Error retrieving the Vims Vendor");
                 vimVendors = null;
             }
 		} catch (SQLException e) {
@@ -366,7 +455,7 @@ public class GetVimVendors {
      * Return a list of the compute VIMs hosting at least one VNFs of the given Service Instance.
      *
      * @param instanceUuid the UUID that identifies the Service Instance
-     * @return an array of String objecst representing the UUID of the VIMs
+     * @return an array of String objecst representing the UUID of the Compute VIMs
      */
     private ArrayList<String> getComputeVimUuidFromInstance(String instanceUuid) {
 
@@ -393,7 +482,7 @@ public class GetVimVendors {
                 uuids.add(rs.getString("VIM_UUID"));
             }
             if (uuids.isEmpty()) {
-                Logger.error("Error retrieving the uuids");
+                Logger.error("Error retrieving the Cumpute Vims Uuids");
                 uuids = null;
             }
         } catch (SQLException e) {
@@ -423,5 +512,88 @@ public class GetVimVendors {
         return uuids;
 
     }
+
+    /**
+     * Return a list of the network VIMs hosting at least one VNFs of the given Service Instance.
+     *
+     * @param instanceUuid the UUID that identifies the Service Instance
+     * @return an array of String objecst representing the UUID of the Network VIMs
+     */
+    public ArrayList<String> getNetworkVimUuidFromInstance(String instanceUuid) {
+
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        ArrayList<String> computeVimUuids = null;
+        ArrayList<String> networkVimUuids = new ArrayList<String>();;
+        try {
+            computeVimUuids = getComputeVimUuidFromInstance(instanceUuid);
+
+            if (computeVimUuids == null) {
+                Logger.error("Error retrieving the Compute Vims uuid");
+
+                return null;
+            }
+
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Cumpute Vims Uuid: " + e.getMessage(), e);
+
+            return null;
+        }
+
+        try {
+            Class.forName("org.postgresql.Driver");
+            connection =
+                    DriverManager.getConnection(
+                            "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                                    + prop.getProperty("repo_port") + "/" + "vimregistry",
+                            prop.getProperty("user"), prop.getProperty("pass"));
+            connection.setAutoCommit(false);
+
+            for (String computeVimUuid : computeVimUuids) {
+                stmt = connection.prepareStatement(
+                        "SELECT vim.UUID FROM vim,link_vim WHERE vim.UUID=LINK_VIM.NETWORKING_UUID AND LINK_VIM.COMPUTE_UUID=?;");
+                stmt.setString(1, computeVimUuid);
+                rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    networkVimUuids.add(rs.getString("UUID"));
+
+                }
+            }
+
+            if (networkVimUuids.isEmpty()) {
+                Logger.error("Error retrieving the Network Vim Uuids");
+                networkVimUuids = null;
+            }
+
+        } catch (SQLException e) {
+            Logger.error(e.getMessage());
+            networkVimUuids = null;
+        } catch (ClassNotFoundException e) {
+            Logger.error(e.getMessage(), e);
+            networkVimUuids = null;
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                Logger.error(e.getMessage());
+                networkVimUuids = null;
+
+            }
+        }
+
+        return networkVimUuids;
+
+    }
+
 
 }
