@@ -58,7 +58,7 @@ public class VimRepo {
   public VimRepo() {
     this.prop = this.parseConfigFile();
 
-    Connection connection = null;
+/*    Connection connection = null;
     Statement findDatabaseStmt = null;
     PreparedStatement findTablesStmt = null;
     Statement createDatabaseStmt = null;
@@ -179,7 +179,7 @@ public class VimRepo {
       Logger.info("Environment created successfully");
     } else {
       Logger.info("Errors creating the environment");
-    }
+    }*/
     return;
   }
 
