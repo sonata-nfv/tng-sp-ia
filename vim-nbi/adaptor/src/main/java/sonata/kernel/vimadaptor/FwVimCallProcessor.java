@@ -63,6 +63,7 @@ public class FwVimCallProcessor extends AbstractCallProcessor {
       Logger.info(
           message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
 
+      message.setTopic(message.getTopic().replace("nbi.",""));
       this.sendToMux(message);
     } catch (Exception e) {
       Logger.error("Error redirecting the message: " + e.getMessage(), e);

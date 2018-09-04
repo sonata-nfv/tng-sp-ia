@@ -117,8 +117,8 @@ public class RabbitMqHelperSingleton {
       //southChannel.queueBind(southQueueName, southExchangeName, "platform.management.plugin.deregister");
       //Logger.info("Bound to topic \"platform.platform.management.plugin.deregister\"");
 
-      southChannel.queueBind(southQueueName, southExchangeName, "infrastructure.#");
-      Logger.info("[southbound] RabbitMqConsumer - bound to topic \"infrastructure.#\"");
+      southChannel.queueBind(southQueueName, southExchangeName, "nbi.#");
+      Logger.info("[southbound] RabbitMqConsumer - bound to topic \"nbi.#\"");
 
 
     } catch (TimeoutException e) {

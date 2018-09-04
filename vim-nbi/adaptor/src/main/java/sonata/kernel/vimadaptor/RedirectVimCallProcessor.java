@@ -68,6 +68,7 @@ public class RedirectVimCallProcessor extends AbstractCallProcessor {
       // Change topic to: "infrastructure.'vimVendor'.#" e.g. "infrastructure.heat.#"
       for (String vimVendor : vimVendors) {
         message.setTopic(message.getTopic().replace("infrastructure.","infrastructure."+vimVendor+"."));
+        message.setReplyTo("nbi." + message.getReplyTo());
         this.sendToMux(message);
       }
 
