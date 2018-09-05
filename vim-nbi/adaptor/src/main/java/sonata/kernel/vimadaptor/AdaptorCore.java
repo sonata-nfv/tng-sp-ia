@@ -39,6 +39,7 @@ import sonata.kernel.vimadaptor.messaging.RabbitMqConsumer;
 import sonata.kernel.vimadaptor.messaging.RabbitMqProducer;
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.vimadaptor.wrapper.VimRepo;
+import sonata.kernel.vimadaptor.wrapper.WimRepo;
 import sonata.kernel.vimadaptor.wrapper.WrapperBay;
 
 import java.io.FileInputStream;
@@ -150,8 +151,10 @@ public class AdaptorCore {
     this.northProducer = northProducer;
     this.southConsumer = southConsumer;
     this.southProducer = southProducer;
-    VimRepo repo = new VimRepo();
-    WrapperBay.getInstance().setVimRepo(repo);
+    VimRepo vimRepo = new VimRepo();
+    WrapperBay.getInstance().setVimRepo(vimRepo);
+    WimRepo wimRepo = new WimRepo();
+    WrapperBay.getInstance().setWimRepo(wimRepo);
     status = "READY";
     this.rate = rate;
     this.sonataProperties = parseConfigFile();
@@ -185,9 +188,10 @@ public class AdaptorCore {
     northDispatcher = new AdaptorDispatcherNorth(northDispatcherQueue, northMux, southMux,this);
     southDispatcher = new AdaptorDispatcherSouth(southDispatcherQueue, northMux, southMux);
     // - Wrapper bay connection with the Database.
-    VimRepo repo = new VimRepo();
-    WrapperBay.getInstance().setVimRepo(repo);
-
+    VimRepo vimRepo = new VimRepo();
+    WrapperBay.getInstance().setVimRepo(vimRepo);
+    WimRepo wimRepo = new WimRepo();
+    WrapperBay.getInstance().setWimRepo(wimRepo);
     // - Northbound interface
 
     this.northConsumer = new RabbitMqConsumer(northDispatcherQueue, "north");
