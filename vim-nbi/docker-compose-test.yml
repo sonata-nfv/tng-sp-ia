@@ -2,7 +2,7 @@ version: '2'
 services:
   vim-nbi:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: vim-nbi 
+    image: ia-nbi 
     entrypoint: /test.sh
     links:
      - postgres

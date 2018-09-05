@@ -1,17 +1,16 @@
 [![Build Status](http://jenkins.sonata-nfv.eu/buildStatus/icon?job=son-sp-infrabstract-vim)](http://jenkins.sonata-nfv.eu/job/son-sp-infrabstract-vim)
 
-# VIM NBI
-The VIM NBI is the component of the Infrastructure Abstraction Layer responsible to offer the functionalities of the underlying Virtual Infrastructure Managers to the SONATA Service Platform (SP) modules in a vendor-independent way.
+# IA NBI
+The IA NBI is the component of the Infrastructure Abstraction Layer responsible to offer the functionalities of the underlying Virtual Infrastructure Managers / WIM to the SONATA Service Platform (SP) modules in a vendor-independent way.
 The NBI can be used to attach virtual infrastructure points of presence (PoP), managed by a VIM. Once the VIM is attached to the SP, it can be used to deploy network services. 
-VIM from different vendors are connected to the VIM NBI using specific VIM Wrapper entities, which are in charge of executing VIM specific tasks that map to the generic functionalities exported to the SP. The integration between southbound interface of the wrapper and the VIM is therefore a responsibility of the Wrapper developer, when it comes to specify the medium and technologies used by wrapper and the VIM to interact, and of the SP operator, when it comes to configure credentials and endpoints to establish the connection. A repository is used to store the registered VIMs configuration and the VIM-dependant information on the deployed and running network services.
+VIM/WIM from different vendors are connected to the NBI using specific VIM/WIM Wrapper entities, which are in charge of executing VIM/WIM specific tasks that map to the generic functionalities exported to the SP. The integration between southbound interface of the wrapper and the VIM/WIM is therefore a responsibility of the Wrapper developer, when it comes to specify the medium and technologies used by wrapper and the VIM/WIM to interact, and of the SP operator, when it comes to configure credentials and endpoints to establish the connection. A repository is used to store the registered VIMs/WIMs configuration and the VIM/WIM -dependant information on the deployed and running network services.
 
 ### Building
-* You can run 'docker build -t vim-nbi .' in this folder to build the self-contained docker image of the VIM-NBI 
+* You can run 'docker build -t ia-nbi .' in this folder to build the self-contained docker image of the IA-NBI 
 
 If you prefer to manually build the source code, please consider the following:
 
 * This software is mainly organised as a maven project, so you can run 'mvn build assembly:single' in ./adaptor.
-* The OpenStack VIM wrapper makes use of python clients: you can see ./Dockerfile or "Dependencies" section of this README for the needed dependencies.
 * This software needs a PostgreSQL database to work. This can be easily provided using the PostgreSQL docker image.  Please check ./docker-compose-test.yml for the needed configuration.
 
 ### Dependencies
@@ -40,9 +39,9 @@ If you prefer to manually build the source code, please consider the following:
 
 ### Contributing
 
-You can contribute to this repository extending the set VIM support.
-The architecture is based on VIM wrappers that implement technology dependant processes for deploying and managing VNFs. 
-You can extend the set of available VIM wrappers creating a new package of the project, and in subpackage of sonata.kernel.VimAdaptor.wrapper creating the interfaces therein. 
+You can contribute to this repository extending the set VIM/WIM support.
+The architecture is based on VIM/WIM wrappers that implement technology dependant processes for deploying and managing VNFs. 
+You can extend the set of available VIM/WIM wrappers creating a new package of the project, and in subpackage of sonata.kernel.adaptor.wrapper creating the interfaces therein. 
 
 ## Usage
 
