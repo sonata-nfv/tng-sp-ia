@@ -84,10 +84,10 @@ public class AdaptorDispatcherNorth implements Runnable {
           this.core.handleRegistrationResponse(message);
         } else if (isDeregistrationResponse(message)) {
           this.core.handleDeregistrationResponse(message);
-        } else if (isManagementMsg(message)) {
-          handleManagementMessage(message);
         } else if (isWanMessage(message)) {
           handleWanMessage(message);
+        } else if (isManagementMsg(message)) {
+          handleManagementMessage(message);
         } else if (isServiceMsg(message)) {
           this.handleServiceMsg(message);
         } else if (isFunctionMessage(message)) {
