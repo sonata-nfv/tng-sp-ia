@@ -6,7 +6,7 @@
 	<artifactId>adaptor</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>SONATA VIM Infrastructure Adaptor</name>
+	<name>SONATA Infrastructure Adaptor</name>
 	<url>http://www.sonata-nfv.eu/</url>
 
 	<repositories>
@@ -81,7 +81,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>sonata.kernel.vimadaptor.AdaptorCore</mainClass>
+							<mainClass>sonata.kernel.adaptor.AdaptorCore</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
