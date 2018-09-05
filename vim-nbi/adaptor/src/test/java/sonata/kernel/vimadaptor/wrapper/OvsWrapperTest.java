@@ -34,7 +34,6 @@ import org.json.JSONTokener;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Test;
 
 import sonata.kernel.vimadaptor.AdaptorMux;
 import sonata.kernel.vimadaptor.ConfigureNetworkCallProcessor;
@@ -151,7 +150,7 @@ public class OvsWrapperTest {
   @Ignore
   public void testOvsWrapperSinglePoP() throws JsonProcessingException {
     VimRepo repoInstance = new VimRepo();
-    WrapperBay.getInstance().setRepo(repoInstance);
+    WrapperBay.getInstance().setVimRepo(repoInstance);
     String instanceId = data.getNsd().getInstanceUuid();
     String computeUuid1 = "1111-11111-1111";
     String netUuid1 = "aaaa-aaaaa-aaaa";
@@ -236,7 +235,7 @@ public class OvsWrapperTest {
 
     // TODO FIXME Edit this test to reflect the new NetworkWrapper interface.
     VimRepo repoInstance = new VimRepo();
-    WrapperBay.getInstance().setRepo(repoInstance);
+    WrapperBay.getInstance().setVimRepo(repoInstance);
     String instanceId = data.getNsd().getInstanceUuid();
     String computeUuid1 = "1111-11111-1111";
     String computeUuid2 = "2222-22222-2222";

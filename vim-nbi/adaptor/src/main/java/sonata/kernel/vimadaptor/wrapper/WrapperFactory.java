@@ -34,6 +34,7 @@ import sonata.kernel.vimadaptor.wrapper.openstack.OpenStackHeatWrapper;
 import sonata.kernel.vimadaptor.wrapper.ovsWrapper.OvsWrapper;
 import sonata.kernel.vimadaptor.wrapper.sp.ComputeSPWrapper;
 import sonata.kernel.vimadaptor.wrapper.sp.NetworkSPWrapper;
+import sonata.kernel.vimadaptor.wrapper.vtn.VtnWrapper;
 
 public class WrapperFactory {
 
@@ -66,6 +67,26 @@ public class WrapperFactory {
       Logger.debug("Factory - Unable to create wrapper.");
 
     }
+    return output;
+  }
+
+  /**
+   * Uses the parser configuration to create the relevant Wim Wrapper.
+   *
+   * @param config the WrapperConfiguration object describing the wrapper to create.
+   * @return the brand new wrapper
+   */
+  public static Wrapper createWimWrapper(WimWrapperConfiguration config) {
+    Wrapper output = null;
+    System.out.println("  [WrapperFactory] - creating wrapper...");
+
+    if (config.getWimVendor().equals(WimVendor.VTN)) {
+      output = new VtnWrapper(config);
+    } else if (config.getWimVendor().equals(WimVendor.MOCK)){
+      output = new WimMockWrapper(config);
+    }
+
+    System.out.println("  [WrapperFactory] - Wrapper created...");
     return output;
   }
 

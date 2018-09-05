@@ -86,6 +86,8 @@ public class AdaptorDispatcherNorth implements Runnable {
           this.core.handleDeregistrationResponse(message);
         } else if (isManagementMsg(message)) {
           handleManagementMessage(message);
+        } else if (isWanMessage(message)) {
+          handleWanMessage(message);
         } else if (isServiceMsg(message)) {
           this.handleServiceMsg(message);
         } else if (isFunctionMessage(message)) {
@@ -250,6 +252,24 @@ public class AdaptorDispatcherNorth implements Runnable {
     }
   }
 
+  private void handleWanMessage(ServicePlatformMessage message) {
+
+    if (message.getTopic().endsWith("wan.add")) {
+      myThreadPool.execute(new AddWimCallProcessor(message, message.getSid(), northMux));
+    } else if (message.getTopic().endsWith("wan.remove")) {
+      myThreadPool.execute(new RemoveWimCallProcessor(message, message.getSid(), northMux));
+    } else if (message.getTopic().endsWith("wan.list")) {
+      myThreadPool.execute(new ListWimCallProcessor(message, message.getSid(), northMux));
+    } else if (message.getTopic().endsWith("wan.attach")){
+      myThreadPool.execute(new AttachVimCallProcessor(message, message.getSid(), northMux));
+    } else if (message.getTopic().endsWith("wan.configure")) {
+      myThreadPool.execute(new ConfigureWimCallProcessor(message, message.getSid(), northMux));
+    }else if (message.getTopic().endsWith("wan.deconfigure")) {
+      myThreadPool.execute(new DeconfigureWimCallProcessor(message, message.getSid(), northMux));
+    }
+
+  }
+
   private boolean isDeregistrationResponse(ServicePlatformMessage message) {
     return message.getTopic().equals("platform.management.plugin.deregister")
         && message.getSid().equals(core.getRegistrationSid());
@@ -274,5 +294,9 @@ public class AdaptorDispatcherNorth implements Runnable {
 
   private boolean isServiceMsg(ServicePlatformMessage message) {
     return message.getTopic().contains("infrastructure.service");
+  }
+
+  private boolean isWanMessage(ServicePlatformMessage message) {
+    return message.getTopic().contains(".wan.");
   }
 }

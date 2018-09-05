@@ -151,7 +151,7 @@ public class AdaptorCore {
     this.southConsumer = southConsumer;
     this.southProducer = southProducer;
     VimRepo repo = new VimRepo();
-    WrapperBay.getInstance().setRepo(repo);
+    WrapperBay.getInstance().setVimRepo(repo);
     status = "READY";
     this.rate = rate;
     this.sonataProperties = parseConfigFile();
@@ -186,7 +186,7 @@ public class AdaptorCore {
     southDispatcher = new AdaptorDispatcherSouth(southDispatcherQueue, northMux, southMux);
     // - Wrapper bay connection with the Database.
     VimRepo repo = new VimRepo();
-    WrapperBay.getInstance().setRepo(repo);
+    WrapperBay.getInstance().setVimRepo(repo);
 
     // - Northbound interface
 
