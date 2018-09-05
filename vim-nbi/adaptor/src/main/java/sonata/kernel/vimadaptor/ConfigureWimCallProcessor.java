@@ -114,12 +114,12 @@ public class ConfigureWimCallProcessor extends AbstractCallProcessor {
         return out;
       }
       WimWrapper wim = (WimWrapper) record.getWimWrapper();
-      if (wim2VimsMap.containsKey(wim.getConfig().getUuid())) {
-        wim2VimsMap.get(wim.getConfig().getUuid()).add(vimUuid);
+      if (wim2VimsMap.containsKey(wim.getWimConfig().getUuid())) {
+        wim2VimsMap.get(wim.getWimConfig().getUuid()).add(vimUuid);
       } else {
         ArrayList<String> vimsOfThisWim = new ArrayList<String>();
         vimsOfThisWim.add(vimUuid);
-        wim2VimsMap.put(wim.getConfig().getUuid(), vimsOfThisWim);
+        wim2VimsMap.put(wim.getWimConfig().getUuid(), vimsOfThisWim);
       }
     }
 
