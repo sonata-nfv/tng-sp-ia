@@ -117,8 +117,9 @@ public class WimRepo {
       rs = findTablesStmt.executeQuery();
       while (rs.next()) {
         String tablename = rs.getString("tablename");
-        if (tablename.equals("wim") || tablename.equals("WIM") || tablename.equals("attached_vim")
-            || tablename.equals("attached_vim")) {
+        if (tablename.toLowerCase().equals("wim")
+            || tablename.toLowerCase().equals("service_instances")
+            || tablename.toLowerCase().equals("attached_vim")) {
           isEnvironmentSet = true;
           break;
         }
@@ -131,6 +132,9 @@ public class WimRepo {
         sql = "CREATE TABLE wim " + "(UUID TEXT PRIMARY KEY NOT NULL," + " TYPE TEXT,"+" NAME TEXT,"
             + " VENDOR TEXT NOT NULL," + " ENDPOINT TEXT NOT NULL," + " USERNAME TEXT NOT NULL,"
             + " PASS TEXT," + " AUTHKEY TEXT);";
+        stmt.executeUpdate(sql);
+        sql = "CREATE TABLE service_instances " + "(" + "INSTANCE_UUID TEXT PRIMARY KEY NOT NULL,"
+                + " WIM_UUID TEXT NOT NULL" + ");";
         stmt.executeUpdate(sql);
         sql = "CREATE TABLE attached_vim " + "(VIM_UUID TEXT PRIMARY KEY NOT NULL, "
             + "VIM_ADDRESS TEXT NOT NULL, "
@@ -613,7 +617,7 @@ public class WimRepo {
 
 
 
-  private Properties parseConfigFile() {
+  public static Properties parseConfigFile() {
     Properties prop = new Properties();
     try {
       InputStreamReader in =
@@ -790,4 +794,175 @@ public class WimRepo {
     return output;
 
   }
+
+  /**
+   * Return a list of the WIMs hosting at least one Service Instance.
+   *
+   * @param instanceUuid the UUID that identifies the Service Instance
+   * @return an array of String objecst representing the UUID of the WIMs
+   */
+  public String[] getWimUuidFromInstance(String instanceUuid) {
+
+    String[] output = null;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "wimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      stmt = connection
+              .prepareStatement("SELECT WIM_UUID FROM service_instances  WHERE INSTANCE_UUID=?;");
+      stmt.setString(1, instanceUuid);
+      rs = stmt.executeQuery();
+      ArrayList<String> uuids = new ArrayList<String>();
+
+      while (rs.next()) {
+        uuids.add(rs.getString("WIM_UUID"));
+      }
+      output = new String[uuids.size()];
+      output = uuids.toArray(output);
+
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      output = null;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      output = null;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (rs != null) {
+          rs.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        output = null;
+
+      }
+    }
+
+    return output;
+
+  }
+
+  /**
+   * delete the service instance record into the repository.
+   *
+   * @param instanceUuid the uuid of the instance
+   *
+   * @return true for process success
+   */
+  public boolean removeServiceInstanceEntry(String instanceUuid) {
+    boolean out = true;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "wimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      String sql = "DELETE FROM service_instances WHERE INSTANCE_UUID=?;";
+      stmt = connection.prepareStatement(sql);
+      stmt.setString(1, instanceUuid);
+      stmt.executeUpdate();
+      connection.commit();
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = false;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = false;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = false;
+      }
+    }
+    if (!out) {
+      Logger.info("Service instance removed successfully");
+    }
+
+    return out;
+  }
+
+  /**
+   * Write the instance record into the repository.
+   *
+   * @param instanceUuid the uuid of the instance
+   * @param wimUuid the uuid of the WIM where the instance is deployed
+   *
+   * @return true for process success
+   */
+  public boolean writeServiceInstanceEntry(String instanceUuid, String wimUuid) {
+    boolean out = true;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "wimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      String sql =
+              "INSERT INTO service_instances  (INSTANCE_UUID, WIM_UUID) "
+                      + "VALUES (?, ?);";
+      stmt = connection.prepareStatement(sql);
+      stmt.setString(1, instanceUuid);
+      stmt.setString(2, wimUuid);
+      stmt.executeUpdate();
+      connection.commit();
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = false;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = false;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = false;
+      }
+    }
+    if (!out) {
+      Logger.info("Service instance written successfully");
+    }
+
+    return out;
+  }
+
 }

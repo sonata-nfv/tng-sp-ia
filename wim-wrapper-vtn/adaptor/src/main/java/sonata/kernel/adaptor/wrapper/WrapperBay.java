@@ -146,7 +146,14 @@ public class WrapperBay {
     return vimRepository;
   }
 
-
+  /**
+   * Return the WimRepo
+   *
+   * @return the WimRepo object.
+   */
+  public WimRepo getWimRepo() {
+    return wimRepository;
+  }
 
   /**
    * Return a generic Vim Wrapper for the given Vim UUID

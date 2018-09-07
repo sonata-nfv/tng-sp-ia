@@ -264,6 +264,8 @@ public class ComputeMockWrapper extends ComputeWrapper {
     String body =
         "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + this.getConfig().getUuid() + "\"}";
     WrapperStatusUpdate update = new WrapperStatusUpdate(callSid, "SUCCESS", body);
+
+    WrapperBay.getInstance().getVimRepo().removeServiceInstanceEntry(instanceUuid, this.getConfig().getUuid());
     this.notifyObservers(update);
 
     return out;

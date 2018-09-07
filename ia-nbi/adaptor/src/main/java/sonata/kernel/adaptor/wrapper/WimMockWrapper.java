@@ -35,11 +35,14 @@ public class WimMockWrapper extends WimWrapper {
   @Override
   public boolean configureNetwork(String instanceId, String inSeg, String outSeg, String[] segments) {
 
+    WrapperBay.getInstance().getWimRepo().writeServiceInstanceEntry(instanceId, this.getWimConfig().getUuid());
     return true;
   }
 
   @Override
   public boolean removeNetConfiguration(String instanceId) {
+
+    WrapperBay.getInstance().getWimRepo().removeServiceInstanceEntry(instanceId);
     return true;
   }
 

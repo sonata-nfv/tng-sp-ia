@@ -263,6 +263,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
     WrapperStatusUpdate update = new WrapperStatusUpdate(callSid, "SUCCESS", body);
     this.notifyObservers(update);
 
+    WrapperBay.getInstance().getVimRepo().removeServiceInstanceEntry(instanceUuid, this.getVimConfig().getUuid());
     return out;
   }
 

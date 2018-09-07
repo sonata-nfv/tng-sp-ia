@@ -51,6 +51,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
 import sonata.kernel.adaptor.wrapper.WimWrapper;
 import sonata.kernel.adaptor.wrapper.WimWrapperConfiguration;
+import sonata.kernel.adaptor.wrapper.*;
 
 public class VtnWrapper extends WimWrapper {
 
@@ -90,6 +91,7 @@ public class VtnWrapper extends WimWrapper {
     out = out && client.setupFlow("vtn7", "green");
     if (out) {
       Logger.info("Flow rules created");
+      WrapperBay.getInstance().getWimRepo().writeServiceInstanceEntry(instanceId, this.getWimConfig().getUuid());
     } else {
       Logger.error("Unable to create flow rules. GOING ON NONETHELESS");
     }
@@ -99,6 +101,7 @@ public class VtnWrapper extends WimWrapper {
   @Override
   public boolean removeNetConfiguration(String instanceId) {
     boolean success = true;
+    WimRepo repo = WrapperBay.getInstance().getWimRepo();
     UUID uuid = UUID.fromString(instanceId);
     Logger.debug("[VTN-Wrapper] UUID : "+uuid.toString());    
       long xor = uuid.getLeastSignificantBits() ^ uuid.getMostSignificantBits();
@@ -112,8 +115,9 @@ public class VtnWrapper extends WimWrapper {
     
     Logger.debug("[VTN-Wrapper] Found "+numberOfRules+" rules for this UUID");
     if(numberOfRules==0){
-      Logger.debug("[VTN-Wrapper] No rule in this WIM for this service instance UUID");  
-      return true;
+      Logger.debug("[VTN-Wrapper] No rule in this WIM for this service instance UUID");
+      repo.removeServiceInstanceEntry(instanceId);
+      return success;
     }
     for (int i = 0; i < numberOfRules; i++) {
       // Send HTTP POST to the VTN server
@@ -157,6 +161,7 @@ public class VtnWrapper extends WimWrapper {
         Logger.info("[VTN-Wrapper] Rule " + i + " remove completed.");
       }
     }
+    repo.removeServiceInstanceEntry(instanceId);
     return success;
   }
 
@@ -250,6 +255,7 @@ public class VtnWrapper extends WimWrapper {
       return false;
     } else {
       Logger.info("[VTN-Wrapper] VTN-WIM configuration completed.");
+      WrapperBay.getInstance().getWimRepo().writeServiceInstanceEntry(instanceId, this.getWimConfig().getUuid());
       return true;
     }
   }

@@ -32,20 +32,20 @@ import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import java.util.ArrayList;
 import java.util.Observable;
 
-public class RedirectVimCallProcessor extends AbstractCallProcessor {
+public class RedirectVimWimCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
       LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
 
-  private ArrayList<String> vimVendors;
+  private ArrayList<String> vendors;
 
   /**
    * @param message
    * @param sid
    * @param mux
    */
-  public RedirectVimCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, ArrayList<String> vimVendors) {
+  public RedirectVimWimCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, ArrayList<String> vendors) {
     super(message, sid, mux);
-    this.vimVendors = vimVendors;
+    this.vendors = vendors;
   }
 
   /*
@@ -65,9 +65,9 @@ public class RedirectVimCallProcessor extends AbstractCallProcessor {
       Logger.info(
           message.getSid().substring(0, 10) + " - Redirect message to correct wrapper.");
 
-      // Change topic to: "infrastructure.'vimVendor'.#" e.g. "infrastructure.heat.#"
-      for (String vimVendor : vimVendors) {
-        message.setTopic(message.getTopic().replace("infrastructure.","infrastructure."+vimVendor+"."));
+      // Change topic to: "infrastructure.'vendor'.#" e.g. "infrastructure.heat.#"
+      for (String vendor : vendors) {
+        message.setTopic(message.getTopic().replace("infrastructure.","infrastructure."+vendor+"."));
         message.setReplyTo("nbi." + message.getReplyTo());
         this.sendToMux(message);
       }

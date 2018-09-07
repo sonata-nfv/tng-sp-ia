@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 
 import sonata.kernel.adaptor.commons.GetVimVendors;
+import sonata.kernel.adaptor.commons.GetWimVendors;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -51,6 +52,7 @@ public class AdaptorDispatcherNorth implements Runnable {
   private BlockingQueue<ServicePlatformMessage> myNorthQueue;
   private Executor myThreadPool;
   private GetVimVendors getVimVendors;
+  private GetWimVendors getWimVendors;
 
   private boolean stop = false;
 
@@ -71,6 +73,7 @@ public class AdaptorDispatcherNorth implements Runnable {
     this.southMux = southMux;
     this.core = core;
     this.getVimVendors = new GetVimVendors();
+    this.getWimVendors = new GetWimVendors();
   }
 
   @Override
@@ -123,7 +126,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                         + "Error retrieving the Vims Type" + "\"}",
                 "application/json", message.getReplyTo(), message.getSid(), null));
       } else {
-        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
       }
       // myThreadPool.execute(new DeployFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("scale")) {
@@ -135,7 +138,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                         + "Error retrieving the Vims Type" + "\"}",
                 "application/json", message.getReplyTo(), message.getSid(), null));
       } else {
-        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
       }
       // myThreadPool.execute(new ScaleFunctionCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("remove")) {
@@ -147,7 +150,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                         + "Error retrieving the Vims Type" + "\"}",
                 "application/json", message.getReplyTo(), message.getSid(), null));
       } else {
-        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
       }
       //myThreadPool.execute(new RemoveFunctionCallProcessor(message, message.getSid(), northMux));
     }
@@ -207,7 +210,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                         + "Error retrieving the Vims Type" + "\"}",
                 "application/json", message.getReplyTo(), message.getSid(), null));
       } else {
-        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux, vimVendors));
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
       }
       // myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("prepare")) {
@@ -220,7 +223,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                         + "Error retrieving the Vims Type" + "\"}",
                 "application/json", message.getReplyTo(), message.getSid(), null));
       } else {
-        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux,vimVendors));
       }
      // myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
@@ -233,7 +236,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                         + "Error retrieving the Vims Type" + "\"}",
                 "application/json", message.getReplyTo(), message.getSid(), null));
       } else {
-        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux,vimVendors));
       }
       //myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("chain.configure")) {
@@ -246,7 +249,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                         + "Error retrieving the Vims Type" + "\"}",
                 "application/json", message.getReplyTo(), message.getSid(), null));
       } else {
-        myThreadPool.execute(new RedirectVimCallProcessor(message, message.getSid(), southMux,vimVendors));
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux,vimVendors));
       }
       //myThreadPool.execute(new ConfigureNetworkCallProcessor(message, message.getSid(), northMux));
     }
@@ -263,9 +266,29 @@ public class AdaptorDispatcherNorth implements Runnable {
     } else if (message.getTopic().endsWith("wan.attach")){
       myThreadPool.execute(new AttachVimCallProcessor(message, message.getSid(), northMux));
     } else if (message.getTopic().endsWith("wan.configure")) {
-      myThreadPool.execute(new ConfigureWimCallProcessor(message, message.getSid(), northMux));
+      // Redirect WIM
+      ArrayList<String> wimVendors = this.getWimVendors.GetWimVendors(message,"configure");
+      if (wimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Wims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, wimVendors));
+      }
+      //myThreadPool.execute(new ConfigureWimCallProcessor(message, message.getSid(), northMux));
     }else if (message.getTopic().endsWith("wan.deconfigure")) {
-      myThreadPool.execute(new DeconfigureWimCallProcessor(message, message.getSid(), northMux));
+      // Redirect WIM
+      ArrayList<String> wimVendors = this.getWimVendors.GetWimVendors(message,"deconfigure");
+      if (wimVendors == null) {
+        this.northMux.enqueue(new ServicePlatformMessage(
+                "{\"request_status\":\"ERROR\",\"message\":\""
+                        + "Error retrieving the Wims Type" + "\"}",
+                "application/json", message.getReplyTo(), message.getSid(), null));
+      } else {
+        myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, wimVendors));
+      }
+      //myThreadPool.execute(new DeconfigureWimCallProcessor(message, message.getSid(), northMux));
     }
 
   }
