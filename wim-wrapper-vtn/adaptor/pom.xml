@@ -81,7 +81,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>sonata.kernel.vimadaptor.AdaptorCore</mainClass>
+							<mainClass>sonata.kernel.adaptor.AdaptorCore</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
