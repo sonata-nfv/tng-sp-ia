@@ -65,7 +65,8 @@ public class AdaptorDefaultConsumer extends DefaultConsumer {
     String message = new String(body, "UTF-8");
     // Logger.info("Received message:" + message + " on " + envelope.getRoutingKey());
     if (properties != null && properties.getAppId() != null
-        && !properties.getAppId().equals(AdaptorCore.APP_ID)) {
+        && !properties.getAppId().equals(AdaptorCore.APP_ID)
+        && envelope.getRoutingKey().contains(".wan.")) {
       Logger.debug("message SID-" + properties.getCorrelationId());
       this.msgBusConsumer.processMessage(message, properties.getContentType(),
           envelope.getRoutingKey(), properties.getCorrelationId(), properties.getReplyTo());

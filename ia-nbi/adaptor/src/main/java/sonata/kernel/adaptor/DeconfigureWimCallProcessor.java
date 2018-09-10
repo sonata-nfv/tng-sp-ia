@@ -75,8 +75,8 @@ public class DeconfigureWimCallProcessor extends AbstractCallProcessor {
     Logger.debug("Received request: ");
     Logger.debug(message.getBody());
     String instanceId = request.getServiceInstanceId();
-    
-    ArrayList<String> wimList = WrapperBay.getInstance().getWimList();
+
+    String[] wimList = WrapperBay.getInstance().getWimRepo().getWimUuidFromInstance(instanceId);
     
     for(String wimUuid: wimList){
       WimWrapper wim = (WimWrapper) WrapperBay.getInstance().getWimRecordFromWimUuid(wimUuid).getWimWrapper();
