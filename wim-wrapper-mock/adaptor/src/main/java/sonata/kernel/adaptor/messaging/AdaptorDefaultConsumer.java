@@ -24,7 +24,7 @@
  * 
  */
 
-package sonata.kernel.vimadaptor.messaging;
+package sonata.kernel.adaptor.messaging;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -33,7 +33,7 @@ import com.rabbitmq.client.Envelope;
 
 import org.slf4j.LoggerFactory;
 
-import sonata.kernel.vimadaptor.AdaptorCore;
+import sonata.kernel.adaptor.AdaptorCore;
 
 import java.io.IOException;
 
@@ -65,10 +65,6 @@ public class AdaptorDefaultConsumer extends DefaultConsumer {
     String message = new String(body, "UTF-8");
     // Logger.info("Received message:" + message + " on " + envelope.getRoutingKey());
     if (properties != null && properties.getAppId() != null
-        && properties.getAppId().equals("sonata.kernel.InfrAdaptor")
-        && envelope.getRoutingKey().contains(".wan.")) {
-      Logger.info("Ignoring WIM adaptor messages");
-    } else if (properties != null && properties.getAppId() != null
         && !properties.getAppId().equals(AdaptorCore.APP_ID)) {
       Logger.debug("message SID-" + properties.getCorrelationId());
       this.msgBusConsumer.processMessage(message, properties.getContentType(),

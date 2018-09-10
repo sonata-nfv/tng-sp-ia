@@ -28,7 +28,7 @@ package sonata.kernel.adaptor.wrapper;
 
 import org.slf4j.LoggerFactory;
 
-import sonata.kernel.adaptor.wrapper.vtn.VtnWrapper;
+import sonata.kernel.adaptor.wrapper.mock.WimMockWrapper;
 
 public class WrapperFactory {
 
@@ -74,8 +74,8 @@ public class WrapperFactory {
     Wrapper output = null;
     System.out.println("  [WrapperFactory] - creating wrapper...");
 
-    if (config.getWimVendor().equals(WimVendor.VTN)) {
-      output = new VtnWrapper(config);
+    if (config.getWimVendor().equals(WimVendor.MOCK)){
+      output = new WimMockWrapper(config);
     }
 
     System.out.println("  [WrapperFactory] - Wrapper created...");

@@ -23,27 +23,30 @@
  * @author Dario Valocchi (Ph.D.), UCL
  * 
  */
+package sonata.kernel.adaptor.commons;
 
-package sonata.kernel.adaptor.wrapper;
+import java.util.ArrayList;
 
-public class WimMockWrapper extends WimWrapper {
+public class NetworkAttachmentPoints {
 
-  public WimMockWrapper(WimWrapperConfiguration config) {
-    super(config);
+  private ArrayList<NapObject> egresses;
+  private ArrayList<NapObject> ingresses;
+
+  public ArrayList<NapObject> getEgresses() {
+    return egresses;
   }
 
-  @Override
-  public boolean configureNetwork(String instanceId, String inSeg, String outSeg, String[] segments) {
-
-    WrapperBay.getInstance().getWimRepo().writeServiceInstanceEntry(instanceId, this.getWimConfig().getUuid());
-    return true;
+  public ArrayList<NapObject> getIngresses() {
+    return ingresses;
   }
 
-  @Override
-  public boolean removeNetConfiguration(String instanceId) {
-
-    WrapperBay.getInstance().getWimRepo().removeServiceInstanceEntry(instanceId);
-    return true;
+  public void setEgresses(ArrayList<NapObject> egresses) {
+    this.egresses = egresses;
   }
+
+  public void setIngresses(ArrayList<NapObject> ingresses) {
+    this.ingresses = ingresses;
+  }
+
 
 }
