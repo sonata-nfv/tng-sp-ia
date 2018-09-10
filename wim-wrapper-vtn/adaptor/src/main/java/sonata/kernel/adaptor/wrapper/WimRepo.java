@@ -58,7 +58,7 @@ public class WimRepo {
   public WimRepo() {
     this.prop = this.parseConfigFile();
 
-    Connection connection = null;
+/*    Connection connection = null;
     Statement findDatabaseStmt = null;
     PreparedStatement findTablesStmt = null;
     Statement createDatabaseStmt = null;
@@ -172,7 +172,7 @@ public class WimRepo {
       Logger.info("Environment created successfully");
     } else {
       Logger.error("Errors creating the environment");
-    }
+    }*/
     return;
   }
 
