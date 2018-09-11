@@ -28,10 +28,8 @@ package sonata.kernel.adaptor.wrapper;
 
 import org.slf4j.LoggerFactory;
 
-import sonata.kernel.adaptor.commons.VimNetTable;
 
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class WrapperBay {
 
@@ -50,15 +48,11 @@ public class WrapperBay {
     return myInstance;
   }
 
-  private ConcurrentHashMap<String, ComputeWrapper> computeWrapperCache;
-  private ConcurrentHashMap<String, NetworkWrapper> networkWrapperCache;
 
   private VimRepo vimRepository = null;
   private WimRepo wimRepository = null;
 
   private WrapperBay() {
-    computeWrapperCache = new ConcurrentHashMap<String, ComputeWrapper>();
-    networkWrapperCache = new ConcurrentHashMap<String, NetworkWrapper>();
   }
 
 
@@ -68,16 +62,6 @@ public class WrapperBay {
   public void clear() {}
 
 
-  /**
-   * Order the list of available compute wrapper to find the best basing on an OptimizationStrategy.
-   *
-   * @return A ComputeWrapper object, the best according to the OptimizationStrategy.
-   */
-  public ComputeWrapper getBestComputeWrapper() {
-    ComputeWrapper bestWrapper = null;
-
-    return bestWrapper;
-  }
 
   /**
    * Return the wrapper of the compute VIM identified by the given UUID.
@@ -87,13 +71,11 @@ public class WrapperBay {
    * @return the wrapper of the requested VIM or null if the UUID does not correspond to a
    *         registered VIM
    */
-  public ComputeWrapper getComputeWrapper(String vimUuid) {
-    if (computeWrapperCache.containsKey(vimUuid)) return computeWrapperCache.get(vimUuid);
-    ComputeWrapper vimEntry = (ComputeWrapper) this.vimRepository.readVimEntry(vimUuid);
+  public VimWrapperConfiguration getComputeConfig(String vimUuid) {
+    VimWrapperConfiguration vimEntry = this.vimRepository.readVimEntry(vimUuid);
     if (vimEntry == null) {
       return null;
     } else {
-      computeWrapperCache.put(vimUuid, vimEntry);
       return vimEntry;
     }
   }
@@ -107,28 +89,6 @@ public class WrapperBay {
     return vimRepository.getComputeVims();
 
   }
-
-  /**
-   * @param vimUuid
-   * @return
-   */
-  public NetworkWrapper getNetworkVimFromComputeVimUuid(String vimUuid) {
-    String netVimUuid = this.vimRepository.getNetworkVimFromComputeVimUuid(vimUuid);
-    if (netVimUuid == null) {
-      Logger.error("can't find Networking VIM for compute VIM UUID: " + vimUuid);
-    }
-    if (networkWrapperCache.containsKey(netVimUuid)) {
-      return networkWrapperCache.get(netVimUuid);
-    }
-    NetworkWrapper netWrapper = this.vimRepository.getNetworkVim(netVimUuid);
-    if (netWrapper == null) {
-      return null;
-    } else {
-      networkWrapperCache.put(vimUuid, netWrapper);
-      return netWrapper;
-    }
-  }
-
 
   /**
    * @return
@@ -161,7 +121,7 @@ public class WrapperBay {
    * @param uuid
    * @return
    */
-  public Wrapper getWrapper(String uuid) {
+  public VimWrapperConfiguration getConfig(String uuid) {
     return this.vimRepository.readVimEntry(uuid);
   }
 
@@ -173,15 +133,10 @@ public class WrapperBay {
    * @return a JSON representing the output of the API call
    */
   public String registerComputeWrapper(VimWrapperConfiguration config) {
-    Wrapper newWrapper = WrapperFactory.createWrapper(config);
-    String output = "";
-    if (newWrapper == null) {
-      output = "{\"request_status\":\"ERROR\",\"message\":\"Cannot Attach To Vim\"}";
-    } else if (newWrapper.getType().equals(WrapperType.COMPUTE)) {
-      // WrapperRecord record = new WrapperRecord(newWrapper, config, null);
-      this.vimRepository.writeVimEntry(config.getUuid(), newWrapper);
-      output = "{\"request_status\":\"COMPLETED\",\"uuid\":\"" + config.getUuid() + "\"}";
-    }
+
+    this.vimRepository.writeVimEntry(config.getUuid(), config);
+    String output = "{\"request_status\":\"COMPLETED\",\"uuid\":\"" + config.getUuid() + "\"}";
+
 
     return output;
   }
@@ -194,15 +149,11 @@ public class WrapperBay {
    * @return a JSON formatte string with the result of the registration.
    */
   public String registerNetworkWrapper(VimWrapperConfiguration config, String computeVimRef) {
-    Wrapper newWrapper = WrapperFactory.createWrapper(config);
-    String output = "";
-    if (newWrapper == null) {
-      output = "{\"request_status\":\"ERROR\",\"message\":\"Cannot Attach To Vim\"}";
-    } else {
-      this.vimRepository.writeVimEntry(config.getUuid(), newWrapper);
-      this.vimRepository.writeNetworkVimLink(computeVimRef, config.getUuid());
-      output = "{\"request_status\":\"COMPLETED\",\"uuid\":\"" + config.getUuid() + "\"}";
-    }
+
+    this.vimRepository.writeVimEntry(config.getUuid(), config);
+    this.vimRepository.writeNetworkVimLink(computeVimRef, config.getUuid());
+    String output = "{\"request_status\":\"COMPLETED\",\"uuid\":\"" + config.getUuid() + "\"}";
+
     return output;
   }
 
@@ -213,7 +164,6 @@ public class WrapperBay {
    * @return a JSON representing the output of the API call
    */
   public String removeComputeWrapper(String uuid) {
-    VimNetTable.getInstance().deregisterVim(uuid);
     vimRepository.removeVimEntry(uuid);
     return "{\"request_status\":\"COMPLETED\"}";
   }
@@ -255,28 +205,15 @@ public class WrapperBay {
    */
   public String registerWimWrapper(WimWrapperConfiguration config) {
 
-    Wrapper newWrapper = WrapperFactory.createWimWrapper(config);
-    String output = "";
-    if (newWrapper == null) {
-      output = "{\"request_status\":\"ERROR\",\"message:\"Cannot Attach To Wim\",\"uuid\":\"\"}";
-    } else {
-      WimWrapperRecord record = new WimWrapperRecord(newWrapper, config);
-      this.wimRepository.writeWimEntry(config.getUuid(), record);
-      output = "{\"request_status\":\"COMPLETED\",\"uuid\":\"" + config.getUuid()
+    this.wimRepository.writeWimEntry(config.getUuid(), config);
+    String output = "{\"request_status\":\"COMPLETED\",\"uuid\":\"" + config.getUuid()
               + "\",\"message\":\"\"}";
-    }
 
     return output;
   }
 
-  public WimWrapperRecord getWimRecordFromAttachedVim(String vimUuid) {
-    WimWrapperRecord out;
-    out = this.wimRepository.readWimEntryFromVimUuid(vimUuid);
-    return out;
-  }
-
-  public WimWrapperRecord getWimRecordFromWimUuid(String wimUuid) {
-    WimWrapperRecord out;
+  public WimWrapperConfiguration getWimConfigFromWimUuid(String wimUuid) {
+    WimWrapperConfiguration out;
     out = this.wimRepository.readWimEntry(wimUuid);
     return out;
   }

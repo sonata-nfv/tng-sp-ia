@@ -34,8 +34,7 @@ import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
 import sonata.kernel.adaptor.commons.VimResources;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
-import sonata.kernel.adaptor.wrapper.ComputeWrapper;
-import sonata.kernel.adaptor.wrapper.ResourceUtilisation;
+import sonata.kernel.adaptor.wrapper.VimWrapperConfiguration;
 import sonata.kernel.adaptor.wrapper.WrapperBay;
 
 import java.util.ArrayList;
@@ -58,45 +57,45 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
     Logger.info("Retrieving VIM(s) resource utilisation");
     ArrayList<VimResources> resList = new ArrayList<VimResources>();
     for (String vimUuid : vimList) {
-      ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapper(vimUuid);
-      if (wr == null) {
-        Logger.warn("Error retrieving the wrapper");
+      VimWrapperConfiguration config = WrapperBay.getInstance().getComputeConfig(vimUuid);
+      if (config == null) {
+        Logger.warn("Error retrieving the configuration");
 
         this.sendToMux(new ServicePlatformMessage(
             "{\"request_status\":\"fail\",\"message\":\"VIM not found\"}", "application/json",
             message.getReplyTo(), message.getSid(), null));
         return false;
       }
-      ResourceUtilisation resource = wr.getResourceUtilisation();
+      /*ResourceUtilisation resource = wr.getResourceUtilisation();
 
       if (resource != null) {
 
         VimResources bodyElement = new VimResources();
 
         bodyElement.setVimUuid(vimUuid);
-        bodyElement.setVimCity(wr.getVimConfig().getCity());
-        bodyElement.setVimDomain(wr.getVimConfig().getDomain());
-        bodyElement.setVimName(wr.getVimConfig().getName());
-        bodyElement.setVimEndpoint(wr.getVimConfig().getVimEndpoint());
+        bodyElement.setVimCity(config.getCity());
+        bodyElement.setVimDomain(config.getDomain());
+        bodyElement.setVimName(config.getName());
+        bodyElement.setVimEndpoint(config.getVimEndpoint());
         bodyElement.setCoreTotal(resource.getTotCores());
         bodyElement.setCoreUsed(resource.getUsedCores());
         bodyElement.setMemoryTotal(resource.getTotMemory());
         bodyElement.setMemoryUsed(resource.getUsedMemory());
         resList.add(bodyElement);
-      } else {
-        VimResources bodyElement = new VimResources();
+      } else {*/
+      VimResources bodyElement = new VimResources();
 
-        bodyElement.setVimUuid(vimUuid);
-        bodyElement.setVimCity(wr.getVimConfig().getCity());
-        bodyElement.setVimDomain(wr.getVimConfig().getDomain());
-        bodyElement.setVimName(wr.getVimConfig().getName());
-        bodyElement.setVimEndpoint(wr.getVimConfig().getVimEndpoint());
-        bodyElement.setCoreTotal(-1);
-        bodyElement.setCoreUsed(-1);
-        bodyElement.setMemoryTotal(-1);
-        bodyElement.setMemoryUsed(-1);
-        resList.add(bodyElement);
-      }
+      bodyElement.setVimUuid(vimUuid);
+      bodyElement.setVimCity(config.getCity());
+      bodyElement.setVimDomain(config.getDomain());
+      bodyElement.setVimName(config.getName());
+      bodyElement.setVimEndpoint(config.getVimEndpoint());
+      bodyElement.setCoreTotal(-1);
+      bodyElement.setCoreUsed(-1);
+      bodyElement.setMemoryTotal(-1);
+      bodyElement.setMemoryUsed(-1);
+      resList.add(bodyElement);
+
     }
 
     ObjectMapper mapper = SonataManifestMapper.getSonataMapper();

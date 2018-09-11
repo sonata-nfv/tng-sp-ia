@@ -37,8 +37,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
 import sonata.kernel.adaptor.commons.WimRecord;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
+import sonata.kernel.adaptor.wrapper.WimWrapperConfiguration;
 import sonata.kernel.adaptor.wrapper.WrapperBay;
-import sonata.kernel.adaptor.wrapper.WimWrapperRecord;
 
 public class ListWimCallProcessor extends AbstractCallProcessor {
 
@@ -66,16 +66,16 @@ public class ListWimCallProcessor extends AbstractCallProcessor {
     Logger.debug(wimsUuid.toString());
 
     for(String wim : wimsUuid){
-      WimWrapperRecord wr = WrapperBay.getInstance().getWimRecordFromWimUuid(wim);
+      WimWrapperConfiguration config = WrapperBay.getInstance().getWimConfigFromWimUuid(wim);
      
-      if(wr==null){
+      if(config==null){
         this.sendToMux(new ServicePlatformMessage("{\"request_status\":\"ERROR\"}", "application/json", message.getReplyTo(), message.getSid(), null));
         return false;
       }
       WimRecord out = new WimRecord();
       //Logger.debug(wr.toString());
-      out.setUuid(wr.getConfig().getUuid());
-      out.setName(wr.getConfig().getName());
+      out.setUuid(config.getUuid());
+      out.setName(config.getName());
       ArrayList<String> attachedVims = WrapperBay.getInstance().getAttachedVims(wim);
       out.setAttachedVims(attachedVims);
       wimList.add(out);

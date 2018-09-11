@@ -33,7 +33,7 @@ import java.util.Observable;
 
 public class FwVimCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
+      LoggerFactory.getLogger(FwVimCallProcessor.class);
 
   private ArrayList<String> vimVendors;
 

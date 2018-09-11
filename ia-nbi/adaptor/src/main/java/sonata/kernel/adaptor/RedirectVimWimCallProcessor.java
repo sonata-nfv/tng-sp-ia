@@ -34,7 +34,7 @@ import java.util.Observable;
 
 public class RedirectVimWimCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
+      LoggerFactory.getLogger(RedirectVimWimCallProcessor.class);
 
   private ArrayList<String> vendors;
 

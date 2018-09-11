@@ -179,11 +179,11 @@ public class WimRepo {
    * Write the wrapper record into the repository with the specified UUID.
    * 
    * @param uuid the UUID of the wrapper to store
-   * @param record the WrapperRecord object with the information on the wrapper to store
+   * @param config the Configuration object with the information to store
    * 
    * @return true for process success
    */
-  public boolean writeWimEntry(String uuid, WimWrapperRecord record) {
+  public boolean writeWimEntry(String uuid, WimWrapperConfiguration config) {
     boolean out = true;
 
     Connection connection = null;
@@ -201,13 +201,13 @@ public class WimRepo {
           + "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
       stmt = connection.prepareStatement(sql);
       stmt.setString(1, uuid);
-      stmt.setString(2, record.getConfig().getWrapperType());
-      stmt.setString(3, record.getConfig().getWimVendor().toString());
-      stmt.setString(4, record.getConfig().getWimEndpoint().toString());
-      stmt.setString(5, record.getConfig().getAuthUserName());
-      stmt.setString(6, record.getConfig().getAuthPass());
-      stmt.setString(7, record.getConfig().getAuthKey());
-      stmt.setString(8, record.getConfig().getName());
+      stmt.setString(2, config.getWrapperType());
+      stmt.setString(3, config.getWimVendor().toString());
+      stmt.setString(4, config.getWimEndpoint().toString());
+      stmt.setString(5, config.getAuthUserName());
+      stmt.setString(6, config.getAuthPass());
+      stmt.setString(7, config.getAuthKey());
+      stmt.setString(8, config.getName());
       stmt.executeUpdate();
       connection.commit();
       stmt.close();
@@ -333,70 +333,6 @@ public class WimRepo {
   }
 
   /**
-   * update the wrapper record into the repository with the specified UUID.
-   * 
-   * @param uuid the UUID of the wrapper to update
-   * @param record the WrapperRecord object with the information on the wrapper to store
-   * 
-   * @return true for process success
-   */
-  public boolean updateWimEntry(String uuid, WimWrapperRecord record) {
-    boolean out = true;
-
-    Connection connection = null;
-    PreparedStatement stmt = null;
-    try {
-      Class.forName("org.postgresql.Driver");
-      connection =
-          DriverManager.getConnection(
-              "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
-                  + prop.getProperty("repo_port") + "/" + "wimregistry",
-              prop.getProperty("user"), prop.getProperty("pass"));
-      connection.setAutoCommit(false);
-
-
-      String sql = "UPDATE WIM set (TYPE, VENDOR, ENDPOINT, USERNAME, PASS, AUTHKEY, NAME) "
-          + "VALUES (?,?,?,?,?,?,?) WHERE UUID=?;";
-
-      stmt = connection.prepareStatement(sql);
-      stmt.setString(1, record.getConfig().getWrapperType());
-      stmt.setString(2, record.getConfig().getWimVendor().toString());
-      stmt.setString(3, record.getConfig().getWimEndpoint().toString());
-      stmt.setString(4, record.getConfig().getAuthUserName());
-      stmt.setString(5, record.getConfig().getAuthPass());
-      stmt.setString(6, record.getConfig().getAuthKey());
-      stmt.setString(7, record.getConfig().getName());
-      stmt.setString(8, uuid);
-
-
-      stmt.executeUpdate(sql);
-      connection.commit();
-    } catch (SQLException e) {
-      Logger.error(e.getMessage(), e);
-      out = false;
-    } catch (ClassNotFoundException e) {
-      Logger.error(e.getMessage(), e);
-      out = false;
-    } finally {
-      try {
-        if (stmt != null) {
-          stmt.close();
-        }
-        if (connection != null) {
-          connection.close();
-        }
-      } catch (SQLException e) {
-        Logger.error(e.getMessage(), e);
-        out = false;
-
-      }
-    }
-    Logger.info("Records created successfully");
-
-    return out;
-  }
-
-  /**
    * Retrieve the wrapper record with the specified UUID from the repository.
    * 
    * @param uuid the UUID of the wrapper to retrieve
@@ -404,9 +340,9 @@ public class WimRepo {
    * @return the WrapperRecord representing the wrapper, null if the wrapper is not registere in the
    *         repository
    */
-  public WimWrapperRecord readWimEntry(String uuid) {
+  public WimWrapperConfiguration readWimEntry(String uuid) {
 
-    WimWrapperRecord output = null;
+    WimWrapperConfiguration output = null;
 
     Connection connection = null;
     PreparedStatement stmt = null;
@@ -443,92 +379,7 @@ public class WimRepo {
         config.setAuthKey(key);
         config.setName(name);
 
-        Wrapper wrapper = WrapperFactory.createWimWrapper(config);
-        output = new WimWrapperRecord(wrapper, config);
-
-
-      } else {
-        output = null;
-      }
-    } catch (SQLException e) {
-      Logger.error(e.getMessage(), e);
-      output = null;
-    } catch (ClassNotFoundException e) {
-      Logger.error(e.getMessage(), e);
-      output = null;
-    } finally {
-      try {
-        if (stmt != null) {
-          stmt.close();
-        }
-        if (rs != null) {
-          rs.close();
-        }
-        if (connection != null) {
-          connection.close();
-        }
-      } catch (SQLException e) {
-        Logger.error(e.getMessage(), e);
-        output = null;
-
-      }
-    }
-    Logger.info("Operation done successfully");
-    return output;
-
-  }
-
-  /**
-   * Retrieve the WIM record managing connectivity in for the serviced given net segment.
-   * 
-   * @param vimUuid the UUID of the wrapper to retrieve
-   * 
-   * @return the WrapperRecord representing the wrapper, null if the wrapper is not registered in
-   *         the repository
-   */
-  public WimWrapperRecord readWimEntryFromVimUuid(String vimUuid) {
-
-    WimWrapperRecord output = null;
-
-    Connection connection = null;
-    PreparedStatement stmt = null;
-    ResultSet rs = null;
-    try {
-      Class.forName("org.postgresql.Driver");
-      connection =
-          DriverManager.getConnection(
-              "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
-                  + prop.getProperty("repo_port") + "/" + "wimregistry",
-              prop.getProperty("user"), prop.getProperty("pass"));
-      connection.setAutoCommit(false);
-
-      stmt = connection.prepareStatement(
-          "SELECT * FROM wim,attached_vim WHERE wim.uuid = attached_vim.wim_uuid AND attached_vim.vim_uuid=?;");
-      stmt.setString(1, vimUuid);
-      rs = stmt.executeQuery();
-
-      if (rs.next()) {
-        String uuid = rs.getString("UUID");
-        String wrapperType = rs.getString("TYPE");
-        String vendor = rs.getString("VENDOR");
-        String urlString = rs.getString("ENDPOINT");
-        String user = rs.getString("USERNAME");
-        String pass = rs.getString("PASS");
-        String key = rs.getString("AUTHKEY");
-        String name = rs.getString("NAME");
-
-        WimWrapperConfiguration config = new WimWrapperConfiguration();
-        config.setUuid(uuid);
-        config.setWrapperType(wrapperType);
-        config.setWimVendor(WimVendor.getByName(vendor));
-        config.setWimEndpoint(urlString);
-        config.setAuthUserName(user);
-        config.setAuthPass(pass);
-        config.setAuthKey(key);
-        config.setName(name);
-
-        Wrapper wrapper = WrapperFactory.createWimWrapper(config);
-        output = new WimWrapperRecord(wrapper, config);
+        output = config;
 
 
       } else {
@@ -793,176 +644,6 @@ public class WimRepo {
     Logger.info("Operation done successfully");
     return output;
 
-  }
-
-  /**
-   * Return a list of the WIMs hosting at least one Service Instance.
-   *
-   * @param instanceUuid the UUID that identifies the Service Instance
-   * @return an array of String objecst representing the UUID of the WIMs
-   */
-  public String[] getWimUuidFromInstance(String instanceUuid) {
-
-    String[] output = null;
-
-    Connection connection = null;
-    PreparedStatement stmt = null;
-    ResultSet rs = null;
-    try {
-      Class.forName("org.postgresql.Driver");
-      connection =
-              DriverManager.getConnection(
-                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
-                              + prop.getProperty("repo_port") + "/" + "wimregistry",
-                      prop.getProperty("user"), prop.getProperty("pass"));
-      connection.setAutoCommit(false);
-
-      stmt = connection
-              .prepareStatement("SELECT WIM_UUID FROM service_instances  WHERE INSTANCE_UUID=?;");
-      stmt.setString(1, instanceUuid);
-      rs = stmt.executeQuery();
-      ArrayList<String> uuids = new ArrayList<String>();
-
-      while (rs.next()) {
-        uuids.add(rs.getString("WIM_UUID"));
-      }
-      output = new String[uuids.size()];
-      output = uuids.toArray(output);
-
-    } catch (SQLException e) {
-      Logger.error(e.getMessage());
-      output = null;
-    } catch (ClassNotFoundException e) {
-      Logger.error(e.getMessage(), e);
-      output = null;
-    } finally {
-      try {
-        if (stmt != null) {
-          stmt.close();
-        }
-        if (rs != null) {
-          rs.close();
-        }
-        if (connection != null) {
-          connection.close();
-        }
-      } catch (SQLException e) {
-        Logger.error(e.getMessage());
-        output = null;
-
-      }
-    }
-
-    return output;
-
-  }
-
-  /**
-   * delete the service instance record into the repository.
-   *
-   * @param instanceUuid the uuid of the instance
-   *
-   * @return true for process success
-   */
-  public boolean removeServiceInstanceEntry(String instanceUuid) {
-    boolean out = true;
-
-    Connection connection = null;
-    PreparedStatement stmt = null;
-    try {
-      Class.forName("org.postgresql.Driver");
-      connection =
-              DriverManager.getConnection(
-                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
-                              + prop.getProperty("repo_port") + "/" + "wimregistry",
-                      prop.getProperty("user"), prop.getProperty("pass"));
-      connection.setAutoCommit(false);
-
-      String sql = "DELETE FROM service_instances WHERE INSTANCE_UUID=?;";
-      stmt = connection.prepareStatement(sql);
-      stmt.setString(1, instanceUuid);
-      stmt.executeUpdate();
-      connection.commit();
-    } catch (SQLException e) {
-      Logger.error(e.getMessage());
-      out = false;
-    } catch (ClassNotFoundException e) {
-      Logger.error(e.getMessage(), e);
-      out = false;
-    } finally {
-      try {
-        if (stmt != null) {
-          stmt.close();
-        }
-        if (connection != null) {
-          connection.close();
-        }
-      } catch (SQLException e) {
-        Logger.error(e.getMessage());
-        out = false;
-      }
-    }
-    if (!out) {
-      Logger.info("Service instance removed successfully");
-    }
-
-    return out;
-  }
-
-  /**
-   * Write the instance record into the repository.
-   *
-   * @param instanceUuid the uuid of the instance
-   * @param wimUuid the uuid of the WIM where the instance is deployed
-   *
-   * @return true for process success
-   */
-  public boolean writeServiceInstanceEntry(String instanceUuid, String wimUuid) {
-    boolean out = true;
-
-    Connection connection = null;
-    PreparedStatement stmt = null;
-    try {
-      Class.forName("org.postgresql.Driver");
-      connection =
-              DriverManager.getConnection(
-                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
-                              + prop.getProperty("repo_port") + "/" + "wimregistry",
-                      prop.getProperty("user"), prop.getProperty("pass"));
-      connection.setAutoCommit(false);
-
-      String sql =
-              "INSERT INTO service_instances  (INSTANCE_UUID, WIM_UUID) "
-                      + "VALUES (?, ?);";
-      stmt = connection.prepareStatement(sql);
-      stmt.setString(1, instanceUuid);
-      stmt.setString(2, wimUuid);
-      stmt.executeUpdate();
-      connection.commit();
-    } catch (SQLException e) {
-      Logger.error(e.getMessage());
-      out = false;
-    } catch (ClassNotFoundException e) {
-      Logger.error(e.getMessage(), e);
-      out = false;
-    } finally {
-      try {
-        if (stmt != null) {
-          stmt.close();
-        }
-        if (connection != null) {
-          connection.close();
-        }
-      } catch (SQLException e) {
-        Logger.error(e.getMessage());
-        out = false;
-      }
-    }
-    if (!out) {
-      Logger.info("Service instance written successfully");
-    }
-
-    return out;
   }
 
 }

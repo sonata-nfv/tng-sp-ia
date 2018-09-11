@@ -53,7 +53,6 @@
 		<httpcomponents.httpclient.version>4.5.2</httpcomponents.httpclient.version>
 		<httpcomponents.httpcore.version>4.4.5</httpcomponents.httpcore.version>
 		<org.yaml.version>1.17</org.yaml.version>
-		<nokia.mistral-client.version>1.0-SNAPSHOT</nokia.mistral-client.version>
 		<google.guava.version>19.0</google.guava.version>
 		<pacesys.openstack4j.version>2.20</pacesys.openstack4j.version>
 		<org.slf4j.version>1.7.25</org.slf4j.version>
@@ -251,11 +250,6 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.classic.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.nokia.cb.sonata.mistral-client</groupId>
-			<artifactId>mistral-client</artifactId>
-			<version>${nokia.mistral-client.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>

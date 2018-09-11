@@ -33,8 +33,6 @@ import org.junit.Test;
 
 import sonata.kernel.adaptor.wrapper.*;
 import sonata.kernel.adaptor.wrapper.VimWrapperConfiguration;
-import sonata.kernel.adaptor.wrapper.mock.ComputeMockWrapper;
-import sonata.kernel.adaptor.wrapper.ovsWrapper.OvsWrapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,8 +88,7 @@ public class VimRepoTest {
     config.setCity("London");
     config.setCountry("England");
 
-    ComputeWrapper record = new ComputeMockWrapper(config);
-    boolean out = repoInstance.writeVimEntry(config.getUuid(), record);
+    boolean out = repoInstance.writeVimEntry(config.getUuid(), config);
 
 
     Assert.assertTrue("Unable to write a vim", out);
@@ -118,18 +115,15 @@ public class VimRepoTest {
     config.setCity("London");
     config.setCountry("England");
 
-    ComputeWrapper wrapper = new ComputeMockWrapper(config);
-    boolean out = repoInstance.writeVimEntry(config.getUuid(), wrapper);
+    boolean out = repoInstance.writeVimEntry(config.getUuid(), config);
     Assert.assertTrue("Unable to write a vim", out);
 
     config.setUuid("2");
-    wrapper = new ComputeMockWrapper(config);
-    out = repoInstance.writeVimEntry(config.getUuid(), wrapper);
+    out = repoInstance.writeVimEntry(config.getUuid(), config);
     Assert.assertTrue("Unable to write a vim", out);
 
     config.setUuid("3");
-    wrapper = new ComputeMockWrapper(config);
-    out = repoInstance.writeVimEntry(config.getUuid(), wrapper);
+    out = repoInstance.writeVimEntry(config.getUuid(), config);
     Assert.assertTrue("Unable to write a vim", out);
 
 
@@ -204,46 +198,6 @@ public class VimRepoTest {
   }
 
   @Test
-  public void testFunctionInstance() {
-    repoInstance = new VimRepo();
-    boolean out = repoInstance.writeServiceInstanceEntry("1", "1-1", "stack1-1", "xxxx-xxxx");
-    Assert.assertTrue("Errors while writing the service instance", out);
-    out = repoInstance.writeServiceInstanceEntry("1", "a-1", "stacka-1", "yyyy-yyyy");
-    Assert.assertTrue("Errors while writing the service instance", out);
-    out = repoInstance.writeFunctionInstanceEntry("0001", "1", "xxxx-xxxx");
-    Assert.assertTrue("Errors while writing the function instance", out);
-    out = repoInstance.writeFunctionInstanceEntry("0002", "1", "xxxx-xxxx");
-    Assert.assertTrue("Errors while writing the function instance", out);
-    out = repoInstance.writeFunctionInstanceEntry("0003", "1", "yyyy-yyyy");
-    Assert.assertTrue("Errors while writing the function instance", out);
-    out = repoInstance.writeFunctionInstanceEntry("0004", "1", "yyyy-yyyy");
-    Assert.assertTrue("Errors while writing the function instance", out);
-
-    String vimUuid = repoInstance.getComputeVimUuidByFunctionInstanceId("0003");
-
-    String stackId = repoInstance.getServiceInstanceVimUuidByFunction("0003");
-    System.out.println("Function Instance 0003 is at VIM " + vimUuid + " with stack id " + stackId);
-    Assert.assertTrue(vimUuid.equals("yyyy-yyyy"));
-    Assert.assertTrue(stackId.equals("a-1"));
-
-    out = repoInstance.writeFunctionInstanceEntry("0005", "1", "zzzz-zzzz");
-
-    Assert.assertFalse(out);
-
-    repoInstance.removeServiceInstanceEntry("1", "xxxx-xxxx");
-    repoInstance.removeServiceInstanceEntry("1", "yyyy-yyyy");
-    stackId = repoInstance.getServiceInstanceVimUuidByFunction("0001");
-    Assert.assertNull(stackId);
-    stackId = repoInstance.getServiceInstanceVimUuidByFunction("0002");
-    Assert.assertNull(stackId);
-    stackId = repoInstance.getServiceInstanceVimUuidByFunction("0003");
-    Assert.assertNull(stackId);
-    stackId = repoInstance.getServiceInstanceVimUuidByFunction("0004");
-    Assert.assertNull(stackId);
-
-  }
-
-  @Test
   public void testNetworkingVim() {
 
     repoInstance = new VimRepo();
@@ -263,8 +217,7 @@ public class VimRepoTest {
     config.setConfiguration(configs);
     config.setCity("London");
     config.setCountry("England");
-    ComputeWrapper computeWrapper = new ComputeMockWrapper(config);
-    boolean out = repoInstance.writeVimEntry(config.getUuid(), computeWrapper);
+    boolean out = repoInstance.writeVimEntry(config.getUuid(), config);
     Assert.assertTrue("Unable to write the compute vim", out);
 
     config = new VimWrapperConfiguration();
@@ -276,23 +229,11 @@ public class VimRepoTest {
     config.setUuid(networkingUuid);
     config.setWrapperType(WrapperType.NETWORK);
     config.setConfiguration("{\"compute_uuid\":\"" + computeUuid + "\"}");
-    NetworkWrapper netWrapper = new OvsWrapper(config);
-    out = repoInstance.writeVimEntry(config.getUuid(), netWrapper);
+    out = repoInstance.writeVimEntry(config.getUuid(), config);
     Assert.assertTrue("Unable to write the networking vim", out);
 
     out = repoInstance.writeNetworkVimLink(computeUuid, networkingUuid);
     Assert.assertTrue("Unable to write compute/networking association", out);
-
-    String netVimUuid = repoInstance.getNetworkVimFromComputeVimUuid(computeUuid);
-    NetworkWrapper netRecord = repoInstance.getNetworkVim(netVimUuid);
-
-    Assert.assertNotNull("Retrieved netVim is null", netRecord);
-    Assert.assertNotNull("Retrieved netVim has null configuration", netRecord.getVimConfig());
-
-    Assert.assertTrue("The retrieved vim is not a networking vim",
-        netRecord.getVimConfig().getWrapperType().equals(WrapperType.NETWORK));
-    Assert.assertTrue("Unexpected networking vim uuid",
-        netRecord.getVimConfig().getUuid().equals(networkingUuid));
 
     out = repoInstance.writeNetworkVimLink("zxyz", networkingUuid);
     Assert.assertFalse("Error. I managed to link the net VIM to a-non existing compute VIM", out);
