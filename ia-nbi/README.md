@@ -49,7 +49,7 @@ This sofware exposes its API through an AMPQ interface implemented with Rabbitmq
 
 ### Test
 
-You can run Unit and Module tests using docker compose. Just run in `son-sp-infrabstract/vim-nbi/`:
+You can run Unit and Module tests using docker compose. Just run in `son-sp-infrabstract/ia-nbi/`:
 
 `docker-compose -f docker-compose-test.yml build`
 `docker-compose -f docker-compose-test.yml up`
