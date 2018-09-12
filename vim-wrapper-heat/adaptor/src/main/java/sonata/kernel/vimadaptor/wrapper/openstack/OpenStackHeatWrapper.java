@@ -100,9 +100,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   private static final org.slf4j.Logger Logger =
       LoggerFactory.getLogger(OpenStackHeatWrapper.class);
 
-  private static final String mistralConfigFilePath = "/etc/son-mano/mistral.config";
-  private String mistralUrl;
-
   private IpNetPool myPool;
 
   /**
@@ -125,7 +122,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     }
     VimNetTable.getInstance().registerVim(this.getConfig().getUuid(), tenantCidr);
     this.myPool = VimNetTable.getInstance().getNetPool(this.getConfig().getUuid());
-    this.mistralUrl = getMistralUrl();
   }
 
   /*
@@ -909,11 +905,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public void scaleFunction(FunctionScalePayload data, String sid) {
 
-    if (mistralUrl == null) {
-      Logger.error("Failed to scale Function due to missing mistral url configuration.");
-      System.exit(1);
-    }
-
     String stackUuid = WrapperBay.getInstance().getVimRepo()
         .getServiceInstanceVimUuid(data.getServiceInstanceId(), this.getConfig().getUuid());
 
@@ -1185,25 +1176,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     }
     return imageName;
   }
-
-  private String getMistralUrl() {
-
-    String mistralUrl = null;
-    try {
-      InputStreamReader in = new InputStreamReader(new FileInputStream(mistralConfigFilePath),
-          Charset.forName("UTF-8"));
-      JSONTokener tokener = new JSONTokener(in);
-      JSONObject jsonObject = (JSONObject) tokener.nextValue();
-      mistralUrl = jsonObject.getString("mistral_server_address");
-    } catch (FileNotFoundException e) {
-      Logger.error("Unable to load Mistral Config file", e);
-      System.exit(1);
-    }
-
-    return mistralUrl;
-
-  }
-
 
   private String getTenant() {
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
