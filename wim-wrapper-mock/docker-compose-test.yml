@@ -1,8 +1,8 @@
 version: '2'
 services:
-  wim-wraper-mock:
+  wim-wrapper-mock:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: wim-wraper-mock 
+    image: wim-wrapper-mock 
     entrypoint: /test.sh
     links:
      - postgres
