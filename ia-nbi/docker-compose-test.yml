@@ -1,6 +1,6 @@
 version: '2'
 services:
-  vim-nbi:
+  ia-nbi:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
     image: ia-nbi 
     entrypoint: /test.sh

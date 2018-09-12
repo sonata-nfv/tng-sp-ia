@@ -1,8 +1,8 @@
 version: '2'
 services:
-  vim-nbi:
+  wim-wraper-mock:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: wim-wraper-vtn 
+    image: wim-wraper-mock 
     entrypoint: /test.sh
     links:
      - postgres

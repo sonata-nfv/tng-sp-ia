@@ -1,6 +1,6 @@
 version: '2'
 services:
-  vim-nbi:
+  wim-wraper-vtn:
 #    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
     image: wim-wraper-vtn 
     entrypoint: /test.sh
