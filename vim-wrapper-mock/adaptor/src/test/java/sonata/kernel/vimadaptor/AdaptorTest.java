@@ -103,69 +103,6 @@ public class AdaptorTest implements MessageReceiver {
   }
 
 
-  /**
-   * Create a Mock wrapper
-   * 
-   * @throws IOException
-   */
-  @Test
-  public void testCreateMOCKWrapper() throws InterruptedException, IOException {
-    String message =
-        "{\"vim_type\":\"mock\",\"vim_address\":\"http://localhost:9999\",\"username\":\"Eve\","
-            + "\"name\":\"Mock1\"," + "\"pass\":\"Operator\",\"city\":\"London\",\"country\":\"\",\"domain\":\"default\","
-            + "\"configuration\":{\"tenant\":\"operator\",\"tenant_ext_net\":\"ext-subnet\",\"tenant_ext_router\":\"ext-router\"}}";
-    String topic = "infrastructure.management.compute.add";
-    BlockingQueue<ServicePlatformMessage> muxQueue =
-        new LinkedBlockingQueue<ServicePlatformMessage>();
-    BlockingQueue<ServicePlatformMessage> dispatcherQueue =
-        new LinkedBlockingQueue<ServicePlatformMessage>();
-
-    TestProducer producer = new TestProducer(muxQueue, this);
-    ServicePlatformMessage addVimMessage = new ServicePlatformMessage(message, "application/json",
-        topic, UUID.randomUUID().toString(), topic);
-    consumer = new TestConsumer(dispatcherQueue);
-    AdaptorCore core = new AdaptorCore(muxQueue, dispatcherQueue, consumer, producer, 0.05);
-
-    core.start();
-
-    consumer.injectMessage(addVimMessage);
-    Thread.sleep(2000);
-    while (output == null) {
-      synchronized (mon) {
-        mon.wait(1000);
-      }
-    }
-
-    JSONTokener tokener = new JSONTokener(output);
-    JSONObject jsonObject = (JSONObject) tokener.nextValue();
-    String uuid = jsonObject.getString("uuid");
-    String status = jsonObject.getString("request_status");
-    Assert.assertTrue(status.equals("COMPLETED"));
-
-    output = null;
-    message = "{\"uuid\":\"" + uuid + "\"}";
-    topic = "infrastructure.management.compute.remove";
-    ServicePlatformMessage removeVimMessage = new ServicePlatformMessage(message,
-        "application/json", topic, UUID.randomUUID().toString(), topic);
-    consumer.injectMessage(removeVimMessage);
-
-    while (output == null) {
-      synchronized (mon) {
-        mon.wait(1000);
-      }
-    }
-
-    tokener = new JSONTokener(output);
-    jsonObject = (JSONObject) tokener.nextValue();
-    status = jsonObject.getString("request_status");
-    Assert.assertTrue(status.equals("COMPLETED"));
-
-    core.stop();
-  }
-
-
-
-
 
   public void receiveHeartbeat(ServicePlatformMessage message) {
     synchronized (mon) {
