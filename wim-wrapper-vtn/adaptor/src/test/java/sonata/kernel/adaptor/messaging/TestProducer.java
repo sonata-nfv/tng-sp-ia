@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 SONATA-NFV, UCL, NOKIA, NCSR Demokritos ALL RIGHTS RESERVED.
+ * Copyright (c) 2015 SONATA-NFV, UCL, NOKIA, THALES, NCSR Demokritos ALL RIGHTS RESERVED.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -26,11 +26,11 @@
 
 package sonata.kernel.adaptor.messaging;
 
-import sonata.kernel.adaptor.MessageReceiver;
-
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
+
+import sonata.kernel.adaptor.MessageReceiver;
 
 public class TestProducer extends AbstractMsgBusProducer {
 
@@ -50,31 +50,13 @@ public class TestProducer extends AbstractMsgBusProducer {
   public boolean sendMessage(ServicePlatformMessage message) {
     System.out
         .println("[TestProducer] Topic: " + message.getTopic() + " - Message:" + message.getBody());
-    if (message.getTopic().contains("infrastructure.management.compute")) {
+    if (message.getTopic().contains("infrastructure.wan")) {
       output.receive(message);
     }
-    if (message.getTopic().contains("infrastructure.management.network")) {
+    if (message.getTopic().contains("infrastructure.management.wan")) {
       output.receive(message);
     }
-    if (message.getTopic().equals("infrastructure.service.deploy")) {
-      output.receive(message);
-    }
-    if (message.getTopic().equals("infrastructure.service.prepare")) {
-      output.receive(message);
-    }
-    if (message.getTopic().equals("infrastructure.function.deploy")) {
-      output.receive(message);
-    }
-    if (message.getTopic().equals("infrastructure.service.chain.configure")) {
-      output.receive(message);
-    }
-    if (message.getTopic().equals("infrastructure.service.chain.deconfigure")) {
-      output.receive(message);
-    }
-    if (message.getTopic().equals("infrastructure.wan.configure")) {
-      output.receive(message);
-    }
-    if (message.getTopic().equals("infrastructure.service.remove")) {
+    if (message.getTopic().contains("infrastructure.service.deploy")) {
       output.receive(message);
     }
     if (message.getTopic().equals("platform.management.plugin.register")) {

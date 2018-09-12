@@ -47,7 +47,6 @@ public class IpNetPoolTest {
   /**
    * Create the test case
    *
-   * @param testName name of the test case
    */
   @Before
   public void setUp() {

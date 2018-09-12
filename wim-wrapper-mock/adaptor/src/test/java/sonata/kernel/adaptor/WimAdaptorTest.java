@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 SONATA-NFV, UCL, NOKIA, NCSR Demokritos ALL RIGHTS RESERVED.
+ * Copyright (c) 2015 SONATA-NFV, UCL, NOKIA, THALES, NCSR Demokritos ALL RIGHTS RESERVED.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -24,44 +24,58 @@
  * 
  */
 
-package sonata.kernel.vimadaptor;
+package sonata.kernel.adaptor;
+
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
-import sonata.kernel.vimadaptor.messaging.TestConsumer;
-import sonata.kernel.vimadaptor.messaging.TestProducer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
-import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import sonata.kernel.adaptor.commons.SonataManifestMapper;
+import sonata.kernel.adaptor.commons.Status;
+import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
+import sonata.kernel.adaptor.messaging.TestConsumer;
+import sonata.kernel.adaptor.messaging.TestProducer;
 
 
 /**
  * Unit test for simple App.
  */
-public class AdaptorTest implements MessageReceiver {
+public class WimAdaptorTest implements MessageReceiver {
   private String output = null;
   private Object mon = new Object();
   private TestConsumer consumer;
   private String lastHeartbeat;
+  private ObjectMapper mapper;
 
   @Before
-  public void setUp() {
-    System.setProperty("org.apache.commons.logging.Log",
-        "org.apache.commons.logging.impl.SimpleLog");
-
-    System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "false");
-
-    System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire.header", "warn");
-
-    System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient",
-        "warn");
+  public void setUp() throws IOException {
+    StringBuilder bodyBuilder = new StringBuilder();
+    BufferedReader in = new BufferedReader(
+        new InputStreamReader(new FileInputStream(new File("./YAML/DeployResponseExample.yml")),
+            Charset.forName("UTF-8")));
+    String line;
+    while ((line = in.readLine()) != null) {
+      bodyBuilder.append(line + "\n\r");
+    }
+    in.close();
+    this.mapper = SonataManifestMapper.getSonataMapper();
   }
 
   /**
@@ -100,21 +114,19 @@ public class AdaptorTest implements MessageReceiver {
 
     core.stop();
     Assert.assertTrue(core.getState().equals("STOPPED"));
+
   }
 
-
   /**
-   * Create a Mock wrapper
+   * Create a VTNwrapper
    * 
    * @throws IOException
    */
   @Test
-  public void testCreateMOCKWrapper() throws InterruptedException, IOException {
+  public void testCreateMockWrapper() throws InterruptedException, IOException {
     String message =
-        "{\"vim_type\":\"mock\",\"vim_address\":\"http://localhost:9999\",\"username\":\"Eve\","
-            + "\"name\":\"Mock1\"," + "\"pass\":\"Operator\",\"city\":\"London\",\"country\":\"\",\"domain\":\"default\","
-            + "\"configuration\":{\"tenant\":\"operator\",\"tenant_ext_net\":\"ext-subnet\",\"tenant_ext_router\":\"ext-router\"}}";
-    String topic = "infrastructure.management.compute.add";
+        "{\"wim_vendor\":\"Mock\",\"name\":\"area-1\",\"wim_address\":\"10.30.0.13\",\"username\":\"admin\",\"pass\":\"admin\"}";
+    String topic = "infrastructure.management.wan.add";
     BlockingQueue<ServicePlatformMessage> muxQueue =
         new LinkedBlockingQueue<ServicePlatformMessage>();
     BlockingQueue<ServicePlatformMessage> dispatcherQueue =
@@ -143,8 +155,8 @@ public class AdaptorTest implements MessageReceiver {
     Assert.assertTrue(status.equals("COMPLETED"));
 
     output = null;
-    message = "{\"uuid\":\"" + uuid + "\"}";
-    topic = "infrastructure.management.compute.remove";
+    message = "{\"wr_type\":\"WIM\",\"uuid\":\"" + uuid + "\"}";
+    topic = "infrastructure.management.wan.remove";
     ServicePlatformMessage removeVimMessage = new ServicePlatformMessage(message,
         "application/json", topic, UUID.randomUUID().toString(), topic);
     consumer.injectMessage(removeVimMessage);
@@ -161,11 +173,9 @@ public class AdaptorTest implements MessageReceiver {
     Assert.assertTrue(status.equals("COMPLETED"));
 
     core.stop();
+    Assert.assertTrue(core.getState().equals("STOPPED"));
   }
-
-
-
-
+  
 
   public void receiveHeartbeat(ServicePlatformMessage message) {
     synchronized (mon) {
@@ -184,4 +194,5 @@ public class AdaptorTest implements MessageReceiver {
   public void forwardToConsumer(ServicePlatformMessage message) {
     consumer.injectMessage(message);
   }
+
 }

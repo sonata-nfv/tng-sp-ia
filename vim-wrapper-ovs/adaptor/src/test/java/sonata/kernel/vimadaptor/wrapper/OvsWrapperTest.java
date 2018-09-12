@@ -45,7 +45,6 @@ import sonata.kernel.vimadaptor.commons.VnfRecord;
 import sonata.kernel.vimadaptor.commons.nsd.ServiceDescriptor;
 import sonata.kernel.vimadaptor.commons.vnfd.VnfDescriptor;
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
-import sonata.kernel.vimadaptor.wrapper.mock.ComputeMockWrapper;
 import sonata.kernel.vimadaptor.wrapper.ovsWrapper.OvsWrapper;
 
 import java.io.BufferedReader;
@@ -168,7 +167,7 @@ public class OvsWrapperTest {
     config.setConfiguration(configs);
     config.setCity("London");
     config.setCountry("England");
-    ComputeWrapper computeWr =new ComputeMockWrapper(config);
+    NetworkWrapper computeWr =new OvsWrapper(config);
     boolean out = repoInstance.writeVimEntry(config.getUuid(), computeWr);
     Assert.assertTrue("Unable to write the compute vim", out);
 
@@ -257,7 +256,7 @@ public class OvsWrapperTest {
     config.setConfiguration(configs);
     config.setCity("London");
     config.setCountry("England");
-    ComputeWrapper computeWr = new ComputeMockWrapper(config);
+    NetworkWrapper computeWr = new OvsWrapper(config);
     boolean out = repoInstance.writeVimEntry(config.getUuid(), computeWr);
     Assert.assertTrue("Unable to write the compute vim", out);
 
@@ -286,7 +285,7 @@ public class OvsWrapperTest {
     config.setConfiguration(configs);
     config.setCity("London");
     config.setCountry("England");
-    computeWr = new ComputeMockWrapper(config);
+    computeWr = new OvsWrapper(config);
     out = repoInstance.writeVimEntry(config.getUuid(), computeWr);
     Assert.assertTrue("Unable to write the compute vim", out);
 
@@ -315,7 +314,7 @@ public class OvsWrapperTest {
     config.setConfiguration(configs);
     config.setCity("London");
     config.setCountry("England");
-    computeWr = new ComputeMockWrapper(config);
+    computeWr = new OvsWrapper(config);
     out = repoInstance.writeVimEntry(config.getUuid(), computeWr);
     Assert.assertTrue("Unable to write the compute vim", out);
 

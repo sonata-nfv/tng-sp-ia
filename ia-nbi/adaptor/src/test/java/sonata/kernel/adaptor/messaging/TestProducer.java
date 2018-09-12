@@ -50,6 +50,12 @@ public class TestProducer extends AbstractMsgBusProducer {
   public boolean sendMessage(ServicePlatformMessage message) {
     System.out
         .println("[TestProducer] Topic: " + message.getTopic() + " - Message:" + message.getBody());
+    if (message.getTopic().contains("infrastructure.wan")) {
+      output.receive(message);
+    }
+    if (message.getTopic().contains("infrastructure.management.wan")) {
+      output.receive(message);
+    }
     if (message.getTopic().contains("infrastructure.management.compute")) {
       output.receive(message);
     }

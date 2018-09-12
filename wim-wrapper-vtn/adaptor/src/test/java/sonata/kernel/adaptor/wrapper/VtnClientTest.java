@@ -22,65 +22,64 @@
  *
  * @author Dario Valocchi (Ph.D.), UCL
  * 
- * @author Bruno Vidalenc, THALES
- * 
  */
+
 
 package sonata.kernel.adaptor.wrapper;
 
+
+import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 
-import sonata.kernel.adaptor.wrapper.openstack.Flavor;
-import sonata.kernel.adaptor.wrapper.openstack.OpenStackNovaClient;
-
-import java.io.IOException;
-import java.util.ArrayList;
+import sonata.kernel.adaptor.wrapper.vtn.VtnClient;
 
 
-public class OpenStackNovaClientTest {
+/**
+ * Unit test for simple App.
+ */
+public class VtnClientTest {
 
-  private OpenStackNovaClient novaClient;
+  private VtnClient client;
 
+  /**
+   * Create the Wim.
+   * 
+   * @throws IOException
+   */
   @Before
-  public void initClient() throws IOException{
+  public void testCreateWimRepo() {
 
-    // todo - this needs to be moved to configuration file
-    this.novaClient =
-        new OpenStackNovaClient("openstack.sonata-nfv.eu", "op_sonata", "op_s0n@t@", "default", "op_sonata",null);
-
+    client = new VtnClient("10.30.0.13", "admin", "admin");
   }
 
-
-  /**
-   * Test a flavor get.
-   *
-   * @throws IOException
-   */
   @Ignore
-  public void testFlavors() throws IOException {
-
-    // System.out.println(novaClient);
-    // list the flavors
-    ArrayList<Flavor> vimFlavors = novaClient.getFlavors();
-    System.out.println(vimFlavors);
-    Assert.assertNotNull("Failed to retreive flavors", vimFlavors);
-
+  public void testAddDeleteVtn() {
+    System.out.println("Adding and deleting a test VTN");
+    boolean create = client.setupVtn("TestVtn01");
+    boolean delete = client.deleteVtn("TestVtn01");
+    Assert.assertTrue("Cannot create the test VTN", create);
+    Assert.assertTrue("Cannot delete the test VTN", delete);
+    System.out.println("DONE");
   }
 
-  /**
-   * Test a limits get.
-   *
-   * @throws IOException
-   */
   @Ignore
-  public void testLimits() throws IOException {
-    System.out.println(novaClient);
-    ResourceUtilisation resources = novaClient.getResourceUtilizasion();
-    System.out.println(resources);
-    Assert.assertNotNull("Failed to retrieve limits", resources);
+  public void testDeleteNonEsistingVtn() {
+    System.out.println("Deleting a non existing VTN");
+    boolean delete = client.deleteVtn("TestVtn01");
+    Assert.assertFalse("Cannot delete the test VTN", delete);
   }
 
+  @Ignore
+  public void testAddDeleteFlowRule() {
+    System.out.println("Adding a flow rule");
+    boolean create = client.setupVtn("TestVtn01");
+    boolean setup = client.setupFlow("TestVtn01", "Instance0000");
+    boolean delete = client.deleteVtn("TestVtn01");
+    Assert.assertTrue("Cannot create the test VTN to setup the flow", create);
+    Assert.assertTrue("Cannot setup the Flow Rule", setup);
+    Assert.assertTrue("Cannot delete the test VTN after the flow setup", delete);
+  }
 }

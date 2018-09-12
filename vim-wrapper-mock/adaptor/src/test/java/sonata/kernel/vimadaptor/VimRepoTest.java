@@ -39,7 +39,6 @@ import sonata.kernel.vimadaptor.wrapper.VimRepo;
 import sonata.kernel.vimadaptor.wrapper.WrapperConfiguration;
 import sonata.kernel.vimadaptor.wrapper.WrapperType;
 import sonata.kernel.vimadaptor.wrapper.mock.ComputeMockWrapper;
-import sonata.kernel.vimadaptor.wrapper.ovsWrapper.OvsWrapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -103,69 +102,6 @@ public class VimRepoTest {
 
     out = repoInstance.removeVimEntry(config.getUuid());
     Assert.assertTrue("unable to remove vim", out);
-  }
-
-  @Test
-  public void testListVims() {
-
-    repoInstance = new VimRepo();
-    WrapperConfiguration config = new WrapperConfiguration();
-    config.setVimEndpoint("x.x.x.x");
-    config.setVimVendor(ComputeVimVendor.MOCK);
-    config.setAuthUserName("operator");
-    config.setAuthPass("apass");
-    config.setDomain("default");
-    config.setUuid("1");
-    config.setWrapperType(WrapperType.COMPUTE);
-    String configs =
-        "{\"tenant\":\"the_tenant\",\"tenant_ext_net\":\"ext_net\",\"tenant_ext_router\":\"ext_router\"}";
-    config.setConfiguration(configs);
-    config.setCity("London");
-    config.setCountry("England");
-
-    ComputeWrapper wrapper = new ComputeMockWrapper(config);
-    boolean out = repoInstance.writeVimEntry(config.getUuid(), wrapper);
-    Assert.assertTrue("Unable to write a vim", out);
-
-    config.setUuid("2");
-    wrapper = new ComputeMockWrapper(config);
-    out = repoInstance.writeVimEntry(config.getUuid(), wrapper);
-    Assert.assertTrue("Unable to write a vim", out);
-
-    config.setUuid("3");
-    wrapper = new ComputeMockWrapper(config);
-    out = repoInstance.writeVimEntry(config.getUuid(), wrapper);
-    Assert.assertTrue("Unable to write a vim", out);
-
-
-    ArrayList<String> vims = repoInstance.getComputeVims();
-
-    Assert.assertTrue("Db doesn't contain all the stored VIMs", vims.contains("1"));
-    Assert.assertTrue("Db doesn't contain all the stored VIMs", vims.contains("2"));
-    Assert.assertTrue("Db doesn't contain all the stored VIMs", vims.contains("3"));
-
-    out = repoInstance.removeVimEntry("1");
-    Assert.assertTrue("unable to remove vim", out);
-    out = repoInstance.removeVimEntry("2");
-    Assert.assertTrue("unable to remove vim", out);
-    out = repoInstance.removeVimEntry("3");
-    Assert.assertTrue("unable to remove vim", out);
-  }
-
-  @Test
-  public void testAddInstance() {
-
-    repoInstance = new VimRepo();
-
-    boolean out = repoInstance.writeServiceInstanceEntry("1", "1-1", "stack1-1",
-        "xxxx-xxxxxxxx-xxxxxxxx-xxxx");
-
-    Assert.assertTrue("Errors while writing the instance", out);
-
-    out = repoInstance.removeServiceInstanceEntry("1", "xxxx-xxxxxxxx-xxxxxxxx-xxxx");
-
-    Assert.assertTrue("Errors while removing the instance", out);
-
   }
 
   @Test
@@ -248,66 +184,4 @@ public class VimRepoTest {
 
   }
 
-  @Test
-  public void testNetworkingVim() {
-
-    repoInstance = new VimRepo();
-    String computeUuid = "12345777";
-    String networkingUuid = "abcde";
-
-    WrapperConfiguration config = new WrapperConfiguration();
-    config.setVimEndpoint("x.x.x.x");
-    config.setVimVendor(ComputeVimVendor.MOCK);
-    config.setAuthUserName("operator");
-    config.setAuthPass("apass");
-    config.setDomain("default");
-    config.setUuid(computeUuid);
-    config.setWrapperType(WrapperType.COMPUTE);
-    String configs =
-        "{\"tenant\":\"the_tenant\",\"tenant_ext_net\":\"ext_net\",\"tenant_ext_router\":\"ext_router\"}";
-    config.setConfiguration(configs);
-    config.setCity("London");
-    config.setCountry("England");
-    ComputeWrapper computeWrapper = new ComputeMockWrapper(config);
-    boolean out = repoInstance.writeVimEntry(config.getUuid(), computeWrapper);
-    Assert.assertTrue("Unable to write the compute vim", out);
-
-    config = new WrapperConfiguration();
-    config.setVimEndpoint("x.x.x.x");
-    config.setVimVendor(NetworkVimVendor.OVS);
-    config.setAuthUserName("operator");
-    config.setAuthPass("apass");
-    config.setDomain("default");
-    config.setUuid(networkingUuid);
-    config.setWrapperType(WrapperType.NETWORK);
-    config.setConfiguration("{\"compute_uuid\":\"" + computeUuid + "\"}");
-    NetworkWrapper netWrapper = new OvsWrapper(config);
-    out = repoInstance.writeVimEntry(config.getUuid(), netWrapper);
-    Assert.assertTrue("Unable to write the networking vim", out);
-
-    out = repoInstance.writeNetworkVimLink(computeUuid, networkingUuid);
-    Assert.assertTrue("Unable to write compute/networking association", out);
-
-    String netVimUuid = repoInstance.getNetworkVimFromComputeVimUuid(computeUuid);
-    NetworkWrapper netRecord = repoInstance.getNetworkVim(netVimUuid);
-
-    Assert.assertNotNull("Retrieved netVim is null", netRecord);
-    Assert.assertNotNull("Retrieved netVim has null configuration", netRecord.getConfig());
-
-    Assert.assertTrue("The retrieved vim is not a networking vim",
-        netRecord.getConfig().getWrapperType().equals(WrapperType.NETWORK));
-    Assert.assertTrue("Unexpected networking vim uuid",
-        netRecord.getConfig().getUuid().equals(networkingUuid));
-
-    out = repoInstance.writeNetworkVimLink("zxyz", networkingUuid);
-    Assert.assertFalse("Error. I managed to link the net VIM to a-non existing compute VIM", out);
-
-    out = repoInstance.writeNetworkVimLink(computeUuid, "hhhhh");
-    Assert.assertFalse("Error. I managed to link the compute VIM to a-non existing net VIM", out);
-
-    out = repoInstance.removeVimEntry(networkingUuid);
-    Assert.assertTrue("unable to remove vim", out);
-    out = repoInstance.removeVimEntry(computeUuid);
-    Assert.assertTrue("unable to remove vim", out);
-  }
 }
