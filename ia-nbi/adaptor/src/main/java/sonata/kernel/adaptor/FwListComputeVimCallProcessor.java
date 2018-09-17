@@ -76,7 +76,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
       return false;
     }
 
-    Logger.info("Process payload...");
+    Logger.info("Process payload... : " + message.getBody());
     ManagementComputeListResponse data = null;
     ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
 
@@ -91,7 +91,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
     }
 
 
-    resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources().get(0));
+    resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources());
 
     if (resourceRepo.getVendorsNumberForRequestId(message.getSid()).equals(ComputeVimVendor.getPossibleVendors().size())) {
       try {
