@@ -65,8 +65,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
     ComputeVimVendor vimVendor = null;
-    //TODO
-    // passar body de string para ArrayList<VimResources> (criar no commons o payload ?)
+
     if (message.getReplyTo().contains(".heat.")) {
       vimVendor = ComputeVimVendor.HEAT;
     } else if (message.getReplyTo().contains(".mock.")) {
@@ -102,7 +101,6 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
         message.setTopic(message.getTopic().replace("nbi.",""));
 
         String body;
-        ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
         body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
 
         ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
