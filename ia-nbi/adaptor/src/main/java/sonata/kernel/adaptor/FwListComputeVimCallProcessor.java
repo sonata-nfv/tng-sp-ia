@@ -92,7 +92,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
 
     resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources());
-
+    Logger.debug("repository... : " + resourceRepo.getResourcesFromRequestId(message.getSid()));
     if (resourceRepo.getVendorsNumberForRequestId(message.getSid()).equals(ComputeVimVendor.getPossibleVendors().size())) {
       try {
         Logger.info(
@@ -102,12 +102,12 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
         String body;
         body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
-
+        Logger.debug("Body... : " + body);
         ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
                 message.getTopic().replace("nbi.",""), message.getSid(), null);
 
         resourceRepo.removeResourcesFromRequestId(message.getSid());
-
+        Logger.debug("Empty?... : " + resourceRepo.getResourcesFromRequestId(message.getSid()));
         this.sendToMux(response);
       } catch (Exception e) {
         Logger.error("Error redirecting the message: " + e.getMessage(), e);
