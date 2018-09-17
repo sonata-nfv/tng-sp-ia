@@ -91,7 +91,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
     }
 
 
-    resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources());
+    resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources().get(0));
 
     if (resourceRepo.getVendorsNumberForRequestId(message.getSid()).equals(ComputeVimVendor.getPossibleVendors().size())) {
       try {

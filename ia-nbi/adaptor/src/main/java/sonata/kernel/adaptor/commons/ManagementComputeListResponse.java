@@ -29,18 +29,19 @@ package sonata.kernel.adaptor.commons;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class ManagementComputeListResponse {
 
   @JsonProperty("")
-  private ArrayList<VimResources> resources;
+  private List<ArrayList<VimResources>> resources;
 
-  public ArrayList<VimResources> getResources() {
+  public List<ArrayList<VimResources>> getResources() {
     return resources;
   }
 
-  public void setResources(ArrayList<VimResources> resources) {
+  public void setResources(List<ArrayList<VimResources>> resources) {
     this.resources = resources;
   }
 

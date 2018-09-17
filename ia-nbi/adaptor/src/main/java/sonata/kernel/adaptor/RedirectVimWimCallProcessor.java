@@ -66,9 +66,11 @@ public class RedirectVimWimCallProcessor extends AbstractCallProcessor {
           message.getSid().substring(0, 10) + " - Redirect message to correct wrapper.");
 
       // Change topic to: "infrastructure.'vendor'.#" e.g. "infrastructure.heat.#"
+      message.setReplyTo("nbi." + message.getReplyTo());
+      String topic = message.getTopic();
       for (String vendor : vendors) {
+        message.setTopic(topic);
         message.setTopic(message.getTopic().replace("infrastructure.","infrastructure."+vendor+"."));
-        message.setReplyTo("nbi." + message.getReplyTo());
         this.sendToMux(message);
       }
 
