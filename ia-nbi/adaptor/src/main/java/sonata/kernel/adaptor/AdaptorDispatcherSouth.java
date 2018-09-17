@@ -73,8 +73,13 @@ public class AdaptorDispatcherSouth implements Runnable {
       try {
         message = mySouthQueue.take();
 
-        // Processor for fw packets from Southbound interface to Northbound interface
-        myThreadPool.execute(new FwVimCallProcessor(message, message.getSid(), northMux));
+        if (message.getTopic().endsWith("compute.list")) {
+
+          myThreadPool.execute(new FwListComputeVimCallProcessor(message, message.getSid(), northMux));
+        } else {
+          // Processor for fw packets from Southbound interface to Northbound interface
+          myThreadPool.execute(new FwVimCallProcessor(message, message.getSid(), northMux));
+        }
 
       } catch (InterruptedException e) {
         Logger.error(e.getMessage(), e);

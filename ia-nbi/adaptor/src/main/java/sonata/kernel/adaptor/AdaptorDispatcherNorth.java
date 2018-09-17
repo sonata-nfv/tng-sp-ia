@@ -148,7 +148,15 @@ public class AdaptorDispatcherNorth implements Runnable {
         myThreadPool.execute(new ResourceAvailabilityCallProcessor(message, message.getSid(), northMux));
       } else if (message.getTopic().endsWith("list")) {
         Logger.info("Received a \"List VIMs\" API call on topic: " + message.getTopic());
-        myThreadPool.execute(new ListComputeVimCallProcessor(message, message.getSid(), northMux));
+        ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message, "compute.list");
+        if (vimVendors == null) {
+          this.northMux.enqueue(new ServicePlatformMessage(
+                  "{\"request_status\":\"ERROR\",\"message\":\""
+                          + "Error retrieving the Vims Type" + "\"}",
+                  "application/json", message.getReplyTo(), message.getSid(), null));
+        } else {
+          myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
+        }
       }
     } else if (message.getTopic().contains("storage")) {
       // TODO Storage Management API

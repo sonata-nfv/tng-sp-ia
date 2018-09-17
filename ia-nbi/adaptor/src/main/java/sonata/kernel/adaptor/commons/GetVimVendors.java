@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 //import sonata.kernel.adaptor.commons.VimPreDeploymentList;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.VimRepo;
+import sonata.kernel.adaptor.wrapper.ComputeVimVendor;
 
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -86,10 +87,12 @@ public class GetVimVendors {
             return this.GetVimVendorsCConfigure(message);
         } else if (topic.equals("chain.deconfigure")) {
             return this.GetVimVendorsCDeconfigure(message);
-		} else {
+        } else if (topic.equals("compute.list")) {
+            return this.GetVimVendorsCList(message);
+        } else {
 			return null;
 		}
-		  
+
 	}
   
 	/**
@@ -377,6 +380,25 @@ public class GetVimVendors {
         } catch (Exception e) {
             Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
 
+            return null;
+        }
+
+        return vimVendors;
+    }
+
+    /**
+     * Retrieve the vim Vendors that exist.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsCList(ServicePlatformMessage message) {
+        ArrayList<String> vimVendors = null;
+
+        vimVendors = ComputeVimVendor.getPossibleVendors();
+
+        if (vimVendors.isEmpty()) {
             return null;
         }
 

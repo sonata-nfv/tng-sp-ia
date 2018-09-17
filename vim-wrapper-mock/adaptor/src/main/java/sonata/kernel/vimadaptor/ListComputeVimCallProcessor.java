@@ -60,12 +60,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
     for (String vimUuid : vimList) {
       ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapper(vimUuid);
       if (wr == null) {
-        Logger.warn("Error retrieving the wrapper");
-
-        this.sendToMux(new ServicePlatformMessage(
-            "{\"request_status\":\"fail\",\"message\":\"VIM not found\"}", "application/json",
-            message.getReplyTo(), message.getSid(), null));
-        return false;
+        continue;
       }
       ResourceUtilisation resource = wr.getResourceUtilisation();
 
@@ -107,7 +102,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
       body = mapper.writeValueAsString(resList);
 
       ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
-          this.getMessage().getReplyTo(), this.getSid(), null);
+          this.getMessage().getReplyTo(), this.getSid(), this.getMessage().getTopic());
 
       this.getMux().enqueue(response);
       Logger.info("List VIM call completed.");

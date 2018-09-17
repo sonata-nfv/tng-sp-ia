@@ -20,52 +20,28 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Dario Valocchi (Ph.D.), UCL
+ * @author Thomas Soenen, imec
  * 
  */
 
-package sonata.kernel.adaptor.wrapper;
+package sonata.kernel.adaptor.commons;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 
-public enum ComputeVimVendor implements VimVendor {
-  HEAT("Heat"), MOCK("Mock");
-  //HEAT("Heat"), MOCK("Mock"), OPENMANO("OpenMANO"), OPENSTACK("OpenStack"), OPENVIM(
-  //    "OpenVIM"), SPVIM("SPVim");
 
-  public static ComputeVimVendor getByName(String name) {
-    for (ComputeVimVendor vendor : values()) {
-      if (vendor.getName().toUpperCase().equals(name.toUpperCase())) {
-        return vendor;
-      }
-    }
+public class ManagementComputeListResponse {
 
-    throw new IllegalArgumentException(name + " is not a valid ComputeVimVendor");
+  @JsonProperty("")
+  private ArrayList<VimResources> resources;
+
+  public ArrayList<VimResources> getResources() {
+    return resources;
   }
 
-  private final String name;
-
-  ComputeVimVendor(String name) {
-    this.name = name;
-  }
-
-  @Override
-  public String toString() {
-    return this.name;
-  }
-
-  private String getName() {
-    return this.toString();
-  }
-
-
-  public static ArrayList<String> getPossibleVendors() {
-    ArrayList<String> PossibleVendors = new ArrayList<String>();
-    for (ComputeVimVendor vendor : values()) {
-      PossibleVendors.add(vendor.getName().toLowerCase());
-    }
-
-    return PossibleVendors;
+  public void setResources(ArrayList<VimResources> resources) {
+    this.resources = resources;
   }
 
 }
