@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.slf4j.LoggerFactory;
 
+import sonata.kernel.vimadaptor.commons.ManagementComputeListResponse;
 import sonata.kernel.vimadaptor.commons.SonataManifestMapper;
 import sonata.kernel.vimadaptor.commons.VimResources;
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
@@ -94,14 +95,20 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
       }
     }
 
+    // Create the response
+
+    ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
+    responseBody.setResources(resList);
+
     ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
 
     String body;
     try {
       Logger.info("Sending back response...");
-      body = mapper.writeValueAsString(resList);
+      body = mapper.writeValueAsString(responseBody);
+      //body = mapper.writeValueAsString(resList);
 
-      ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
+      ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
           this.getMessage().getReplyTo(), this.getSid(), this.getMessage().getTopic());
 
       this.getMux().enqueue(response);
