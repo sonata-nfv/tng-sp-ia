@@ -69,6 +69,7 @@ public class RedirectVimWimCallProcessor extends AbstractCallProcessor {
       message.setReplyTo("nbi." + message.getReplyTo());
       String topic = message.getTopic();
       for (String vendor : vendors) {
+        Logger.debug("vendor: " + vendor);
         message.setTopic(topic);
         message.setTopic(message.getTopic().replace("infrastructure.","infrastructure."+vendor+"."));
         this.sendToMux(message);
