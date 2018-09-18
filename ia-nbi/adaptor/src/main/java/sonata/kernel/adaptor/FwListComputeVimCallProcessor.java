@@ -76,7 +76,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
       return false;
     }
 
-    Logger.info("Process payload... : " + message.getBody());
+    Logger.info("Process payload...");
     ManagementComputeListResponse data = null;
     ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
 
@@ -92,28 +92,30 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
 
     resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources());
-    Logger.debug("repository... : " + resourceRepo.getResourcesFromRequestId(message.getSid()));
-    if (resourceRepo.getVendorsNumberForRequestId(message.getSid()).equals(ComputeVimVendor.getPossibleVendors().size())) {
-      try {
-        Logger.info(
-                message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
 
-        message.setTopic(message.getTopic().replace("nbi.",""));
+    synchronized (resourceRepo) {
+      if (resourceRepo.getVendorsNumberForRequestId(message.getSid()).equals(ComputeVimVendor.getPossibleVendors().size())) {
+        try {
+          Logger.info(
+                  message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
 
-        String body;
-        body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
-        Logger.debug("Body... : " + body);
-        ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
-                message.getTopic().replace("nbi.",""), message.getSid(), null);
+          message.setTopic(message.getTopic().replace("nbi.",""));
 
-        resourceRepo.removeResourcesFromRequestId(message.getSid());
-        Logger.debug("Empty?... : " + resourceRepo.getResourcesFromRequestId(message.getSid()));
-        this.sendToMux(response);
-      } catch (Exception e) {
-        Logger.error("Error redirecting the message: " + e.getMessage(), e);
-        out = false;
+          String body;
+          body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
+          Logger.debug("Body... : " + body);
+          ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
+                  message.getTopic().replace("nbi.",""), message.getSid(), null);
+
+          resourceRepo.removeResourcesFromRequestId(message.getSid());
+
+          this.sendToMux(response);
+        } catch (Exception e) {
+          Logger.error("Error redirecting the message: " + e.getMessage(), e);
+          out = false;
+        }
+
       }
-
     }
 
     return out;
