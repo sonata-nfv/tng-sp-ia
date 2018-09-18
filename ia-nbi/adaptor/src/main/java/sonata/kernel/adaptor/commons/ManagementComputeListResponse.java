@@ -32,8 +32,7 @@ import java.util.ArrayList;
 
 
 public class ManagementComputeListResponse {
-  
-  @JsonProperty("resources")
+
   private ArrayList<VimResources> resources;
 
   public ArrayList<VimResources> getResources() {
