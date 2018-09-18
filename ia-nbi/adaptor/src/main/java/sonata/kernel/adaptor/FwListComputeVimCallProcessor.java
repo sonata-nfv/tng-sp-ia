@@ -91,7 +91,6 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
     }
 
     Logger.debug("Body: " + message.getBody());
-    Logger.debug("Resources: " + data.getResources().toString());
     resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources());
 
     synchronized (resourceRepo) {
