@@ -67,12 +67,11 @@ public class RedirectVimWimCallProcessor extends AbstractCallProcessor {
 
       // Change topic to: "infrastructure.'vendor'.#" e.g. "infrastructure.heat.#"
       message.setReplyTo("nbi." + message.getReplyTo());
-      String topic = message.getTopic();
       for (String vendor : vendors) {
-        Logger.debug("vendor: " + vendor);
-        message.setTopic(topic);
-        message.setTopic(message.getTopic().replace("infrastructure.","infrastructure."+vendor+"."));
-        this.sendToMux(message);
+        ServicePlatformMessage messageFw = new ServicePlatformMessage(message.getBody(), message.getContentType(),
+                message.getTopic(), message.getSid(), message.getReplyTo());
+        messageFw.setTopic(messageFw.getTopic().replace("infrastructure.","infrastructure."+vendor+"."));
+        this.sendToMux(messageFw);
       }
 
     } catch (Exception e) {
