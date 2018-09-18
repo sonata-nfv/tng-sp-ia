@@ -90,7 +90,6 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
       return false;
     }
 
-    Logger.debug("Body: " + message.getBody());
     resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources());
 
     synchronized (resourceRepo) {
@@ -103,7 +102,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
           String body;
           body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
-          Logger.debug("Body... : " + body);
+
           ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
                   message.getTopic().replace("nbi.",""), message.getSid(), null);
 
@@ -114,7 +113,6 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
           Logger.error("Error redirecting the message: " + e.getMessage(), e);
           out = false;
         }
-
       }
     }
 
