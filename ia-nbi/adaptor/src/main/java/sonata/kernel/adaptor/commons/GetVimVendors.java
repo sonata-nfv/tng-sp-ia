@@ -234,7 +234,14 @@ public class GetVimVendors {
         Logger.info("Process payload...");
         JSONTokener tokener = new JSONTokener(message.getBody());
         JSONObject jsonObject = (JSONObject) tokener.nextValue();
-        String instanceUuid = jsonObject.getString("instance_uuid");
+        String instanceUuid = null;
+        try {
+            instanceUuid = jsonObject.getString("instance_uuid");
+        } catch (Exception e) {
+            Logger.error("Error getting the instance_uuid: " + e.getMessage(), e);
+
+            return null;
+        }
 
         ArrayList<String> vimUuids = null;
         ArrayList<String> vimVendors = null;
