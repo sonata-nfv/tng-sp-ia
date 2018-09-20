@@ -1,8 +1,8 @@
 version: '2'
 services:
   wim-wrapper-vtn:
-#    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: wim-wrapper-vtn 
+    image: registry.sonata-nfv.eu:5000/wim-wrapper-vtn
+#    image: wim-wrapper-vtn 
     entrypoint: /test.sh
     links:
      - postgres
