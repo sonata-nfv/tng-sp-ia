@@ -1,8 +1,8 @@
 version: '2'
 services:
   ia-nbi:
-#    image: registry.sonata-nfv.eu:5000/son-sp-infrabstract
-    image: ia-nbi 
+    image: registry.sonata-nfv.eu:5000/ia-nbi
+#    image: ia-nbi 
     entrypoint: /test.sh
     links:
      - postgres
