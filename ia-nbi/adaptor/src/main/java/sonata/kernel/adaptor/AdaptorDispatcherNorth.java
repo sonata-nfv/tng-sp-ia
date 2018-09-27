@@ -238,10 +238,11 @@ public class AdaptorDispatcherNorth implements Runnable {
       // Redirect WIM
       ArrayList<String> wimVendors = this.getWimVendors.GetWimVendors(message,"deconfigure");
       if (wimVendors == null) {
-        this.northMux.enqueue(new ServicePlatformMessage(
-                "{\"request_status\":\"ERROR\",\"message\":\""
-                        + "Error retrieving the Wims Type" + "\"}",
-                "application/json", message.getReplyTo(), message.getSid(), null));
+        //this.northMux.enqueue(new ServicePlatformMessage(
+        //        "{\"request_status\":\"ERROR\",\"message\":\""
+        //                + "Error retrieving the Wims Type" + "\"}",
+        //        "application/json", message.getReplyTo(), message.getSid(), null));
+        Logger.warn("WimVendors not found, continue");
       } else {
         myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, wimVendors));
       }
