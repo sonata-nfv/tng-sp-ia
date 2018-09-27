@@ -62,7 +62,7 @@ public class SonataManifestMapper {
     mapperYaml.registerModule(module);
     mapperYaml.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mapperYaml.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-    //mapperYaml.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+    mapperYaml.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
     mapperYaml.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
     mapperYaml.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     mapperYaml.setSerializationInclusion(Include.NON_NULL);
@@ -75,7 +75,7 @@ public class SonataManifestMapper {
     mapperJson.registerModule(module);
     mapperJson.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     mapperJson.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-    //mapperJson.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+    mapperJson.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
     mapperJson.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
     mapperJson.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     mapperJson.setSerializationInclusion(Include.NON_NULL);

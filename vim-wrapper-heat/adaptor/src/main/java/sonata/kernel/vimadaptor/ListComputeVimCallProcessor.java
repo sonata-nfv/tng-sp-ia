@@ -26,8 +26,13 @@
 
 package sonata.kernel.vimadaptor;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+
 
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +105,11 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
     ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
     responseBody.setResources(resList);
 
-    ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+    // Need a new mapper different from SonataManifestMapper for allow feature WRITE_EMPTY_JSON_ARRAYS
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+    mapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+    mapper.setSerializationInclusion(Include.NON_NULL);
 
     String body;
     try {

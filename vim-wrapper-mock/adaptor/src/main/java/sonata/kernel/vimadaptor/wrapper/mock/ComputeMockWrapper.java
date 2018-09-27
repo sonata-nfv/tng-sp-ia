@@ -44,6 +44,10 @@ import sonata.kernel.vimadaptor.commons.Status;
 import sonata.kernel.vimadaptor.commons.VduRecord;
 import sonata.kernel.vimadaptor.commons.VnfImage;
 import sonata.kernel.vimadaptor.commons.VnfRecord;
+import sonata.kernel.vimadaptor.commons.VnfcInstance;
+import sonata.kernel.vimadaptor.commons.nsd.ConnectionPoint;
+import sonata.kernel.vimadaptor.commons.nsd.ConnectionPointRecord;
+import sonata.kernel.vimadaptor.commons.nsd.InterfaceRecord;
 import sonata.kernel.vimadaptor.commons.vnfd.VirtualDeploymentUnit;
 import sonata.kernel.vimadaptor.commons.vnfd.VnfDescriptor;
 import sonata.kernel.vimadaptor.wrapper.ComputeWrapper;
@@ -53,6 +57,7 @@ import sonata.kernel.vimadaptor.wrapper.WrapperConfiguration;
 import sonata.kernel.vimadaptor.wrapper.WrapperStatusUpdate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 
 
@@ -146,6 +151,24 @@ public class ComputeMockWrapper extends ComputeWrapper {
       vdur.setNumberOfInstances(1);
       vdur.setVduReference(vnf.getName() + ":" + vdu.getId());
       vdur.setVmImage(vdu.getVmImage());
+      VnfcInstance vnfci = new VnfcInstance();
+      vnfci.setId("0");
+      vnfci.setVcId(vnf.getInstanceUuid());
+      vnfci.setVimId(data.getVimUuid());
+      ArrayList<ConnectionPointRecord> cpRecords = new ArrayList<ConnectionPointRecord>();
+      for (ConnectionPoint cp : vdu.getConnectionPoints()) {
+        ConnectionPointRecord cpr = new ConnectionPointRecord();
+        cpr.setId(cp.getId());
+        InterfaceRecord ip = new InterfaceRecord();
+        ip.setAddress("172.16.1.1");
+        ip.setHardwareAddress("fe:00:11:22:33:44");
+        ip.setNetmask("255.255.255.248");
+        cpr.setInterface(ip);
+        cpr.setType(cp.getType());
+        cpRecords.add(cpr);
+      }
+      vnfci.setConnectionPoints(cpRecords);
+      vdur.addVnfcInstance(vnfci);
       vnfr.addVdu(vdur);
     }
     FunctionDeployResponse response = new FunctionDeployResponse();

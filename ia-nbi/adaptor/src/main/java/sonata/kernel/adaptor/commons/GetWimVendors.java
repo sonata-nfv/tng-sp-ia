@@ -164,7 +164,7 @@ public class GetWimVendors {
 
             wimUuids = getWimUuidFromInstance(instanceId);
 
-            if (wimUuids.isEmpty()) {
+            if (wimUuids == null) {
                 Logger.error("Error retrieving the Wims uuid");
 
                 return wimVendors;
