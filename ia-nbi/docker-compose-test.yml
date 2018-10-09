@@ -1,8 +1,9 @@
 version: '2'
 services:
   ia-nbi:
-    image: registry.sonata-nfv.eu:5000/ia-nbi
-#    image: ia-nbi 
+    build:
+      context: .
+      dockerfile: Dockerfile-tests
     entrypoint: /test.sh
     links:
      - postgres

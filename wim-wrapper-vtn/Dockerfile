@@ -7,7 +7,6 @@ ADD adaptor /adaptor
 WORKDIR /adaptor
 
 RUN mvn -e -q compile assembly:single;
-#RUN mvn -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true clean compile assembly:single;
 
 # New small container with java 10
 FROM openjdk:10-jre-slim
@@ -23,11 +22,9 @@ ADD sonata.config /etc/son-mano/sonata.config
 ADD son-sp-infra-* /usr/local/bin/
 ADD son-sp-infra /etc/init.d/
 ADD ./setenv.sh \
-   ./test.sh \
    ./docker-entrypoint.sh /
 
 RUN chmod +x /setenv.sh \
-   /test.sh \
    /docker-entrypoint.sh \
    /usr/local/bin/son-sp-infra-* \
    /etc/init.d/son-sp-infra
@@ -44,13 +41,11 @@ ENV repo_port 5432
 ENV repo_user sonatatest
 ENV repo_pass sonata
 ENV SONATA_SP_ADDRESS 127.0.0.1
-ENV SONATA_2ND_SP_ADDRESS 127.0.0.1
-ENV MOCKED_2ND_PLATFORM true
 
 # Copy the artifact generated on first container to this one
 COPY --from=0 /adaptor/target/adaptor-0.0.1-SNAPSHOT-jar-with-dependencies.jar /adaptor/target/
 
 
-CMD ["/docker-entrypoint.sh","/test.sh"]
+CMD ["/docker-entrypoint.sh"]
 
 

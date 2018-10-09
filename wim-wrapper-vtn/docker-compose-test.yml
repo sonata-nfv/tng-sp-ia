@@ -1,8 +1,9 @@
 version: '2'
 services:
   wim-wrapper-vtn:
-    image: registry.sonata-nfv.eu:5000/wim-wrapper-vtn
-#    image: wim-wrapper-vtn 
+    build:
+      context: .
+      dockerfile: Dockerfile-tests
     entrypoint: /test.sh
     links:
      - postgres
