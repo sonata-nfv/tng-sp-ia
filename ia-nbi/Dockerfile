@@ -1,8 +1,19 @@
-FROM maven:3.5.2-jdk-8
+FROM maven:3.5-jdk-10-slim
+
 MAINTAINER D.Valocchi <d.valocchi@ucl.ac.uk>
 
+ADD adaptor /adaptor
+
+WORKDIR /adaptor
+
+RUN mvn -e -q compile assembly:single;
+#RUN mvn -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true clean compile assembly:single;
+
+# New small container with java 10
+FROM openjdk:10-jre-slim
+
 RUN apt-get update && apt-get install --no-install-recommends -y \
-  netcat && rm -rf /var/lib/apt/lists/* 
+   netcat && rm -rf /var/lib/apt/lists/*
 
 ADD adaptor /adaptor
 ADD broker.config /etc/son-mano/broker.config
@@ -11,16 +22,15 @@ ADD sonata.config /etc/son-mano/sonata.config
 
 ADD son-sp-infra-* /usr/local/bin/
 ADD son-sp-infra /etc/init.d/
-ADD ./setenv.sh /
-ADD ./test.sh /
-ADD ./docker-entrypoint.sh /
+ADD ./setenv.sh \
+   ./test.sh \
+   ./docker-entrypoint.sh /
 
-#ADD test_images /test_images
-RUN chmod +x /setenv.sh
-RUN chmod +x /test.sh
-RUN chmod +x /docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/son-sp-infra-*
-RUN chmod +x /etc/init.d/son-sp-infra
+RUN chmod +x /setenv.sh \
+   /test.sh \
+   /docker-entrypoint.sh \
+   /usr/local/bin/son-sp-infra-* \
+   /etc/init.d/son-sp-infra
 
 WORKDIR /adaptor
 
@@ -37,8 +47,9 @@ ENV SONATA_SP_ADDRESS 127.0.0.1
 ENV SONATA_2ND_SP_ADDRESS 127.0.0.1
 ENV MOCKED_2ND_PLATFORM true
 
-RUN mvn -e -q compile assembly:single;
-#RUN mvn -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true clean compile assembly:single;
+# Copy the artifact generated on first container to this one
+COPY --from=0 /adaptor/target/adaptor-0.0.1-SNAPSHOT-jar-with-dependencies.jar /adaptor/target/
+
 
 CMD ["/docker-entrypoint.sh","/test.sh"]
 
