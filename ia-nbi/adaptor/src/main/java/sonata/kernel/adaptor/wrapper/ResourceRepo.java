@@ -39,9 +39,9 @@ public class ResourceRepo {
   private static ResourceRepo myInstance = null;
 
   /**
-   * Singleton method to get the instance of the wrapperbay.
+   * Singleton method to get the instance of the ResourceRepo.
    *
-   * @return the instance of the wrapperbay
+   * @return the instance of the ResourceRepo
    */
   public static ResourceRepo getInstance() {
     if (myInstance == null) {
@@ -75,27 +75,18 @@ public class ResourceRepo {
 
   }
 
-
   /**
-   * Store the content from vendor and for specific request id
+   * Get the status of a specific request id
    *
    * @param requestId The id of the request
-   * @param vendor The vendor name
-   * @param content The resource content
    *
-   * @return True
+   * @return Boolean
    */
-  public Boolean putResourcesForRequestIdAndVendor(String requestId, ComputeVimVendor vendor, ArrayList<VimResources> content) {
-    ConcurrentHashMap<ComputeVimVendor, ArrayList<VimResources>> resourceMap;
+  public Boolean getStatusResourcesFromRequestId(String requestId) {
     if (ResourceRepoMap.containsKey(requestId)) {
-      resourceMap = ResourceRepoMap.get(requestId);
-    } else {
-      resourceMap = new ConcurrentHashMap<>();
-      ResourceRepoMap.put(requestId,resourceMap);
-
+      return true;
     }
-    resourceMap.put(vendor,content);
-    return true;
+    return false;
   }
 
   /**
@@ -119,17 +110,54 @@ public class ResourceRepo {
   }
 
   /**
+   * Store the specific request id
+   *
+   * @param requestId The id of the request
+   *
+   * @return Boolean
+   */
+  public Boolean putResourcesForRequestId(String requestId) {
+    ConcurrentHashMap<ComputeVimVendor, ArrayList<VimResources>> resourceMap;
+    if (ResourceRepoMap.containsKey(requestId)) {
+      return false;
+    }
+
+    resourceMap = new ConcurrentHashMap<>();
+    ResourceRepoMap.put(requestId,resourceMap);
+
+    return true;
+  }
+
+  /**
+   * Store the content from vendor for specific request id
+   *
+   * @param requestId The id of the request
+   * @param vendor The vendor name
+   * @param content The resource content
+   *
+   * @return True
+   */
+  public Boolean putResourcesForRequestIdAndVendor(String requestId, ComputeVimVendor vendor, ArrayList<VimResources> content) {
+    ConcurrentHashMap<ComputeVimVendor, ArrayList<VimResources>> resourceMap;
+    if (!ResourceRepoMap.containsKey(requestId)) {
+      return false;
+    }
+
+    resourceMap = ResourceRepoMap.get(requestId);
+    resourceMap.put(vendor,content);
+    return true;
+  }
+
+  /**
    * Remove the map stored for a specific request id
    *
    * @param requestId The id of the request
    *
-   * @return True
    */
-  public Boolean removeResourcesFromRequestId(String requestId) {
+  public void removeResourcesFromRequestId(String requestId) {
     if (ResourceRepoMap.containsKey(requestId)) {
       ResourceRepoMap.remove(requestId);
     }
-    return true;
   }
 
 

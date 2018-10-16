@@ -92,29 +92,32 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
     synchronized (resourceRepo) {
 
-      resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources());
+      if (resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,data.getResources())) {
+        if (resourceRepo.getVendorsNumberForRequestId(message.getSid()).equals(ComputeVimVendor.getPossibleVendors().size())) {
+          try {
+            Logger.info(
+                    message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
 
-      if (resourceRepo.getVendorsNumberForRequestId(message.getSid()).equals(ComputeVimVendor.getPossibleVendors().size())) {
-        try {
-          Logger.info(
-                  message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
+            message.setTopic(message.getTopic().replace("nbi.",""));
 
-          message.setTopic(message.getTopic().replace("nbi.",""));
+            String body;
+            body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
 
-          String body;
-          body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
+            ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
+                    message.getTopic().replace("nbi.",""), message.getSid(), null);
 
-          ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
-                  message.getTopic().replace("nbi.",""), message.getSid(), null);
+            resourceRepo.removeResourcesFromRequestId(message.getSid());
 
-          resourceRepo.removeResourcesFromRequestId(message.getSid());
-
-          this.sendToMux(response);
-        } catch (Exception e) {
-          Logger.error("Error redirecting the message: " + e.getMessage(), e);
-          out = false;
+            this.sendToMux(response);
+          } catch (Exception e) {
+            Logger.error("Error redirecting the message: " + e.getMessage(), e);
+            out = false;
+          }
         }
+      } else {
+        out = false;
       }
+
     }
 
     return out;

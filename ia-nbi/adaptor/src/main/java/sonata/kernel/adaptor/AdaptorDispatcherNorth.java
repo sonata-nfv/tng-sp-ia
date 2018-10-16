@@ -155,6 +155,7 @@ public class AdaptorDispatcherNorth implements Runnable {
                           + "Error retrieving the Vims Type" + "\"}",
                   "application/json", message.getReplyTo(), message.getSid(), null));
         } else {
+          myThreadPool.execute(new ListComputeVimCallProcessor(message, message.getSid(), northMux));
           myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
         }
       }
