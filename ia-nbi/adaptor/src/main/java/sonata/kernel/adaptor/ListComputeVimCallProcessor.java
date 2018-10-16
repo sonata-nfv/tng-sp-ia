@@ -59,42 +59,49 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
       resourceRepo.putResourcesForRequestId(message.getSid());
     }
 
-    int counter = 0;
-    int wait = 1000;
-    int maxCounter = 15;
-    Boolean status;
-    while (counter < maxCounter) {
-      try {
-        Thread.sleep(wait);
-      } catch (InterruptedException e) {
-        Logger.error(e.getMessage(), e);
-      }
-      counter++;
-
-      synchronized (resourceRepo) {
-        status = resourceRepo.getStatusResourcesFromRequestId(message.getSid());
-      }
-      if (!status) {
-        Logger.info("List Compute Vim Call completed in the meantime.");
-        return true;
-      } else {
-        Logger.info("Still waiting for replys from Compute Wrappers, iteration: " + counter);
-      }
-
+    int wait = 15000;
+    try {
+      Thread.sleep(wait);
+    } catch (InterruptedException e) {
+      Logger.error(e.getMessage(), e);
     }
 
+    Boolean status = false;
     synchronized (resourceRepo) {
       if (resourceRepo.getStatusResourcesFromRequestId(message.getSid())) {
-        resourceRepo.removeResourcesFromRequestId(message.getSid());
+        if (resourceRepo.getVendorsNumberForRequestId(message.getSid())>0) {
+          try {
+            Logger.info(
+                    message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
+
+            ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+            String body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
+
+            ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
+                    message.getTopic().replace("nbi.", ""), message.getSid(), null);
+
+            resourceRepo.removeResourcesFromRequestId(message.getSid());
+
+            this.sendToMux(response);
+          } catch (Exception e) {
+            Logger.error("Error redirecting the message: " + e.getMessage(), e);
+            return false;
+          }
+        } else {
+          resourceRepo.removeResourcesFromRequestId(message.getSid());
+          status = true;
+        }
       }
     }
-    Logger.info("Timeout Error in List Compute Vim Call.");
-    ServicePlatformMessage response = new ServicePlatformMessage(
-        "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in List Compute Vim Call\"}",
-        "application/json", this.getMessage().getReplyTo(), this.getSid(), null);
-    this.getMux().enqueue(response);
-    return false;
-
+    if (status) {
+      Logger.info("Timeout Error in List Compute Vim Call.");
+      ServicePlatformMessage response = new ServicePlatformMessage(
+              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in List Compute Vim Call\"}",
+              "application/json", this.getMessage().getReplyTo(), this.getSid(), null);
+      this.getMux().enqueue(response);
+      return false;
+    }
+    return true;
   }
 
   @Override
