@@ -91,7 +91,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
     Logger.info("Timeout Error in List Compute Vim Call.");
     ServicePlatformMessage response = new ServicePlatformMessage(
         "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in List Compute Vim Call\"}",
-        "application/json", this.getMessage().getReplyTo(), this.getSid(), null);
+        "application/json", this.getMessage().getReplyTo().replace("nbi.",""), this.getSid(), null);
     this.getMux().enqueue(response);
     return false;
 
