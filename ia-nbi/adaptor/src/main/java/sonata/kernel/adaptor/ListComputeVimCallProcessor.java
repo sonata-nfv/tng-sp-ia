@@ -78,7 +78,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
             String body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
 
             ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
-                    message.getTopic().replace("nbi.", ""), message.getSid(), null);
+                    message.getReplyTo().replace("nbi.",""), message.getSid(), null);
 
             resourceRepo.removeResourcesFromRequestId(message.getSid());
 
@@ -93,14 +93,16 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
         }
       }
     }
+
     if (status) {
       Logger.info("Timeout Error in List Compute Vim Call.");
       ServicePlatformMessage response = new ServicePlatformMessage(
               "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in List Compute Vim Call\"}",
-              "application/json", this.getMessage().getReplyTo(), this.getSid(), null);
+              "application/json", this.getMessage().getReplyTo().replace("nbi.",""), this.getSid(), null);
       this.getMux().enqueue(response);
       return false;
     }
+
     return true;
   }
 
