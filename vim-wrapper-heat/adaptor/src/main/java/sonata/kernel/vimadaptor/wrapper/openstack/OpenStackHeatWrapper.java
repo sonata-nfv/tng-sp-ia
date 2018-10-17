@@ -687,11 +687,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       Logger.info("OpenStack wrapper - Resource utilisation retrieved.");
     } catch (IOException e) {
       Logger.error("OpenStack wrapper - Unable to connect to PoP.");;
-      output = new ResourceUtilisation();
-      output.setTotCores(0);
-      output.setUsedCores(0);
-      output.setTotMemory(0);
-      output.setUsedMemory(0);
+      output = null;
     }
     long stop = System.currentTimeMillis();
     Logger.info("[OpenStackWrapper]getResourceUtilisation-time: " + (stop - start) + " ms");
