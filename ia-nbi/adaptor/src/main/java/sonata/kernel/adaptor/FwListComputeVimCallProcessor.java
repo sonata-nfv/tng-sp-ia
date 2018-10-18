@@ -70,6 +70,8 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
       vimVendor = ComputeVimVendor.HEAT;
     } else if (message.getReplyTo().contains(".mock.")) {
       vimVendor = ComputeVimVendor.MOCK;
+    } else if (message.getReplyTo().contains(".k8s.")) {
+      vimVendor = ComputeVimVendor.K8S;
     }
 
     if (vimVendor == null) {
