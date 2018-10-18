@@ -52,6 +52,6 @@ public enum WimVendor {
       }
     }
 
-    throw new IllegalArgumentException(name + " is not a valid ComputeVimVendor");
+    throw new IllegalArgumentException(name + " is not a valid WimVendor");
   }
 }

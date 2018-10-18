@@ -33,6 +33,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
@@ -251,7 +252,8 @@ public class JavaStackCore {
    * @throws IOException
    */
   public synchronized void authenticateClientV3(String customIdentityPort) throws IOException {
-    HttpClient httpClient = HttpClientBuilder.create().build();
+    RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(10 * 1000).build();
+    HttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     HttpPost post;
     HttpResponse response = null;
     HashMap<String, String> endpoint_details = new HashMap<>();

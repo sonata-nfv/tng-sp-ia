@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
 import sonata.kernel.adaptor.commons.VimResources;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
+import sonata.kernel.adaptor.wrapper.ResourceRepo;
 import sonata.kernel.adaptor.wrapper.VimWrapperConfiguration;
 import sonata.kernel.adaptor.wrapper.WrapperBay;
 
@@ -51,73 +52,58 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
 
   @Override
   public boolean process(ServicePlatformMessage message) {
-    Logger.info("Retrieving VIM list from vim repository");
-    ArrayList<String> vimList = WrapperBay.getInstance().getComputeWrapperList();
-    Logger.info("Found " + vimList.size() + " VIMs");
-    Logger.info("Retrieving VIM(s) resource utilisation");
-    ArrayList<VimResources> resList = new ArrayList<VimResources>();
-    for (String vimUuid : vimList) {
-      VimWrapperConfiguration config = WrapperBay.getInstance().getComputeConfig(vimUuid);
-      if (config == null) {
-        Logger.warn("Error retrieving the configuration");
+    Logger.info("Wait for replys from Compute Wrappers or timeout for north");
 
-        this.sendToMux(new ServicePlatformMessage(
-            "{\"request_status\":\"fail\",\"message\":\"VIM not found\"}", "application/json",
-            message.getReplyTo(), message.getSid(), null));
-        return false;
-      }
-      /*ResourceUtilisation resource = wr.getResourceUtilisation();
-
-      if (resource != null) {
-
-        VimResources bodyElement = new VimResources();
-
-        bodyElement.setVimUuid(vimUuid);
-        bodyElement.setVimCity(config.getCity());
-        bodyElement.setVimDomain(config.getDomain());
-        bodyElement.setVimName(config.getName());
-        bodyElement.setVimEndpoint(config.getVimEndpoint());
-        bodyElement.setCoreTotal(resource.getTotCores());
-        bodyElement.setCoreUsed(resource.getUsedCores());
-        bodyElement.setMemoryTotal(resource.getTotMemory());
-        bodyElement.setMemoryUsed(resource.getUsedMemory());
-        resList.add(bodyElement);
-      } else {*/
-      VimResources bodyElement = new VimResources();
-
-      bodyElement.setVimUuid(vimUuid);
-      bodyElement.setVimCity(config.getCity());
-      bodyElement.setVimDomain(config.getDomain());
-      bodyElement.setVimName(config.getName());
-      bodyElement.setVimEndpoint(config.getVimEndpoint());
-      bodyElement.setCoreTotal(-1);
-      bodyElement.setCoreUsed(-1);
-      bodyElement.setMemoryTotal(-1);
-      bodyElement.setMemoryUsed(-1);
-      resList.add(bodyElement);
-
+    ResourceRepo resourceRepo =  ResourceRepo.getInstance();
+    synchronized (resourceRepo) {
+      resourceRepo.putResourcesForRequestId(message.getSid());
     }
 
-    ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-
-    String body;
+    int wait = 15000;
     try {
-      Logger.info("Sending back response...");
-      body = mapper.writeValueAsString(resList);
+      Thread.sleep(wait);
+    } catch (InterruptedException e) {
+      Logger.error(e.getMessage(), e);
+    }
 
-      ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
-          this.getMessage().getReplyTo(), this.getSid(), null);
+    Boolean status = false;
+    synchronized (resourceRepo) {
+      if (resourceRepo.getStatusResourcesFromRequestId(message.getSid())) {
+        if (resourceRepo.getVendorsNumberForRequestId(message.getSid())>0) {
+          try {
+            Logger.info(
+                    message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
 
-      this.getMux().enqueue(response);
-      Logger.info("List VIM call completed.");
-      return true;
-    } catch (JsonProcessingException e) {
+            ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+            String body = mapper.writeValueAsString(resourceRepo.getResourcesFromRequestId(message.getSid()));
+
+            ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
+                    message.getReplyTo().replace("nbi.",""), message.getSid(), null);
+
+            resourceRepo.removeResourcesFromRequestId(message.getSid());
+
+            this.sendToMux(response);
+          } catch (Exception e) {
+            Logger.error("Error redirecting the message: " + e.getMessage(), e);
+            return false;
+          }
+        } else {
+          resourceRepo.removeResourcesFromRequestId(message.getSid());
+          status = true;
+        }
+      }
+    }
+
+    if (status) {
+      Logger.info("Timeout Error in List Compute Vim Call.");
       ServicePlatformMessage response = new ServicePlatformMessage(
-          "{\"request_status\":\"ERROR\",\"message\":\"Internal Server Error\"}",
-          "application/json", this.getMessage().getReplyTo(), this.getSid(), null);
+              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in List Compute Vim Call\"}",
+              "application/json", this.getMessage().getReplyTo().replace("nbi.",""), this.getSid(), null);
       this.getMux().enqueue(response);
       return false;
     }
+
+    return true;
   }
 
   @Override
