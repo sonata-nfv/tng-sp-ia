@@ -66,7 +66,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
       resourceRepo.putResourcesForRequestId(message.getSid(),vendorSize);
     }
 
-    int wait = 15000;
+    int wait = 120000;
     try {
       Thread.sleep(wait);
     } catch (InterruptedException e) {
@@ -75,56 +75,10 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
 
     Boolean status = false;
     synchronized (resourceRepo) {
+      // if someone don't respond the process give timeout
       if (resourceRepo.getStatusResourcesFromRequestId(message.getSid())) {
-        if (resourceRepo.getStoredVendorsNumberForRequestId(message.getSid())>0) {
-          try {
-            Logger.info(
-                    message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
-
-
-            ArrayList<String> content= resourceRepo.getResourcesFromRequestId(message.getSid());
-            String body = null;
-
-            try {
-              for (String value : content) {
-                JSONTokener tokener = new JSONTokener(value);
-                JSONObject jsonObject = (JSONObject) tokener.nextValue();
-                String requestStatus = null;
-                try {
-                  requestStatus = jsonObject.getString("request_status");
-                  if ((body == null) || !requestStatus.equals("COMPLETED")) {
-                    body = value;
-                  }
-                } catch (Exception e) {
-                  Logger.error("Error getting the request_status: " + e.getMessage(), e);
-                  body = null;
-                  break;
-                }
-
-              }
-            } catch (Exception e) {
-              Logger.error("Error parsing the payload: " + e.getMessage(), e);
-              body = null;
-            }
-
-            if (body != null) {
-              ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
-                      message.getReplyTo().replace("nbi.", ""), message.getSid(), null);
-              this.sendToMux(response);
-            } else {
-              status = true;
-            }
-
-            resourceRepo.removeResourcesFromRequestId(message.getSid());
-
-          } catch (Exception e) {
-            Logger.error("Error redirecting the message: " + e.getMessage(), e);
-            status = true;
-          }
-        } else {
-          resourceRepo.removeResourcesFromRequestId(message.getSid());
-          status = true;
-        }
+        resourceRepo.removeResourcesFromRequestId(message.getSid());
+        status = true;
       }
     }
 

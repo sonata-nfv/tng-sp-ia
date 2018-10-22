@@ -71,6 +71,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
     synchronized (resourceRepo) {
       if (resourceRepo.getStatusResourcesFromRequestId(message.getSid())) {
         if (resourceRepo.getStoredVendorsNumberForRequestId(message.getSid())>0) {
+          // Try send partial reply to north
           try {
             Logger.info(
                     message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
