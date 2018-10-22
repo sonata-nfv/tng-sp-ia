@@ -83,12 +83,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
       for (VimPreDeploymentList vim : payload.getVimList()) {
         ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapper(vim.getUuid());
         if (wr == null) {
-          Logger.error("Error retrieving the wrapper");
-
-          this.sendToMux(new ServicePlatformMessage(
-              "{\"request_status\":\"ERROR\",\"message\":\"VIM not found\"}", "application/json",
-              message.getReplyTo(), message.getSid(), null));
-          return false;
+          continue;
         }
         Logger.info(message.getSid().substring(0, 10) + " - Wrapper retrieved");
 
@@ -119,7 +114,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
           message.getSid().substring(0, 10) + " - Preparation complete. Sending back response.");
       String responseJson = "{\"request_status\":\"COMPLETED\",\"message\":\"\"}";
       ServicePlatformMessage responseMessage = new ServicePlatformMessage(responseJson,
-          "application/json", message.getReplyTo(), message.getSid(), null);
+          "application/json", message.getReplyTo(), message.getSid(), this.getMessage().getTopic());
       this.sendToMux(responseMessage);
 
     } catch (Exception e) {
@@ -127,7 +122,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
       this.sendToMux(new ServicePlatformMessage(
           "{\"request_status\":\"ERROR\",\"message\":\""
               + e.getMessage().replace("\"", "''").replace("\n", "") + "\"}",
-          "application/json", message.getReplyTo(), message.getSid(), null));
+          "application/json", message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
       out = false;
     }
     return out;
