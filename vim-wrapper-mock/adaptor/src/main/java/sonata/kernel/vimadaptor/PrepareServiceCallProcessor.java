@@ -114,7 +114,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
           message.getSid().substring(0, 10) + " - Preparation complete. Sending back response.");
       String responseJson = "{\"request_status\":\"COMPLETED\",\"message\":\"\"}";
       ServicePlatformMessage responseMessage = new ServicePlatformMessage(responseJson,
-          "application/json", message.getReplyTo(), message.getSid(), null);
+          "application/json", message.getReplyTo(), message.getSid(), this.getMessage().getTopic());
       this.sendToMux(responseMessage);
 
     } catch (Exception e) {
@@ -122,7 +122,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
       this.sendToMux(new ServicePlatformMessage(
           "{\"request_status\":\"ERROR\",\"message\":\""
               + e.getMessage().replace("\"", "''").replace("\n", "") + "\"}",
-          "application/json", message.getReplyTo(), message.getSid(), null));
+          "application/json", message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
       out = false;
     }
     return out;
