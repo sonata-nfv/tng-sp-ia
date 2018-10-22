@@ -25,11 +25,9 @@
  */
 package sonata.kernel.adaptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import sonata.kernel.adaptor.commons.ManagementComputeListResponse;
-import sonata.kernel.adaptor.commons.SonataManifestMapper;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
-import sonata.kernel.adaptor.commons.VimResources;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.ComputeVimVendor;
 import sonata.kernel.adaptor.wrapper.ResourceRepo;
@@ -38,7 +36,7 @@ import sonata.kernel.adaptor.wrapper.VimVendor;
 import java.util.ArrayList;
 import java.util.Observable;
 
-public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
+public class FwPrepareServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
       LoggerFactory.getLogger(FwVimCallProcessor.class);
 
@@ -49,7 +47,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
-  public FwListComputeVimCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
+  public FwPrepareServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
     super(message, sid, mux);
   }
 
@@ -92,23 +90,28 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
             //message.setTopic(message.getTopic().replace("nbi.",""));
 
             ArrayList<String> content= resourceRepo.getResourcesFromRequestId(message.getSid());
-
-            ManagementComputeListResponse data = null;
-            ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-            ArrayList<VimResources> finalContent = new ArrayList<>();
+            String body = null;
 
             try {
               for (String value : content) {
-                data = mapper.readValue(value, ManagementComputeListResponse.class);
-                finalContent.addAll(data.getResources());
+                JSONTokener tokener = new JSONTokener(value);
+                JSONObject jsonObject = (JSONObject) tokener.nextValue();
+                String requestStatus = null;
+                try {
+                  requestStatus = jsonObject.getString("request_status");
+                  if ((body == null) || !requestStatus.equals("COMPLETED")) {
+                    body = value;
+                  }
+                } catch (Exception e) {
+                  Logger.error("Error getting the request_status: " + e.getMessage(), e);
+                  return false;
+                }
+
               }
             } catch (Exception e) {
               Logger.error("Error parsing the payload: " + e.getMessage(), e);
               return false;
             }
-
-            String body;
-            body = mapper.writeValueAsString(finalContent);
 
             ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
                     message.getTopic().replace("nbi.",""), message.getSid(), null);

@@ -23,36 +23,42 @@
  * @author Dario Valocchi (Ph.D.), UCL
  * 
  */
-
 package sonata.kernel.adaptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
-
-import sonata.kernel.adaptor.commons.ManagementComputeListResponse;
-import sonata.kernel.adaptor.commons.SonataManifestMapper;
-import sonata.kernel.adaptor.commons.VimResources;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.ResourceRepo;
 
 import java.util.ArrayList;
 import java.util.Observable;
 
-public class ListComputeVimCallProcessor extends AbstractCallProcessor {
-
+public class PrepareServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(ListComputeVimCallProcessor.class);
+      LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
 
   private int vendorSize;
 
-  public ListComputeVimCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, int vendorSize) {
+  /**
+   * @param message
+   * @param sid
+   * @param mux
+   */
+  public PrepareServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, int vendorSize) {
     super(message, sid, mux);
     this.vendorSize = vendorSize;
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see sonata.kernel.vimadaptor.AbstractCallProcessor#process(sonata.kernel.vimadaptor.messaging.
+   * ServicePlatformMessage)
+   */
   @Override
   public boolean process(ServicePlatformMessage message) {
+
     Logger.info("Wait for replys from Compute Wrappers or timeout for north");
 
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
@@ -75,26 +81,33 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
             Logger.info(
                     message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
 
-            ArrayList<String> content= resourceRepo.getResourcesFromRequestId(message.getSid());
 
-            ManagementComputeListResponse data = null;
-            ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-            ArrayList<VimResources> finalContent = new ArrayList<>();
+            ArrayList<String> content= resourceRepo.getResourcesFromRequestId(message.getSid());
+            String body = null;
 
             try {
               for (String value : content) {
-                data = mapper.readValue(value, ManagementComputeListResponse.class);
-                finalContent.addAll(data.getResources());
+                JSONTokener tokener = new JSONTokener(value);
+                JSONObject jsonObject = (JSONObject) tokener.nextValue();
+                String requestStatus = null;
+                try {
+                  requestStatus = jsonObject.getString("request_status");
+                  if ((body == null) || !requestStatus.equals("COMPLETED")) {
+                    body = value;
+                  }
+                } catch (Exception e) {
+                  Logger.error("Error getting the request_status: " + e.getMessage(), e);
+                  body = null;
+                  break;
+                }
+
               }
             } catch (Exception e) {
               Logger.error("Error parsing the payload: " + e.getMessage(), e);
-              finalContent = null;
+              body = null;
             }
 
-            if (finalContent != null) {
-              String body;
-              body = mapper.writeValueAsString(finalContent);
-
+            if (body != null) {
               ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
                       message.getReplyTo().replace("nbi.", ""), message.getSid(), null);
               this.sendToMux(response);
@@ -116,20 +129,28 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
     }
 
     if (status) {
-      Logger.info("Timeout Error in List Compute Vim Call.");
+      Logger.info("Timeout Error in Prepare Service Call.");
       ServicePlatformMessage response = new ServicePlatformMessage(
-              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in List Compute Vim Call\"}",
+              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in Prepare Service Call\"}",
               "application/json", this.getMessage().getReplyTo().replace("nbi.",""), this.getSid(), null);
       this.getMux().enqueue(response);
       return false;
     }
 
     return true;
+
+
   }
 
+  /*
+   * (non-Javadoc)
+   * 
+   * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+   */
   @Override
-  public void update(Observable obs, Object arg) {
-    // This call does not need to be updated by any observable (wrapper).
+  public void update(Observable arg0, Object arg1) {
+    // TODO Auto-generated method stub
+
   }
 
 }
