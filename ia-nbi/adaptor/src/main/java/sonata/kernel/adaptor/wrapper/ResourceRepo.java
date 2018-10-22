@@ -27,7 +27,6 @@
 package sonata.kernel.adaptor.wrapper;
 
 import org.slf4j.LoggerFactory;
-import sonata.kernel.adaptor.commons.VimResources;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,11 +49,13 @@ public class ResourceRepo {
     return myInstance;
   }
 
-  private ConcurrentHashMap<String, ConcurrentHashMap<ComputeVimVendor, ArrayList<VimResources>>> ResourceRepoMap;
+  private ConcurrentHashMap<String, ConcurrentHashMap<VimVendor, String>> ResourceRepoMap;
+  private ConcurrentHashMap<String, Integer> ResourceSizeMap;
 
 
   private ResourceRepo() {
     ResourceRepoMap = new ConcurrentHashMap<>();
+    ResourceSizeMap = new ConcurrentHashMap<>();
   }
 
 
@@ -66,11 +67,27 @@ public class ResourceRepo {
    *
    * @return an integer with the number of vendors stored for a specific request id
    */
-  public Integer getVendorsNumberForRequestId(String requestId) {
+  public Integer getStoredVendorsNumberForRequestId(String requestId) {
     if (ResourceRepoMap.containsKey(requestId)) {
       return ResourceRepoMap.get(requestId).size();
     } else {
       return 0;
+    }
+
+  }
+
+  /**
+   * Return the number of vendors expected for a specific request id
+   *
+   * @param requestId The id of the request
+   *
+   * @return an integer with the number of vendors expected for a specific request id
+   */
+  public Integer getExpectedVendorsNumberForRequestId(String requestId) {
+    if (ResourceRepoMap.containsKey(requestId)) {
+      return ResourceSizeMap.get(requestId);
+    } else {
+      return -1;
     }
 
   }
@@ -96,13 +113,11 @@ public class ResourceRepo {
    *
    * @return ArrayList with the content for a specific request id
    */
-  public ArrayList<VimResources> getResourcesFromRequestId(String requestId) {
-    ArrayList<VimResources> resourceForRequestId = new ArrayList<>();
+  public ArrayList<String> getResourcesFromRequestId(String requestId) {
+    ArrayList<String> resourceForRequestId = new ArrayList<>();
     if (ResourceRepoMap.containsKey(requestId)) {
-      ConcurrentHashMap<ComputeVimVendor, ArrayList<VimResources>> resourceMap = ResourceRepoMap.get(requestId);
-      for (ArrayList<VimResources> value : resourceMap.values()) {
-        resourceForRequestId.addAll(value);
-      }
+      ConcurrentHashMap<VimVendor, String> resourceMap = ResourceRepoMap.get(requestId);
+      resourceForRequestId.addAll(resourceMap.values());
     } else {
       resourceForRequestId = null;
     }
@@ -116,14 +131,16 @@ public class ResourceRepo {
    *
    * @return Boolean
    */
-  public Boolean putResourcesForRequestId(String requestId) {
-    ConcurrentHashMap<ComputeVimVendor, ArrayList<VimResources>> resourceMap;
+  public Boolean putResourcesForRequestId(String requestId, int vendorSize) {
+    ConcurrentHashMap<VimVendor, String> resourceMap;
     if (ResourceRepoMap.containsKey(requestId)) {
       return false;
     }
 
     resourceMap = new ConcurrentHashMap<>();
     ResourceRepoMap.put(requestId,resourceMap);
+
+    ResourceSizeMap.put(requestId,vendorSize);
 
     return true;
   }
@@ -137,8 +154,8 @@ public class ResourceRepo {
    *
    * @return True
    */
-  public Boolean putResourcesForRequestIdAndVendor(String requestId, ComputeVimVendor vendor, ArrayList<VimResources> content) {
-    ConcurrentHashMap<ComputeVimVendor, ArrayList<VimResources>> resourceMap;
+  public Boolean putResourcesForRequestIdAndVendor(String requestId, VimVendor vendor, String content) {
+    ConcurrentHashMap<VimVendor, String> resourceMap;
     if (!ResourceRepoMap.containsKey(requestId)) {
       return false;
     }
@@ -157,6 +174,7 @@ public class ResourceRepo {
   public void removeResourcesFromRequestId(String requestId) {
     if (ResourceRepoMap.containsKey(requestId)) {
       ResourceRepoMap.remove(requestId);
+      ResourceSizeMap.remove(requestId);
     }
   }
 
