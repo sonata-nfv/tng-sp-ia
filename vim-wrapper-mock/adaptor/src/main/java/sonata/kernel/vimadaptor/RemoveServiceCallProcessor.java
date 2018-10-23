@@ -78,6 +78,10 @@ public class RemoveServiceCallProcessor extends AbstractCallProcessor {
     for (String vimUuid : vimUuidList) {
       ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapper(vimUuid);
       if (wr == null) {
+        String body =
+                "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + vimUuid + "\"}";
+        WrapperStatusUpdate update = new WrapperStatusUpdate(this.getSid(), "SUCCESS", body);
+        update(null,update);
         continue;
       }
       wr.addObserver(this);
