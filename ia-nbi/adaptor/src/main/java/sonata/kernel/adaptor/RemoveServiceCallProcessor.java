@@ -25,18 +25,15 @@
  */
 package sonata.kernel.adaptor;
 
-import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.ResourceRepo;
 
-import java.util.ArrayList;
 import java.util.Observable;
 
-public class PrepareServiceCallProcessor extends AbstractCallProcessor {
+public class RemoveServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
+      LoggerFactory.getLogger(RemoveServiceCallProcessor.class);
 
   private int vendorSize;
 
@@ -45,7 +42,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
-  public PrepareServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, int vendorSize) {
+  public RemoveServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, int vendorSize) {
     super(message, sid, mux);
     this.vendorSize = vendorSize;
   }
@@ -66,7 +63,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
       resourceRepo.putResourcesForRequestId(message.getSid(),vendorSize);
     }
 
-    int wait = 120000;
+    int wait = 15000;
     try {
       Thread.sleep(wait);
     } catch (InterruptedException e) {
@@ -83,9 +80,9 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
     }
 
     if (status) {
-      Logger.info("Timeout Error in Prepare Service Call.");
+      Logger.info("Timeout Error in Remove Service Call.");
       ServicePlatformMessage response = new ServicePlatformMessage(
-              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in Prepare Service Call\"}",
+              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in Remove Service Call\"}",
               "application/json", this.getMessage().getReplyTo().replace("nbi.",""), this.getSid(), null);
       this.getMux().enqueue(response);
       return false;

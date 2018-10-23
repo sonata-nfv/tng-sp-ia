@@ -78,13 +78,10 @@ public class RemoveServiceCallProcessor extends AbstractCallProcessor {
     for (String vimUuid : vimUuidList) {
       ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapper(vimUuid);
       if (wr == null) {
-        Logger.warn("Error retrieving the wrapper");
-
-        this.sendToMux(new ServicePlatformMessage(
-            "{\"request_status\":\"WARNING\",\"message\":\"can't build a wrapper for VIM UUID "
-                + vimUuid + "\"}",
-            "application/json", message.getReplyTo(), message.getSid(), null));
-        // return false;
+        String body =
+                "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + vimUuid + "\"}";
+        WrapperStatusUpdate update = new WrapperStatusUpdate(this.getSid(), "SUCCESS", body);
+        update(null,update);
         continue;
       }
       wr.addObserver(this);
@@ -134,7 +131,7 @@ public class RemoveServiceCallProcessor extends AbstractCallProcessor {
   private void sendResponse(String message) {
     if (this.getMessage().getReplyTo() != null) {
       ServicePlatformMessage spMessage = new ServicePlatformMessage(message, "application/json",
-          this.getMessage().getReplyTo(), this.getMessage().getSid(), null);
+          this.getMessage().getReplyTo(), this.getMessage().getSid(), this.getMessage().getTopic());
       this.sendToMux(spMessage);
     }
   }

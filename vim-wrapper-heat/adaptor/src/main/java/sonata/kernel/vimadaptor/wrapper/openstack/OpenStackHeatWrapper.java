@@ -856,8 +856,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     // END COMMENT
     VimRepo repo = WrapperBay.getInstance().getVimRepo();
     Logger.info("Trying to remove NS instance: " + instanceUuid);
-    String stackName = repo.getServiceInstanceVimName(instanceUuid);
-    String stackUuid = repo.getServiceInstanceVimUuid(instanceUuid);
+    String stackName = repo.getServiceInstanceVimName(instanceUuid, this.getConfig().getUuid());
+    String stackUuid = repo.getServiceInstanceVimUuid(instanceUuid, this.getConfig().getUuid());
     Logger.info("NS instance mapped to stack name: " + stackName);
     Logger.info("NS instance mapped to stack uuid: " + stackUuid);
 
