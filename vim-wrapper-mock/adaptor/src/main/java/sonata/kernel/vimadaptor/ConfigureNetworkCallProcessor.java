@@ -93,7 +93,7 @@ public class ConfigureNetworkCallProcessor extends AbstractCallProcessor {
       String responseJson =
           "{\"request_status\":\"ERROR\",\"message\":\"Unable to parse API payload\"}";
       this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-          message.getReplyTo(), message.getSid(), null));
+          message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
       return false;
     }
     String serviceInstaceId = data.getServiceInstanceId();
@@ -146,7 +146,7 @@ public class ConfigureNetworkCallProcessor extends AbstractCallProcessor {
                     "{\"request_status\":\"ERROR\",\"message\":\"Unable to parse NSD service graph. Error in the connection_point_reference fields: "
                         + name + "\"}";
                 this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-                    message.getReplyTo(), message.getSid(), null));
+                    message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
                 return false;
               }
               String vnfId = split[0];
@@ -165,11 +165,15 @@ public class ConfigureNetworkCallProcessor extends AbstractCallProcessor {
                     "{\"request_status\":\"ERROR\",\"message\":\"Can't find VIM where function instance"
                         + vnfInstanceUuid + " is deployed\"}";
                 this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-                    message.getReplyTo(), message.getSid(), null));
+                    message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
                 return false;
               }
-              String netVimUuid = WrapperBay.getInstance()
-                  .getNetworkVimFromComputeVimUuid(computeVimUuid).getConfig().getUuid();
+              NetworkWrapper netVim =
+                      WrapperBay.getInstance().getNetworkVimFromComputeVimUuid(computeVimUuid);
+              if (netVim == null) {
+                continue;
+              }
+              String netVimUuid = netVim.getConfig().getUuid();
               if (netVim2SubGraphMap.containsKey(netVimUuid)) {
                 netVim2SubGraphMap.get(netVimUuid).add(cpr);
               } else {
@@ -234,7 +238,7 @@ public class ConfigureNetworkCallProcessor extends AbstractCallProcessor {
               String responseJson =
                   "{\"request_status\":\"ERROR\",\"message\":\"" + e.getMessage() + "\"}";
               this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-                  message.getReplyTo(), message.getSid(), null));
+                  message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
               return false;
             }
 
@@ -244,7 +248,7 @@ public class ConfigureNetworkCallProcessor extends AbstractCallProcessor {
     }
     String responseJson = "{\"request_status\":\"COMPLETED\",\"message\":\"\"}";
     this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-        message.getReplyTo(), message.getSid(), null));
+        message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
     return true;
   }
 

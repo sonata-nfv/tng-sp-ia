@@ -40,7 +40,7 @@ import java.util.Observable;
 
 public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(FwVimCallProcessor.class);
+      LoggerFactory.getLogger(FwListComputeVimCallProcessor.class);
 
   private ArrayList<String> vimVendors;
 
@@ -110,7 +110,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
             String body;
             body = mapper.writeValueAsString(finalContent);
 
-            ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
+            ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
                     message.getTopic().replace("nbi.",""), message.getSid(), null);
 
             resourceRepo.removeResourcesFromRequestId(message.getSid());

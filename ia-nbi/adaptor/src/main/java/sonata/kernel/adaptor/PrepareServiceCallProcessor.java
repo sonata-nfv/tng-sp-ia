@@ -73,7 +73,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
       Logger.error(e.getMessage(), e);
     }
 
-    Boolean status = false;
+    boolean status = false;
     synchronized (resourceRepo) {
       // if someone don't respond the process give timeout
       if (resourceRepo.getStatusResourcesFromRequestId(message.getSid())) {

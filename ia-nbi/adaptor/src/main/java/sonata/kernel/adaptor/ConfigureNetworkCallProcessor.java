@@ -31,9 +31,9 @@ import sonata.kernel.adaptor.wrapper.ResourceRepo;
 
 import java.util.Observable;
 
-public class RemoveServiceCallProcessor extends AbstractCallProcessor {
+public class ConfigureNetworkCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(RemoveServiceCallProcessor.class);
+      LoggerFactory.getLogger(ConfigureNetworkCallProcessor.class);
 
   private int vendorSize;
 
@@ -42,7 +42,7 @@ public class RemoveServiceCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
-  public RemoveServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, int vendorSize) {
+  public ConfigureNetworkCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, int vendorSize) {
     super(message, sid, mux);
     this.vendorSize = vendorSize;
   }
@@ -56,7 +56,7 @@ public class RemoveServiceCallProcessor extends AbstractCallProcessor {
   @Override
   public boolean process(ServicePlatformMessage message) {
 
-    Logger.info("Wait for replys from Compute Wrappers or timeout for north");
+    Logger.info("Wait for replys from Network Wrappers or timeout for north");
 
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
     synchronized (resourceRepo) {
@@ -80,9 +80,9 @@ public class RemoveServiceCallProcessor extends AbstractCallProcessor {
     }
 
     if (status) {
-      Logger.info("Timeout Error in Remove Service Call.");
+      Logger.info("Timeout Error in Configure Chain Service Call.");
       ServicePlatformMessage response = new ServicePlatformMessage(
-              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in Remove Service Call\"}",
+              "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in Configure Chain Service Call\"}",
               "application/json", this.getMessage().getReplyTo().replace("nbi.",""), this.getSid(), null);
       this.getMux().enqueue(response);
       return false;

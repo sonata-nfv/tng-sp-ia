@@ -29,16 +29,16 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
-import sonata.kernel.adaptor.wrapper.ComputeVimVendor;
+import sonata.kernel.adaptor.wrapper.NetworkVimVendor;
 import sonata.kernel.adaptor.wrapper.ResourceRepo;
 import sonata.kernel.adaptor.wrapper.VimVendor;
 
 import java.util.ArrayList;
 import java.util.Observable;
 
-public class FwRemoveServiceCallProcessor extends AbstractCallProcessor {
+public class FwDeconfigureNetworkCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(FwRemoveServiceCallProcessor.class);
+      LoggerFactory.getLogger(FwDeconfigureNetworkCallProcessor.class);
 
   private ArrayList<String> vimVendors;
 
@@ -47,7 +47,7 @@ public class FwRemoveServiceCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
-  public FwRemoveServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
+  public FwDeconfigureNetworkCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
     super(message, sid, mux);
   }
 
@@ -66,12 +66,10 @@ public class FwRemoveServiceCallProcessor extends AbstractCallProcessor {
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
     VimVendor vimVendor = null;
 
-    if (message.getReplyTo().contains(".heat.")) {
-      vimVendor = ComputeVimVendor.HEAT;
-    } else if (message.getReplyTo().contains(".mock.")) {
-      vimVendor = ComputeVimVendor.MOCK;
-    } else if (message.getReplyTo().contains(".k8s.")) {
-      vimVendor = ComputeVimVendor.K8S;
+    if (message.getReplyTo().contains(".ovs.")) {
+      vimVendor = NetworkVimVendor.OVS;
+    } else if (message.getReplyTo().contains(".networkmock.")) {
+      vimVendor = NetworkVimVendor.NETWORKMOCK;
     }
 
     if (vimVendor == null) {
