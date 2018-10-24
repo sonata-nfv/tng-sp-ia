@@ -74,7 +74,7 @@ public class DeconfigureNetworkCallProcessor extends AbstractCallProcessor {
       String responseJson =
           "{\"request_status\":\"ERROR\",\"message\":\"Unable to parse API payload\"}";
       this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-          message.getReplyTo(), message.getSid(), null));
+          message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
       return false;
     }
     Logger.info(
@@ -87,14 +87,7 @@ public class DeconfigureNetworkCallProcessor extends AbstractCallProcessor {
       NetworkWrapper netVim =
           WrapperBay.getInstance().getNetworkVimFromComputeVimUuid(computeVimUuid);
       if (netVim == null) {
-        Logger.error(
-            "Unable to deconfigure networking. Cannot find NetVim associated with compute vim "
-                + computeVimUuid);
-        String responseJson =
-            "{\"request_status\":\"ERROR\",\"message\":\"Internal Server Error. Can't deconfigure networking.\"}";
-        this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-            message.getReplyTo(), message.getSid(), null));
-        return false;
+        continue;
       }
       try {
         netVim.deconfigureNetworking(data.getServiceInstanceId());
@@ -103,7 +96,7 @@ public class DeconfigureNetworkCallProcessor extends AbstractCallProcessor {
         String responseJson =
             "{\"request_status\":\"ERROR\",\"message\":\"" + e.getMessage() + "\"}";
         this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-            message.getReplyTo(), message.getSid(), null));
+            message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
         return false;
       }
     }
@@ -111,7 +104,7 @@ public class DeconfigureNetworkCallProcessor extends AbstractCallProcessor {
 
     String responseJson = "{\"request_status\":\"COMPLETED\",\"message\":\"\"}";
     this.sendToMux(new ServicePlatformMessage(responseJson, "application/json",
-        message.getReplyTo(), message.getSid(), null));
+        message.getReplyTo(), message.getSid(), this.getMessage().getTopic()));
     return true;
   }
 

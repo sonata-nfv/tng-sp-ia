@@ -213,6 +213,10 @@ public class AdaptorDispatcherNorth implements Runnable {
         myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
       } else if (message.getTopic().endsWith("prepare")) {
         myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
+      } else if (message.getTopic().endsWith("chain.deconfigure")) {
+        myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
+      } else if (message.getTopic().endsWith("chain.configure")) {
+        myThreadPool.execute(new ConfigureNetworkCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
       }
       myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
     }

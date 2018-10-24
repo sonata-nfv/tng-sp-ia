@@ -67,7 +67,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
       Logger.error(e.getMessage(), e);
     }
 
-    Boolean status = false;
+    boolean status = false;
     synchronized (resourceRepo) {
       if (resourceRepo.getStatusResourcesFromRequestId(message.getSid())) {
         if (resourceRepo.getStoredVendorsNumberForRequestId(message.getSid())>0) {
@@ -96,7 +96,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
               String body;
               body = mapper.writeValueAsString(finalContent);
 
-              ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
+              ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
                       message.getReplyTo().replace("nbi.", ""), message.getSid(), null);
               this.sendToMux(response);
             } else {
