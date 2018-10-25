@@ -28,6 +28,8 @@ package sonata.kernel.vimadaptor.commons.nsd;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+
 public class ConnectionPoint {
 
 
@@ -35,6 +37,10 @@ public class ConnectionPoint {
   @JsonProperty("interface")
   private InterfaceType interfaceTye;
   private ConnectionPointType type;
+  private String mac;
+  private String ip;
+  @JsonProperty("security_groups")
+  private ArrayList<String> securityGroups;
   @JsonProperty("virtua_link_reference")
   private String virtualLinkReference;
 
@@ -47,6 +53,18 @@ public class ConnectionPoint {
     return type;
   }
 
+  public String getMac() {
+    return mac;
+  }
+
+  public String getIp() {
+    return ip;
+  }
+
+  public ArrayList<String> getSecurityGroups() {
+    return securityGroups;
+  }
+
   public String getVirtualLinkReference() {
     return virtualLinkReference;
   }
@@ -57,6 +75,18 @@ public class ConnectionPoint {
 
   public void setType(ConnectionPointType type) {
     this.type = type;
+  }
+
+  public void setMac(String mac) {
+    this.mac = mac;
+  }
+
+  public void setIp(String ip) {
+    this.ip = ip;
+  }
+
+  public void setSecurityGroups(ArrayList<String> securityGroups) {
+    this.securityGroups = securityGroups;
   }
 
   public void setVirtualLinkReference(String virtualLinkReference) {

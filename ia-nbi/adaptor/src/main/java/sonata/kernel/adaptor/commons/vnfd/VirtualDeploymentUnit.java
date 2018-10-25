@@ -50,6 +50,8 @@ public class VirtualDeploymentUnit {
   private VmFormat vmImageFormat;
   @JsonProperty("vm_image_md5")
   private String vmImageMd5;
+  @JsonProperty("vm_flavor")
+  private String vmFlavor;
   @JsonProperty("user_data")
   private String userData;
 
@@ -90,6 +92,10 @@ public class VirtualDeploymentUnit {
     return vmImageMd5;
   }
 
+  public String getVmFlavor() {
+    return vmFlavor;
+  }
+
   public String getUserData() {
     return userData;
   }
@@ -128,6 +134,10 @@ public class VirtualDeploymentUnit {
 
   public void setVmImageMd5(String vmImageMd5) {
     this.vmImageMd5 = vmImageMd5;
+  }
+
+  public void setVmFlavor(String vmFlavor) {
+    this.vmFlavor = vmFlavor;
   }
 
   public void setUserData(String userData) {
