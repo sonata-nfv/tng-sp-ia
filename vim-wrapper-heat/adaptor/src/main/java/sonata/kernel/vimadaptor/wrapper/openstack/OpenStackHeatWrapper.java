@@ -1221,6 +1221,18 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     return null;
   }
 
+  private boolean searchFlavorByName(String flavorName, ArrayList<Flavor> vimFlavors) {
+    Logger.debug("Flavor lookup based on flavor name...");
+    for (Flavor flavor : vimFlavors) {
+      if (flavor.getFlavorName() == null) continue;
+      Logger.debug("Checking " + flavor.getFlavorName());
+      if (flavor.getFlavorName().equals(flavorName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Deprecated
   private HeatModel translate(ServiceDeployPayload data, ArrayList<Flavor> vimFlavors)
       throws Exception {
@@ -1365,15 +1377,33 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         server.putProperty("name",
             vnfd.getName() + "." + vdu.getId() + "." + nsd.getInstanceUuid());
         server.putProperty("image", vdu.getVmImage());
-        int vcpu = vdu.getResourceRequirements().getCpu().getVcpus();
-        double memoryInBytes = vdu.getResourceRequirements().getMemory().getSize()
-            * vdu.getResourceRequirements().getMemory().getSizeUnit().getMultiplier();
-        double storageInBytes = vdu.getResourceRequirements().getStorage().getSize()
-            * vdu.getResourceRequirements().getStorage().getSizeUnit().getMultiplier();
-        String flavorName = this.selectFlavor(vcpu, memoryInBytes, storageInBytes, vimFlavors);
-        if (flavorName == null) {
-          throw new Exception("Cannot find an available flavor for requirements. CPU: " + vcpu
-              + " - mem: " + memoryInBytes + " - sto: " + storageInBytes);
+        String flavorName = null;
+        if (vdu.getVmFlavor() != null) {
+          flavorName = vdu.getVmFlavor();
+          if (!searchFlavorByName(flavorName,vimFlavors)) {
+            Logger.error("Cannot find the flavor: " + flavorName);
+            throw new Exception("Cannot find the flavor: " + flavorName);
+          }
+        } else {
+          int vcpu = vdu.getResourceRequirements().getCpu().getVcpus();
+          double memoryInBytes = vdu.getResourceRequirements().getMemory().getSize()
+                  * vdu.getResourceRequirements().getMemory().getSizeUnit().getMultiplier();
+          double storageInBytes = vdu.getResourceRequirements().getStorage().getSize()
+                  * vdu.getResourceRequirements().getStorage().getSizeUnit().getMultiplier();
+          try {
+            flavorName = this.selectFlavor(vcpu, memoryInBytes, storageInBytes, vimFlavors);
+          } catch (Exception e) {
+            Logger.error("Exception while searching for available flavor for the requirements: "
+                    + e.getMessage());
+            throw new Exception("Cannot find an available flavor for requirements. CPU: " + vcpu
+                    + " - mem: " + memoryInBytes + " - sto: " + storageInBytes);
+          }
+          if (flavorName == null) {
+            Logger.error("Cannot find an available flavor for the requirements. CPU: " + vcpu
+                    + " - mem: " + memoryInBytes + " - sto: " + storageInBytes);
+            throw new Exception("Cannot find an available flavor for requirements. CPU: " + vcpu
+                    + " - mem: " + memoryInBytes + " - sto: " + storageInBytes);
+          }
         }
         server.putProperty("flavor", flavorName);
         ArrayList<HashMap<String, Object>> net = new ArrayList<HashMap<String, Object>>();
@@ -1401,6 +1431,22 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             HashMap<String, Object> netMap = new HashMap<String, Object>();
             netMap.put("get_resource", nsd.getName() + ".mgmt.net." + nsd.getInstanceUuid());
             port.putProperty("network", netMap);
+            if (cp.getMac() != null) {
+              port.putProperty("mac_address", cp.getMac());
+            }
+            if (cp.getIp() != null) {
+              ArrayList<HashMap<String, Object>> ip = new ArrayList<HashMap<String, Object>>();
+              // add the fixed ip to the port
+              HashMap<String, Object> n1 = new HashMap<String, Object>();
+              n1.put("ip_address", cp.getIp());
+              ip.add(n1);
+
+              port.putProperty("fixed_ips", ip);
+            }
+            if (cp.getSecurityGroups() != null) {
+              // add the security groups to the port
+              port.putProperty("security_groups", cp.getSecurityGroups());
+            }
             model.addResource(port);
             mgmtPortNames.add(vnfd.getName() + "." + cp.getId() + "." + nsd.getInstanceUuid());
 
@@ -1421,7 +1467,22 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             netMap.put("get_resource",
                 vnfd.getName() + "." + linkIdReference + ".net." + nsd.getInstanceUuid());
             port.putProperty("network", netMap);
+            if (cp.getMac() != null) {
+              port.putProperty("mac_address", cp.getMac());
+            }
+            if (cp.getIp() != null) {
+              ArrayList<HashMap<String, Object>> ip = new ArrayList<HashMap<String, Object>>();
+              // add the fixed ip to the port
+              HashMap<String, Object> n1 = new HashMap<String, Object>();
+              n1.put("ip_address", cp.getIp());
+              ip.add(n1);
 
+              port.putProperty("fixed_ips", ip);
+            }
+            if (cp.getSecurityGroups() != null) {
+              // add the security groups to the port
+              port.putProperty("security_groups", cp.getSecurityGroups());
+            }
             model.addResource(port);
             // add the port to the server
             HashMap<String, Object> n1 = new HashMap<String, Object>();
@@ -1658,26 +1719,34 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         server.putProperty("user_data", userDataMap);
         server.putProperty("user_data_format", "SOFTWARE_CONFIG");
       }
-
-      int vcpu = vdu.getResourceRequirements().getCpu().getVcpus();
-      double memoryInGB = vdu.getResourceRequirements().getMemory().getSize()
-          * vdu.getResourceRequirements().getMemory().getSizeUnit().getMultiplier();
-      double storageInGB = vdu.getResourceRequirements().getStorage().getSize()
-          * vdu.getResourceRequirements().getStorage().getSizeUnit().getMultiplier();
       String flavorName = null;
-      try {
-        flavorName = this.selectFlavor(vcpu, memoryInGB, storageInGB, flavors);
-      } catch (Exception e) {
-        Logger.error("Exception while searching for available flavor for the requirements: "
-            + e.getMessage());
-        throw new Exception("Cannot find an available flavor for requirements. CPU: " + vcpu
-            + " - mem: " + memoryInGB + " - sto: " + storageInGB);
-      }
-      if (flavorName == null) {
-        Logger.error("Cannot find an available flavor for the requirements. CPU: " + vcpu
-            + " - mem: " + memoryInGB + " - sto: " + storageInGB);
-        throw new Exception("Cannot find an available flavor for requirements. CPU: " + vcpu
-            + " - mem: " + memoryInGB + " - sto: " + storageInGB);
+      if (vdu.getVmFlavor() != null) {
+        flavorName = vdu.getVmFlavor();
+        if (!searchFlavorByName(flavorName,flavors)) {
+          Logger.error("Cannot find the flavor: " + flavorName);
+          throw new Exception("Cannot find the flavor: " + flavorName);
+        }
+      } else {
+        int vcpu = vdu.getResourceRequirements().getCpu().getVcpus();
+        double memoryInGB = vdu.getResourceRequirements().getMemory().getSize()
+                * vdu.getResourceRequirements().getMemory().getSizeUnit().getMultiplier();
+        double storageInGB = vdu.getResourceRequirements().getStorage().getSize()
+                * vdu.getResourceRequirements().getStorage().getSizeUnit().getMultiplier();
+
+        try {
+          flavorName = this.selectFlavor(vcpu, memoryInGB, storageInGB, flavors);
+        } catch (Exception e) {
+          Logger.error("Exception while searching for available flavor for the requirements: "
+                  + e.getMessage());
+          throw new Exception("Cannot find an available flavor for requirements. CPU: " + vcpu
+                  + " - mem: " + memoryInGB + " - sto: " + storageInGB);
+        }
+        if (flavorName == null) {
+          Logger.error("Cannot find an available flavor for the requirements. CPU: " + vcpu
+                  + " - mem: " + memoryInGB + " - sto: " + storageInGB);
+          throw new Exception("Cannot find an available flavor for requirements. CPU: " + vcpu
+                  + " - mem: " + memoryInGB + " - sto: " + storageInGB);
+        }
       }
       server.putProperty("flavor", flavorName);
       ArrayList<HashMap<String, Object>> net = new ArrayList<HashMap<String, Object>>();
@@ -1724,6 +1793,22 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           }
         }
         port.putProperty("network", netMap);
+        if (cp.getMac() != null) {
+          port.putProperty("mac_address", cp.getMac());
+        }
+        if (cp.getIp() != null) {
+          ArrayList<HashMap<String, Object>> ip = new ArrayList<HashMap<String, Object>>();
+          // add the fixed ip to the port
+          HashMap<String, Object> n1 = new HashMap<String, Object>();
+          n1.put("ip_address", cp.getIp());
+          ip.add(n1);
+
+          port.putProperty("fixed_ips", ip);
+        }
+        if (cp.getSecurityGroups() != null) {
+          // add the security groups to the port
+          port.putProperty("security_groups", cp.getSecurityGroups());
+        }
         model.addResource(port);
 
         // add the port to the server
