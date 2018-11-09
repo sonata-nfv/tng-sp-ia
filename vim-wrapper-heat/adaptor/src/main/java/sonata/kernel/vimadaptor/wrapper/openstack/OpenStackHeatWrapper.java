@@ -1443,6 +1443,10 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
               port.putProperty("fixed_ips", ip);
             }
+            if (cp.getQos() != null) {
+              // add the qos to the port
+              port.putProperty("qos_policy", cp.getQos());
+            }
             if (cp.getSecurityGroups() != null) {
               // add the security groups to the port
               port.putProperty("security_groups", cp.getSecurityGroups());
@@ -1478,6 +1482,10 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
               ip.add(n1);
 
               port.putProperty("fixed_ips", ip);
+            }
+            if (cp.getQos() != null) {
+              // add the qos to the port
+              port.putProperty("qos_policy", cp.getQos());
             }
             if (cp.getSecurityGroups() != null) {
               // add the security groups to the port
@@ -1804,6 +1812,11 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           ip.add(n1);
 
           port.putProperty("fixed_ips", ip);
+        }
+
+        if (cp.getQos() != null) {
+         // add the qos to the port
+         port.putProperty("qos_policy", cp.getQos());
         }
         if (cp.getSecurityGroups() != null) {
           // add the security groups to the port
