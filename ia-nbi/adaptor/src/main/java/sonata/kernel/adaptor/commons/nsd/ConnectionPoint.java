@@ -24,7 +24,7 @@
  * 
  */
 
-package sonata.kernel.vimadaptor.commons.nsd;
+package sonata.kernel.adaptor.commons.nsd;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
