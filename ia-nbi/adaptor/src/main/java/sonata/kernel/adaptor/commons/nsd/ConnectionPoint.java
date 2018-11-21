@@ -39,6 +39,7 @@ public class ConnectionPoint {
   private ConnectionPointType type;
   private String mac;
   private String ip;
+  private String qos;
   @JsonProperty("security_groups")
   private ArrayList<String> securityGroups;
   @JsonProperty("virtua_link_reference")
@@ -59,6 +60,10 @@ public class ConnectionPoint {
 
   public String getIp() {
     return ip;
+  }
+
+  public String getQos() {
+    return qos;
   }
 
   public ArrayList<String> getSecurityGroups() {
@@ -83,6 +88,10 @@ public class ConnectionPoint {
 
   public void setIp(String ip) {
     this.ip = ip;
+  }
+
+  public void setQos(String qos) {
+    this.qos = qos;
   }
 
   public void setSecurityGroups(ArrayList<String> securityGroups) {
