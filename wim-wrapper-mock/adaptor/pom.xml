@@ -63,8 +63,8 @@
 		<!--jetbrains.annotations.version>13.0</jetbrains.annotations.version-->
 
 		<!-- The versions of ALL the plugins used by this project. -->
-		<maven.surefire.report.version>2.21.0</maven.surefire.report.version>
-		<maven.surefire.version>2.21.0</maven.surefire.version>
+		<maven.surefire.report.version>3.0.0-M1</maven.surefire.report.version>
+		<maven.surefire.version>3.0.0-M1</maven.surefire.version>
 		<maven.site.version>2.1</maven.site.version>
 		<maven.checkstyle.version>2.17</maven.checkstyle.version>
 		<findbugs.maven.version>3.0.3</findbugs.maven.version>
