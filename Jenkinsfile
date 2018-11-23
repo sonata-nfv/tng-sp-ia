@@ -1,6 +1,40 @@
 pipeline {
   agent any
   stages {
+    stage('Unittests'){
+      parallel {
+        stage('Unittest IA nbi') {
+          steps {
+            sh './pipeline/unittest/ia-nbi.sh'
+          }
+        }
+        stage('Unittest VIM wrapper heat') {
+          steps {
+            sh './pipeline/unittest/vim-wrapper-heat.sh'
+          }
+        }
+        stage('Unittest VIM wrapper mock') {
+          steps {
+            sh './pipeline/unittest/vim-wrapper-mock.sh'
+          }
+        }
+        stage('Unittest VIM wrapper ovs') {
+          steps {
+            sh './pipeline/unittest/vim-wrapper-ovs.sh'
+          }
+        }
+        stage('Unittest WIM wrapper mock') {
+          steps {
+            sh './pipeline/unittest/wim-wrapper-mock.sh'
+          }
+        }
+        stage('Unittest WIM wrapper vtn') {
+          steps {
+            sh './pipeline/unittest/wim-wrapper-vtn.sh'
+          }
+        }
+      }
+    }
     stage('Build') {
       parallel {
         stage('IA nbi') {
@@ -37,40 +71,6 @@ pipeline {
           steps {
             echo 'Building WIM wrapper vtn container'
             sh './pipeline/build/wim-wrapper-vtn.sh'
-          }
-        }
-      }
-    }
-    stage('Unittests'){
-      parallel {
-        stage('Unittest IA nbi') {
-          steps {
-            sh './pipeline/unittest/ia-nbi.sh'
-          }
-        }
-        stage('Unittest VIM wrapper heat') {
-          steps {
-            sh './pipeline/unittest/vim-wrapper-heat.sh'
-          }
-        }
-        stage('Unittest VIM wrapper mock') {
-          steps {
-            sh './pipeline/unittest/vim-wrapper-mock.sh'
-          }
-        }
-        stage('Unittest VIM wrapper ovs') {
-          steps {
-            sh './pipeline/unittest/vim-wrapper-ovs.sh'
-          }
-        }
-        stage('Unittest WIM wrapper mock') {
-          steps {
-            sh './pipeline/unittest/wim-wrapper-mock.sh'
-          }
-        }
-        stage('Unittest WIM wrapper vtn') {
-          steps {
-            sh './pipeline/unittest/wim-wrapper-vtn.sh'
           }
         }
       }
