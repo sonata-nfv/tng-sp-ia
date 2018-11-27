@@ -95,6 +95,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
             if (finalContent != null) {
               String body;
               body = mapper.writeValueAsString(finalContent);
+              //Logger.debug("Final Content: " + body);
 
               ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
                       message.getReplyTo().replace("nbi.", ""), message.getSid(), null);

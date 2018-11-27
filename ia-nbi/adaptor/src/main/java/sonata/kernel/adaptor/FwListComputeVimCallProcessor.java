@@ -63,6 +63,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
   public boolean process(ServicePlatformMessage message) {
 
     boolean out = true;
+    String type = null;
     Logger.info("Call received - sid: " + message.getSid());
 
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
@@ -70,19 +71,40 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
     if (message.getReplyTo().contains(".heat.")) {
       vimVendor = ComputeVimVendor.HEAT;
+      type = "vm";
     } else if (message.getReplyTo().contains(".mock.")) {
       vimVendor = ComputeVimVendor.MOCK;
+      type = "vm";
     } else if (message.getReplyTo().contains(".k8s.")) {
       vimVendor = ComputeVimVendor.K8S;
+      type = "container";
     }
 
-    if (vimVendor == null) {
+    if ((vimVendor == null) || (type == null)) {
       return false;
     }
 
+    String body = null;
+    ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+    ArrayList<VimResources> resList = new ArrayList<>();
+    try {
+      ManagementComputeListResponse payload = mapper.readValue(message.getBody(), ManagementComputeListResponse.class);
+      for (VimResources resource : payload.getResources()) {
+        resource.setType(type);
+        resList.add(resource);
+      }
+      ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
+      responseBody.setResources(resList);
+      body = mapper.writeValueAsString(responseBody);
+    } catch (Exception e) {
+      Logger.error("Error parsing the payload: " + e.getMessage(), e);
+      return false;
+    }
+
+    //Logger.debug("Content: " + message.getBody());
     synchronized (resourceRepo) {
 
-      if (resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,message.getBody())) {
+      if (resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,body)) {
         if (resourceRepo.getStoredVendorsNumberForRequestId(message.getSid())
                 .equals(resourceRepo.getExpectedVendorsNumberForRequestId(message.getSid()))) {
           try {
@@ -94,7 +116,6 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
             ArrayList<String> content= resourceRepo.getResourcesFromRequestId(message.getSid());
 
             ManagementComputeListResponse data = null;
-            ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
             ArrayList<VimResources> finalContent = new ArrayList<>();
 
             try {
@@ -107,10 +128,11 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
               return false;
             }
 
-            String body;
-            body = mapper.writeValueAsString(finalContent);
+            String finalBody;
+            finalBody = mapper.writeValueAsString(finalContent);
 
-            ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
+            //Logger.debug("Final Content: " + body);
+            ServicePlatformMessage response = new ServicePlatformMessage(finalBody, "application/json",
                     message.getTopic().replace("nbi.",""), message.getSid(), null);
 
             resourceRepo.removeResourcesFromRequestId(message.getSid());
