@@ -89,19 +89,23 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
     ArrayList<VimResources> resList = new ArrayList<>();
     try {
       ManagementComputeListResponse payload = mapper.readValue(message.getBody(), ManagementComputeListResponse.class);
-      for (VimResources resource : payload.getResources()) {
-        resource.setType(type);
-        resList.add(resource);
+      if (!payload.getResources().isEmpty()) {
+        for (VimResources resource : payload.getResources()) {
+          resource.setType(type);
+          resList.add(resource);
+        }
+        ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
+        responseBody.setResources(resList);
+        body = mapper.writeValueAsString(responseBody);
+      } else {
+        body = message.getBody();
       }
-      ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
-      responseBody.setResources(resList);
-      body = mapper.writeValueAsString(responseBody);
     } catch (Exception e) {
       Logger.error("Error parsing the payload: " + e.getMessage(), e);
       return false;
     }
 
-    //Logger.debug("Content: " + message.getBody());
+    //Logger.debug("Content modified: " + body);
     synchronized (resourceRepo) {
 
       if (resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,body)) {
@@ -128,10 +132,12 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
               return false;
             }
 
+            ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
+            responseBody.setResources(finalContent);
             String finalBody;
-            finalBody = mapper.writeValueAsString(finalContent);
+            finalBody = mapper.writeValueAsString(responseBody);
 
-            //Logger.debug("Final Content: " + body);
+            //Logger.debug("Final Content: " + finalBody);
             ServicePlatformMessage response = new ServicePlatformMessage(finalBody, "application/json",
                     message.getTopic().replace("nbi.",""), message.getSid(), null);
 
