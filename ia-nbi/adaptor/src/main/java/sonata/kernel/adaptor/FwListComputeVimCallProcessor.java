@@ -132,10 +132,8 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
               return false;
             }
 
-            ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
-            responseBody.setResources(finalContent);
             String finalBody;
-            finalBody = mapper.writeValueAsString(responseBody);
+            finalBody = mapper.writeValueAsString(finalContent);
 
             //Logger.debug("Final Content: " + finalBody);
             ServicePlatformMessage response = new ServicePlatformMessage(finalBody, "application/json",

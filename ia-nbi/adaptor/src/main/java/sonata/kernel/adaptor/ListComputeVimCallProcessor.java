@@ -84,7 +84,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
 
             try {
               for (String value : content) {
-                Logger.debug("Data: " + value);
+                //Logger.debug("Data: " + value);
                 data = mapper.readValue(value, ManagementComputeListResponse.class);
                 finalContent.addAll(data.getResources());
               }
@@ -94,10 +94,8 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
             }
 
             if (finalContent != null) {
-              ManagementComputeListResponse responseBody = new ManagementComputeListResponse();
-              responseBody.setResources(finalContent);
               String body;
-              body = mapper.writeValueAsString(responseBody);
+              body = mapper.writeValueAsString(finalContent);
               //Logger.debug("Final Content: " + body);
 
               ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
