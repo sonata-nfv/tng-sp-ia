@@ -66,9 +66,9 @@ public class FwConfigureNetworkCallProcessor extends AbstractCallProcessor {
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
     VimVendor vimVendor = null;
 
-    if (message.getReplyTo().contains(".ovs.")) {
+    if (message.getTopic().contains(".ovs.")) {
       vimVendor = NetworkVimVendor.OVS;
-    } else if (message.getReplyTo().contains(".networkmock.")) {
+    } else if (message.getTopic().contains(".networkmock.")) {
       vimVendor = NetworkVimVendor.NETWORKMOCK;
     }
 
@@ -112,7 +112,7 @@ public class FwConfigureNetworkCallProcessor extends AbstractCallProcessor {
             }
 
             ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
-                    message.getTopic().replace("nbi.",""), message.getSid(), null);
+                    message.getTopic().replace("nbi.infrastructure."+vimVendor.toString()+".","infrastructure."), message.getSid(), null);
 
             resourceRepo.removeResourcesFromRequestId(message.getSid());
 

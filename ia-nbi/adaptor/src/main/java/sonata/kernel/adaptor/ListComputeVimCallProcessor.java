@@ -99,7 +99,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
               //Logger.debug("Final Content: " + body);
 
               ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
-                      message.getReplyTo().replace("nbi.", ""), message.getSid(), null);
+                      message.getReplyTo(), message.getSid(), null);
               this.sendToMux(response);
             } else {
               status = true;

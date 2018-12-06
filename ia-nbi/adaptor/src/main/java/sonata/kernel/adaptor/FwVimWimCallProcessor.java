@@ -27,13 +27,17 @@ package sonata.kernel.adaptor;
 
 import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
+import sonata.kernel.adaptor.wrapper.ComputeVimVendor;
+import sonata.kernel.adaptor.wrapper.NetworkVimVendor;
+import sonata.kernel.adaptor.wrapper.VimVendor;
+import sonata.kernel.adaptor.wrapper.WimVendor;
 
 import java.util.ArrayList;
 import java.util.Observable;
 
-public class FwVimCallProcessor extends AbstractCallProcessor {
+public class FwVimWimCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(FwVimCallProcessor.class);
+      LoggerFactory.getLogger(FwVimWimCallProcessor.class);
 
   private ArrayList<String> vimVendors;
 
@@ -42,7 +46,7 @@ public class FwVimCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
-  public FwVimCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
+  public FwVimWimCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
     super(message, sid, mux);
   }
 
@@ -57,13 +61,45 @@ public class FwVimCallProcessor extends AbstractCallProcessor {
 
     boolean out = true;
     Logger.info("Call received - sid: " + message.getSid());
+
+    VimVendor vimVendor = null;
+    WimVendor wimVendor = null;
+
+    if (message.getTopic().contains(".heat.")) {
+      vimVendor = ComputeVimVendor.HEAT;
+    } else if (message.getTopic().contains(".mock.")&& !message.getTopic().contains(".wan.")) {
+      vimVendor = ComputeVimVendor.MOCK;
+    } else if (message.getTopic().contains(".k8s.")) {
+      vimVendor = ComputeVimVendor.K8S;
+    } else if (message.getTopic().contains(".ovs.")) {
+      vimVendor = NetworkVimVendor.OVS;
+    } else if (message.getTopic().contains(".networkmock.")) {
+      vimVendor = NetworkVimVendor.NETWORKMOCK;
+    } else if (message.getTopic().contains(".vtn.")) {
+      wimVendor = WimVendor.VTN;
+    } else if (message.getTopic().contains(".mock.") && message.getTopic().contains(".wan.")) {
+      wimVendor = WimVendor.MOCK;
+    }
+
+
+    String vendor;
+    if ((vimVendor == null) && (wimVendor == null)) {
+      return false;
+    } else {
+      if (vimVendor != null) {
+        vendor = vimVendor.toString();
+      } else {
+        vendor = wimVendor.toString();
+      }
+    }
+
     try {
 
 
       Logger.info(
           message.getSid().substring(0, 10) + " - Forward message to northbound interface.");
 
-      message.setTopic(message.getTopic().replace("nbi.",""));
+      message.setTopic(message.getTopic().replace("nbi.infrastructure."+vendor+".","infrastructure."));
       this.sendToMux(message);
     } catch (Exception e) {
       Logger.error("Error redirecting the message: " + e.getMessage(), e);

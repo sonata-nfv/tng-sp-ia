@@ -69,13 +69,13 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
     VimVendor vimVendor = null;
 
-    if (message.getReplyTo().contains(".heat.")) {
+    if (message.getTopic().contains(".heat.")) {
       vimVendor = ComputeVimVendor.HEAT;
       type = "vm";
-    } else if (message.getReplyTo().contains(".mock.")) {
+    } else if (message.getTopic().contains(".mock.")) {
       vimVendor = ComputeVimVendor.MOCK;
       type = "vm";
-    } else if (message.getReplyTo().contains(".k8s.")) {
+    } else if (message.getTopic().contains(".k8s.")) {
       vimVendor = ComputeVimVendor.K8S;
       type = "container";
     }
@@ -137,7 +137,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
             //Logger.debug("Final Content: " + finalBody);
             ServicePlatformMessage response = new ServicePlatformMessage(finalBody, "application/json",
-                    message.getTopic().replace("nbi.",""), message.getSid(), null);
+                    message.getTopic().replace("nbi.infrastructure."+vimVendor.toString()+".","infrastructure."), message.getSid(), null);
 
             resourceRepo.removeResourcesFromRequestId(message.getSid());
 

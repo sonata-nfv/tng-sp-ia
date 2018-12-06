@@ -83,7 +83,7 @@ public class ConfigureNetworkCallProcessor extends AbstractCallProcessor {
       Logger.info("Timeout Error in Configure Chain Service Call.");
       ServicePlatformMessage response = new ServicePlatformMessage(
               "{\"request_status\":\"ERROR\",\"message\":\"Timeout Error in Configure Chain Service Call\"}",
-              "application/json", this.getMessage().getReplyTo().replace("nbi.",""), this.getSid(), null);
+              "application/json", this.getMessage().getReplyTo(), this.getSid(), null);
       this.getMux().enqueue(response);
       return false;
     }
