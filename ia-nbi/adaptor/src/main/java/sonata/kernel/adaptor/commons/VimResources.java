@@ -34,8 +34,6 @@ public class VimResources {
   private int coreTotal;
   @JsonProperty("core_used")
   private int coreUsed;
-  @JsonProperty("memory_allocatable")
-  private int memoryAllocatable;
   @JsonProperty("memory_total")
   private int memoryTotal;
   @JsonProperty("memory_used")
@@ -58,10 +56,6 @@ public class VimResources {
 
   public int getCoreUsed() {
     return coreUsed;
-  }
-
-  public int getMemoryAllocatable() {
-    return memoryAllocatable;
   }
 
   public int getMemoryTotal() {
@@ -102,10 +96,6 @@ public class VimResources {
 
   public void setCoreUsed(int coreUsed) {
     this.coreUsed = coreUsed;
-  }
-
-  public void setMemoryAllocatable(int memoryAllocatable) {
-    this.memoryAllocatable = memoryAllocatable;
   }
 
   public void setMemoryTotal(int memoryTotal) {
