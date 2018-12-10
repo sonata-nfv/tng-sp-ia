@@ -2,6 +2,9 @@ pipeline {
   agent any
   stages {
     stage('Unittests'){
+      when{
+        branch 'master'
+      } 
       parallel {
         stage('Unittest IA nbi') {
           steps {
