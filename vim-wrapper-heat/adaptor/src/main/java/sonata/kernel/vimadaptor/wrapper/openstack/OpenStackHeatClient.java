@@ -215,6 +215,7 @@ public HeatServer getServerComposition(String stackName, String uuid, String ser
           // Set Server
           server.setServerId(serverResourceData.getResource().getPhysical_resource_id());
           server.setServerName(serverResourceData.getResource().getAttributes().getName());
+          server.setHostId(serverResourceData.getResource().getAttributes().getHostId());
         } else if (resource.getResource_type().equals("OS::Heat::ResourceGroup")  && resource.getResource_name().contains(serverIdentifier)) {
 
           String showResourceData = JavaStackUtils.convertHttpResponseToString(
@@ -242,6 +243,7 @@ public HeatServer getServerComposition(String stackName, String uuid, String ser
             server.setServerId(serverResourceData.getResource().getPhysical_resource_id());
             server.setServerName(serverResourceData.getResource().getParent_resource() + "."
                 + serverResourceData.getResource().getResource_name());
+            server.setHostId(serverResourceData.getResource().getAttributes().getHostId());
             Logger.debug("Server Object created: " + mapper.writeValueAsString(server));
           }
         }

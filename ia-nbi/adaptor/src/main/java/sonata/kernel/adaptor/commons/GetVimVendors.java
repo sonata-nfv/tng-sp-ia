@@ -164,6 +164,7 @@ public class GetVimVendors {
 
                 return null;
             }
+
             Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
 
             // Get the types from db

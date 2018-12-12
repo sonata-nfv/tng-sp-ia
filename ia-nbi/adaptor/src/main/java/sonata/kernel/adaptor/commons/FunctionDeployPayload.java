@@ -32,46 +32,46 @@ import sonata.kernel.adaptor.commons.vnfd.VnfDescriptor;
 
 public class FunctionDeployPayload {
 
-  @JsonProperty("public_key")
-  private String publicKey;
-  @JsonProperty("service_instance_id")
-  private String serviceInstanceId;
+  //@JsonProperty("public_key")
+  //private String publicKey;
+  //@JsonProperty("service_instance_id")
+  //private String serviceInstanceId;
   @JsonProperty("vim_uuid")
   private String vimUuid;
-  @JsonProperty("vnfd")
-  private VnfDescriptor vnfd;
+  //@JsonProperty("vnfd")
+  //private VnfDescriptor vnfd;
 
-  public String getPublicKey() {
-    return publicKey;
-  }
+  //public String getPublicKey() {
+  //  return publicKey;
+  //}
 
-  public String getServiceInstanceId() {
-    return serviceInstanceId;
-  }
+  //public String getServiceInstanceId() {
+  //  return serviceInstanceId;
+  //}
 
   public String getVimUuid() {
     return vimUuid;
   }
 
-  public VnfDescriptor getVnfd() {
-    return vnfd;
-  }
+  //public VnfDescriptor getVnfd() {
+  //  return vnfd;
+  //}
 
-  public void setPublicKey(String publicKey) {
-    this.publicKey = publicKey;
-  }
+  //public void setPublicKey(String publicKey) {
+  //  this.publicKey = publicKey;
+  //}
 
-  public void setServiceInstanceId(String serviceInstanceId) {
-    this.serviceInstanceId = serviceInstanceId;
-  }
+  //public void setServiceInstanceId(String serviceInstanceId) {
+  //  this.serviceInstanceId = serviceInstanceId;
+  //}
 
   public void setVimUuid(String vimUuid) {
     this.vimUuid = vimUuid;
   }
 
-  public void setVnfd(VnfDescriptor vnfd) {
-    this.vnfd = vnfd;
-  }
+  //public void setVnfd(VnfDescriptor vnfd) {
+  //  this.vnfd = vnfd;
+  //}
 
 
 

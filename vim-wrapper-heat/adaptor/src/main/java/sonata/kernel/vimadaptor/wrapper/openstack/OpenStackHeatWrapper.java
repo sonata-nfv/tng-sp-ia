@@ -506,6 +506,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         vnfc.setId(vnfcIndex);
         vnfc.setVimId(data.getVimUuid());
         vnfc.setVcId(server.getServerId());
+        vnfc.setHostId(server.getHostId());
         ArrayList<ConnectionPointRecord> cpRecords = new ArrayList<ConnectionPointRecord>();
         ServerPortsComposition ports = client.getServerPortsComposition(stackName, stackUuid, vdu.getId());
         for (ConnectionPoint cp : vdu.getConnectionPoints()) {
@@ -1813,10 +1814,29 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
           port.putProperty("fixed_ips", ip);
         }
-
+        String qosPolicy = null;
         if (cp.getQos() != null) {
-         // add the qos to the port
-         port.putProperty("qos_policy", cp.getQos());
+/*          if (!searchPolicyByName(cp.getQos(),policies)) {
+            Logger.error("Cannot find the Qos Policy: " + cp.getQos());
+            throw new Exception("Cannot find the Qos Policy: " + cp.getQos());
+          }*/
+          qosPolicy = cp.getQos();
+/*        } else if (cp.getQosRequirements()) {
+          int bandwidthLimit = cp.getQos().getBandwidthLimit();
+          int minimumBandwidth = cp.getQos().getMinimumBandwidth;
+
+          try {
+            qosPolicy = this.selectQosPolicy(bandwidthLimit, minimumBandwidth, policies);
+          } catch (Exception e) {
+            Logger.error("Exception while searching for available  Qos Policies for the requirements: "
+                    + e.getMessage());
+            throw new Exception("Cannot find an available  Qos Policies for requirements. Bandwidth Limit: " + bandwidthLimit
+                    + " - Minimum Bandwidth: " + minimumBandwidth);
+          }*/
+        }
+        if (qosPolicy != null) {
+          // add the qos to the port
+          port.putProperty("qos_policy", qosPolicy);
         }
         if (cp.getSecurityGroups() != null) {
           // add the security groups to the port

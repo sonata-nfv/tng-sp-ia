@@ -33,6 +33,7 @@ public class ServerAttributes {
 
   private String id;
   private String name;
+  private String hostId;
 
   public String getId() {
     return id;
@@ -42,11 +43,19 @@ public class ServerAttributes {
     return name;
   }
 
+  public String getHostId() {
+    return hostId;
+  }
+
   public void setId(String id) {
     this.id = id;
   }
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public void setHostId(String hostId) {
+    this.hostId = hostId;
   }
 }
