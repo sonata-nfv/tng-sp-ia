@@ -44,6 +44,9 @@ public class VnfcInstance {
   @JsonProperty("vc_id")
   private String vcId;
 
+  @JsonProperty("host_id")
+  private String hostId;
+
   @JsonProperty("vim_id")
   private String vimId;
 
@@ -59,6 +62,9 @@ public class VnfcInstance {
     return vcId;
   }
 
+  public String getHostId() {
+    return hostId;
+  }
 
   public String getVimId() {
     return vimId;
@@ -74,6 +80,10 @@ public class VnfcInstance {
 
   public void setVcId(String vcId) {
     this.vcId = vcId;
+  }
+
+  public void setHostId(String hostId) {
+    this.hostId = hostId;
   }
 
   public void setVimId(String vimId) {
