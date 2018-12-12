@@ -155,6 +155,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
       vnfci.setId("0");
       vnfci.setVcId(vnf.getInstanceUuid());
       vnfci.setVimId(data.getVimUuid());
+      vnfci.setHostId("fc6310b318fc15fcb40749d8266cd6581573f5f937743099e576cb71");
       ArrayList<ConnectionPointRecord> cpRecords = new ArrayList<ConnectionPointRecord>();
       for (ConnectionPoint cp : vdu.getConnectionPoints()) {
         ConnectionPointRecord cpr = new ConnectionPointRecord();
