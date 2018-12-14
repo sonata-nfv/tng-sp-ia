@@ -76,19 +76,14 @@ import sonata.kernel.vimadaptor.wrapper.openstack.heat.HeatResource;
 import sonata.kernel.vimadaptor.wrapper.openstack.heat.HeatServer;
 import sonata.kernel.vimadaptor.wrapper.openstack.heat.HeatTemplate;
 import sonata.kernel.vimadaptor.wrapper.openstack.heat.ServerPortsComposition;
-import sonata.kernel.vimadaptor.wrapper.openstack.heat.StackComposition;
 import sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.models.Image.Image;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1150,8 +1145,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
    * @param vmImageMd5 the checksum of the image to search;
    * @throws IOException if the VIM cannot be contacted to retrieve the list of available images;
    */
-  private String getImageNameByImageChecksum(String vmImageMd5) throws IOException {
-    String imageName = null;
+  private String getImageIdByImageChecksum(String vmImageMd5) throws IOException {
+    String imageId = null;
     Logger.debug("Searching Image Checksum: " + vmImageMd5);
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -1167,11 +1162,11 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     for (Image image : glanceImages) {
       if (image != null && image.getChecksum() != null
           && (image.getChecksum().equals(vmImageMd5))) {
-        imageName = image.getName();
+        imageId = image.getId();
         break;
       }
     }
-    return imageName;
+    return imageId;
   }
 
   private String getTenant() {
@@ -1669,19 +1664,19 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       resourceGroup.setType("OS::Heat::ResourceGroup");
       resourceGroup.setName(vnfd.getName() + "." + vdu.getId() + "." + instanceUuid);
       resourceGroup.putProperty("count", new Integer(1));
-      String imageName =
+      String image =
           vnfd.getVendor() + "_" + vnfd.getName() + "_" + vnfd.getVersion() + "_" + vdu.getId();
       if (vdu.getVmImageMd5() != null) {
-        imageName = getImageNameByImageChecksum(vdu.getVmImageMd5());
+        image = getImageIdByImageChecksum(vdu.getVmImageMd5());
       }
 
-      Logger.debug("image selected:" + imageName);
+      Logger.debug("image selected:" + image);
       HeatResource server = new HeatResource();
       server.setType("OS::Nova::Server");
       server.setName(null);
       server.putProperty("name",
           vnfd.getName() + "." + vdu.getId() + "." + instanceUuid + ".instance%index%");
-      server.putProperty("image", imageName);
+      server.putProperty("image", image);
       
       String userData = vdu.getUserData();
       Logger.debug("User data for this vdu:" + userData);
