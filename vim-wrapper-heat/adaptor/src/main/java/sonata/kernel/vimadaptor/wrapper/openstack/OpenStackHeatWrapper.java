@@ -309,12 +309,15 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
     OpenStackHeatClient client = null;
     OpenStackNovaClient novaClient = null;
+    OpenStackNeutronClient neutronClient = null;
 
     try {
       client = new OpenStackHeatClient(getConfig().getVimEndpoint().toString(),
           getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
       novaClient = new OpenStackNovaClient(getConfig().getVimEndpoint().toString(),
           getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+      neutronClient = new OpenStackNeutronClient(getConfig().getVimEndpoint().toString(),
+              getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
     } catch (IOException e) {
       Logger.error("OpenStackHeat wrapper - Unable to connect to the VIM");
       this.setChanged();
@@ -332,6 +335,9 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     
     ArrayList<Flavor> vimFlavors = novaClient.getFlavors();
     Collections.sort(vimFlavors);
+
+    ArrayList<QosPolicy> vimPolicies = neutronClient.getPolicies();
+    Collections.sort(vimPolicies);
     HeatModel stackAddition;
 
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -342,7 +348,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
     try {
       stackAddition =
-          translate(data.getVnfd(), vimFlavors, data.getServiceInstanceId(), data.getPublicKey());
+          translate(data.getVnfd(), vimFlavors, vimPolicies, data.getServiceInstanceId(), data.getPublicKey());
     } catch (Exception e) {
       Logger.error("Error: " + e.getMessage());
       e.printStackTrace();
@@ -1229,6 +1235,35 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     return false;
   }
 
+  private String selectQosPolicy(double bandwidthLimitInMbps, double minimumBandwidthInMbps,
+                              ArrayList<QosPolicy> vimQosPolicies) {
+    Logger.debug("Qos Policy Selecting routine. Resource req: " + bandwidthLimitInMbps
+            + " Mbps max limit - " + minimumBandwidthInMbps + " Mbps guaranteed");
+    for (QosPolicy policy : vimQosPolicies) {
+      if (((bandwidthLimitInMbps * 1000) <=
+              policy.getQosRulesByTypeAndDirection("bandwidth_limit","egress"))
+              && ((minimumBandwidthInMbps * 1000) <=
+              policy.getQosRulesByTypeAndDirection("minimum_bandwidth","egress"))) {
+        Logger.debug("Qos Policy found:" + policy.getQosPolicyName());
+        return policy.getQosPolicyName();
+      }
+    }
+    Logger.debug("Flavor not found");
+    return null;
+  }
+
+  private boolean searchQosPolicyByName(String qosPolicyName, ArrayList<QosPolicy> vimQosPolicies) {
+    Logger.debug("Qos Policy lookup based on Qos Policy name...");
+    for (QosPolicy policy : vimQosPolicies) {
+      if (policy.getQosPolicyName() == null) continue;
+      Logger.debug("Checking " + policy.getQosPolicyName());
+      if (policy.getQosPolicyName().equals(qosPolicyName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Deprecated
   private HeatModel translate(ServiceDeployPayload data, ArrayList<Flavor> vimFlavors)
       throws Exception {
@@ -1592,7 +1627,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     return model;
   }
 
-  private HeatModel translate(VnfDescriptor vnfd, ArrayList<Flavor> flavors, String instanceUuid,
+  private HeatModel translate(VnfDescriptor vnfd, ArrayList<Flavor> flavors, ArrayList<QosPolicy> policies, String instanceUuid,
       String publicKey) throws Exception {
     // TODO This values should be per User, now they are per VIM. This should be re-desinged once
     // user management is in place.
@@ -1811,23 +1846,33 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         }
         String qosPolicy = null;
         if (cp.getQos() != null) {
-/*          if (!searchPolicyByName(cp.getQos(),policies)) {
+          if (!searchQosPolicyByName(cp.getQos(),policies)) {
             Logger.error("Cannot find the Qos Policy: " + cp.getQos());
             throw new Exception("Cannot find the Qos Policy: " + cp.getQos());
-          }*/
+          }
           qosPolicy = cp.getQos();
-/*        } else if (cp.getQosRequirements()) {
-          int bandwidthLimit = cp.getQos().getBandwidthLimit();
-          int minimumBandwidth = cp.getQos().getMinimumBandwidth;
+        } else if (cp.getQosRequirements()!= null) {
+
+          double bandwidthLimitInMbps = 0;
+          double minimumBandwidthInMbps = 0;
+          if (cp.getQosRequirements().getBandwidthLimit()!= null) {
+            bandwidthLimitInMbps = cp.getQosRequirements().getBandwidthLimit().getBandwidth()
+                    * cp.getQosRequirements().getBandwidthLimit().getBandwidthUnit().getMultiplier();
+          }
+
+          if (cp.getQosRequirements().getMinimumBandwidth()!= null) {
+            minimumBandwidthInMbps = cp.getQosRequirements().getMinimumBandwidth().getBandwidth()
+                    * cp.getQosRequirements().getMinimumBandwidth().getBandwidthUnit().getMultiplier();
+          }
 
           try {
-            qosPolicy = this.selectQosPolicy(bandwidthLimit, minimumBandwidth, policies);
+            qosPolicy = this.selectQosPolicy(bandwidthLimitInMbps, minimumBandwidthInMbps, policies);
           } catch (Exception e) {
             Logger.error("Exception while searching for available  Qos Policies for the requirements: "
                     + e.getMessage());
-            throw new Exception("Cannot find an available  Qos Policies for requirements. Bandwidth Limit: " + bandwidthLimit
-                    + " - Minimum Bandwidth: " + minimumBandwidth);
-          }*/
+            throw new Exception("Cannot find an available  Qos Policies for requirements. Bandwidth Limit: "
+                    + bandwidthLimitInMbps + " - Minimum Bandwidth: " + minimumBandwidthInMbps);
+          }
         }
         if (qosPolicy != null) {
           // add the qos to the port
