@@ -160,6 +160,27 @@ public class JavaStackCore {
     }
   }
 
+  private static class Network {
+    static String PORT;
+    static String VERSION;
+
+    public static String getPORT() {
+      return PORT;
+    }
+
+    public static String getVERSION() {
+      return VERSION;
+    }
+
+    public static void setPORT(String PORT) {
+      Network.PORT = PORT;
+    }
+
+    public static void setVERSION(String VERSION) {
+      Network.VERSION = VERSION;
+    }
+  }
+
   // private static class SingeltonJavaStackCoreHelper {
   // private static final JavaStackCore _javaStackCore = new JavaStackCore();
   // }
@@ -354,6 +375,10 @@ public class JavaStackCore {
                 break;
 
               case "network":
+                port = path[0];
+                version = "v2.0";
+                Network.setPORT(port);
+                Network.setVERSION(version);
                 break;
 
               case "cloudformation":
@@ -1019,6 +1044,44 @@ public class JavaStackCore {
           "You must Authenticate before issuing this request, please re-authenticate. ");
     }
 
+    return response;
+  }
+
+  /**
+   * NEUTRON method to list qos policies
+   *
+   * @return
+   * @throws IOException
+   */
+  public synchronized HttpResponse listQosPolicies() throws IOException {
+    HttpGet getQosPolicies= null;
+    HttpResponse response = null;
+
+    HttpClient httpClient = HttpClientBuilder.create().build();
+    HttpResponseFactory factory = new DefaultHttpResponseFactory();
+
+    if (isAuthenticated) {
+      StringBuilder buildUrl = new StringBuilder();
+      buildUrl.append("http://");
+      buildUrl.append(endpoint);
+      buildUrl.append(":");
+      buildUrl.append(Network.getPORT());
+      buildUrl.append(String.format("/%s/qos/policies?project_id=%s", Network.getVERSION(), this.projectId));
+
+      // Logger.debug("[JavaStack] Authenticating client...");
+      getQosPolicies = new HttpGet(buildUrl.toString());
+      getQosPolicies.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);
+      Logger.debug("[JavaStack] " + getQosPolicies.toString());
+
+      response = httpClient.execute(getQosPolicies);
+      Logger.debug("[JavaStack] GET Qos Policies response:");
+      Logger.debug(response.toString());
+      int status_code = response.getStatusLine().getStatusCode();
+      return (status_code == 200)
+              ? response
+              : factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, status_code,
+              "List Qos Policies  Failed with Status: " + status_code), null);
+    }
     return response;
   }
 
