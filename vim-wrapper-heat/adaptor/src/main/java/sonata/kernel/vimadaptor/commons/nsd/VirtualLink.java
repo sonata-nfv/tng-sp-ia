@@ -51,17 +51,17 @@ public class VirtualLink {
   }
 
 
-  private boolean access;
+  private Boolean access;
   @JsonProperty("connection_points_reference")
   private ArrayList<String> connectionPointsReference;
   @JsonProperty("connectivity_type")
   private ConnectivityType connectivityType;
-  private boolean dhcp;
-
+  private Boolean dhcp;
+  private String cidr;
   // Virtual Link description case;
 
   @JsonProperty("external_access")
-  private boolean externalAccess;
+  private Boolean externalAccess;
   private String id;
   @JsonProperty("leaf_requirement")
   private String leafRequirement;
@@ -84,6 +84,10 @@ public class VirtualLink {
 
   public ConnectivityType getConnectivityType() {
     return connectivityType;
+  }
+
+  public String getCidr() {
+    return cidr;
   }
 
   public String getId() {
@@ -118,19 +122,19 @@ public class VirtualLink {
     return vlVersion;
   }
 
-  public boolean isAccess() {
+  public Boolean isAccess() {
     return access;
   }
 
-  public boolean isDhcp() {
+  public Boolean isDhcp() {
     return dhcp;
   }
 
-  public boolean isExternalAccess() {
+  public Boolean isExternalAccess() {
     return externalAccess;
   }
 
-  public void setAccess(boolean access) {
+  public void setAccess(Boolean access) {
     this.access = access;
   }
 
@@ -142,12 +146,16 @@ public class VirtualLink {
     this.connectivityType = connectivityType;
   }
 
-  public void setDhcp(boolean dhcp) {
+  public void setDhcp(Boolean dhcp) {
     this.dhcp = dhcp;
   }
 
-  public void setExternalAccess(boolean externalAccess) {
+  public void setExternalAccess(Boolean externalAccess) {
     this.externalAccess = externalAccess;
+  }
+
+  public void setCidr(String cidr) {
+    this.cidr = cidr;
   }
 
   public void setId(String id) {
@@ -181,6 +189,5 @@ public class VirtualLink {
   public void setVlVersion(String vlVersion) {
     this.vlVersion = vlVersion;
   }
-
 
 }

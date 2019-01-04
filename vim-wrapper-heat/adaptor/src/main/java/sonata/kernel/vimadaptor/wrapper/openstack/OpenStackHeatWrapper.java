@@ -64,12 +64,7 @@ import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 import sonata.kernel.vimadaptor.commons.vnfd.VirtualDeploymentUnit;
 import sonata.kernel.vimadaptor.commons.vnfd.VnfDescriptor;
 import sonata.kernel.vimadaptor.commons.vnfd.VnfVirtualLink;
-import sonata.kernel.vimadaptor.wrapper.ComputeWrapper;
-import sonata.kernel.vimadaptor.wrapper.ResourceUtilisation;
-import sonata.kernel.vimadaptor.wrapper.VimRepo;
-import sonata.kernel.vimadaptor.wrapper.WrapperBay;
-import sonata.kernel.vimadaptor.wrapper.WrapperConfiguration;
-import sonata.kernel.vimadaptor.wrapper.WrapperStatusUpdate;
+import sonata.kernel.vimadaptor.wrapper.*;
 import sonata.kernel.vimadaptor.wrapper.openstack.heat.HeatModel;
 import sonata.kernel.vimadaptor.wrapper.openstack.heat.HeatPort;
 import sonata.kernel.vimadaptor.wrapper.openstack.heat.HeatResource;
@@ -89,6 +84,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class OpenStackHeatWrapper extends ComputeWrapper {
 
@@ -745,10 +741,11 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   /*
    * (non-Javadoc)
    * 
-   * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#prepareService(java.lang.String)
+   * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#prepareService(java.lang.String,
+    * ArrayList<VirtualLink> virtualLinks)
    */
   @Override
-  public boolean prepareService(String instanceId) throws Exception {
+  public boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception {
     long start = System.currentTimeMillis();
     // TODO This values should be per User, now they are per VIM. This should be re-desinged once
     // user management is in place.
@@ -763,12 +760,11 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     // String tenantExtRouter = object.getString("tenant_ext_router");
     // END COMMENT
 
-    // To prepare a service instance management and data networks/subnets
-    // must be created. The Management Network must also be attached to the external router.
+    // To prepare a service instance management and data networks/subnets must be created.
     OpenStackHeatClient client = new OpenStackHeatClient(getConfig().getVimEndpoint().toString(),
         getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
 
-    HeatTemplate template = createInitStackTemplate(instanceId);
+    HeatTemplate template = createInitStackTemplate(instanceId, virtualLinks);
 
     Logger.info("Deploying new stack for service preparation.");
     ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
@@ -818,6 +814,12 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       Logger.info("VIM prepared succesfully. Creating record in Infra Repo.");
       WrapperBay.getInstance().getVimRepo().writeServiceInstanceEntry(instanceId, stackUuid,
           stackName, this.getConfig().getUuid());
+
+      //Store virtual link information
+      ServiceVirtualLinksRepo serviceVirtualLinksRepo =  ServiceVirtualLinksRepo.getInstance();
+      synchronized (serviceVirtualLinksRepo) {
+        serviceVirtualLinksRepo.putServiceVirtualLinksForServiceId(instanceId,virtualLinks);
+      }
 
     } catch (Exception e) {
       Logger.error("Error during stack creation.");
@@ -969,7 +971,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     Logger.info("[OpenStackWrapper]UploadImage-time: " + (stop - start) + " ms");
   }
 
-  private HeatTemplate createInitStackTemplate(String instanceId) throws Exception {
+  private HeatTemplate createInitStackTemplate(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception {
 
     // TODO This values should be per User, now they are per VIM. This should be re-desinged once
     // user management is in place.
@@ -984,158 +986,56 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
     HeatModel model = new HeatModel();
     int subnetIndex = 0;
-    ArrayList<String> subnets = myPool.reserveSubnets(instanceId, 5);
+    ArrayList<String> subnets = myPool.reserveSubnets(instanceId, virtualLinks.size());
 
     if (subnets == null) {
       throw new Exception("Unable to allocate internal addresses. Too many service instances");
     }
 
-    HeatResource mgmtNetwork = new HeatResource();
-    mgmtNetwork.setType("OS::Neutron::Net");
-    mgmtNetwork.setName("SonataService.mgmt.net." + instanceId);
-    mgmtNetwork.putProperty("name", "SonatService" + ".mgmt.net." + instanceId);
-    model.addResource(mgmtNetwork);
+    for (VirtualLink link : virtualLinks) {
+      HeatResource network = new HeatResource();
+      network.setType("OS::Neutron::Net");
+      network.setName("SonataService." + link.getId() + ".net." + instanceId);
+      network.putProperty("name",
+              "SonataService." + link.getId() + ".net." + instanceId);
+      model.addResource(network);
+      HeatResource subnet = new HeatResource();
+      subnet.setType("OS::Neutron::Subnet");
+      subnet.setName("SonataService." + link.getId() + ".subnet." + instanceId);
+      subnet.putProperty("name",
+              "SonataService." + link.getId() + ".subnet." + instanceId);
+      String cidr = subnets.get(subnetIndex);
+      if (link.getCidr() != null) {
+        subnet.putProperty("cidr", link.getCidr());
+      } else {
+        subnet.putProperty("cidr", cidr);
+        subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
+      }
+      if (link.isDhcp() != null) {
+        subnet.putProperty("enable_dhcp", link.isDhcp());
+      }
+      String[] dnsArray = {"8.8.8.8"};
+      subnet.putProperty("dns_nameservers", dnsArray);
+      subnetIndex++;
+      HashMap<String, Object> netMap = new HashMap<String, Object>();
+      netMap.put("get_resource",
+              "SonataService." + link.getId() + ".net." + instanceId);
+      subnet.putProperty("network", netMap);
+      model.addResource(subnet);
 
-    HeatResource mgmtSubnet = new HeatResource();
+      if (link.isAccess()) {
+        // internal router interface for network
+        HeatResource routerInterface = new HeatResource();
+        routerInterface.setType("OS::Neutron::RouterInterface");
+        routerInterface.setName("SonataService." + link.getId() + ".internal." + instanceId);
+        HashMap<String, Object> subnetMapInt = new HashMap<String, Object>();
+        subnetMapInt.put("get_resource", "SonataService." + link.getId() + ".subnet." + instanceId);
+        routerInterface.putProperty("subnet", subnetMapInt);
+        routerInterface.putProperty("router", tenantExtRouter);
+        model.addResource(routerInterface);
+      }
 
-    mgmtSubnet.setType("OS::Neutron::Subnet");
-    mgmtSubnet.setName("SonataService.mgmt.subnet." + instanceId);
-    mgmtSubnet.putProperty("name", "SonataService.mgmt.subnet." + instanceId);
-    String cidr = subnets.get(subnetIndex);
-    mgmtSubnet.putProperty("cidr", cidr);
-    mgmtSubnet.putProperty("gateway_ip", myPool.getGateway(cidr));
-    String[] dnsArray = {"8.8.8.8"};
-    mgmtSubnet.putProperty("dns_nameservers", dnsArray);
-    subnetIndex++;
-    HashMap<String, Object> mgmtNetMap = new HashMap<String, Object>();
-    mgmtNetMap.put("get_resource", "SonataService.mgmt.net." + instanceId);
-    mgmtSubnet.putProperty("network", mgmtNetMap);
-    model.addResource(mgmtSubnet);
-
-    // Internal mgmt router interface
-    HeatResource mgmtRouterInterface = new HeatResource();
-    mgmtRouterInterface.setType("OS::Neutron::RouterInterface");
-    mgmtRouterInterface.setName("SonataService.mgmt.internal." + instanceId);
-    HashMap<String, Object> mgmtSubnetMapInt = new HashMap<String, Object>();
-    mgmtSubnetMapInt.put("get_resource", "SonataService.mgmt.subnet." + instanceId);
-    mgmtRouterInterface.putProperty("subnet", mgmtSubnetMapInt);
-    mgmtRouterInterface.putProperty("router", tenantExtRouter);
-    model.addResource(mgmtRouterInterface);
-
-    // Create the external net and subnet
-    HeatResource externalNetwork = new HeatResource();
-    externalNetwork.setType("OS::Neutron::Net");
-    externalNetwork.setName("SonataService.external.net." + instanceId);
-    externalNetwork.putProperty("name", "SonatService.external.net." + instanceId);
-    model.addResource(externalNetwork);
-
-    HeatResource externalSubnet = new HeatResource();
-
-    externalSubnet.setType("OS::Neutron::Subnet");
-    externalSubnet.setName("SonataService.external.subnet." + instanceId);
-    externalSubnet.putProperty("name", "SonataService.external.subnet." + instanceId);
-    cidr = subnets.get(subnetIndex);
-    externalSubnet.putProperty("cidr", cidr);
-    externalSubnet.putProperty("gateway_ip", myPool.getGateway(cidr));
-    externalSubnet.putProperty("dns_nameservers", dnsArray);
-    subnetIndex++;
-    HashMap<String, Object> externalNetMap = new HashMap<String, Object>();
-    externalNetMap.put("get_resource", "SonataService.external.net." + instanceId);
-    externalSubnet.putProperty("network", externalNetMap);
-    model.addResource(externalSubnet);
-
-    // internal router interface for external network
-    HeatResource extRouterInterface = new HeatResource();
-    extRouterInterface.setType("OS::Neutron::RouterInterface");
-    extRouterInterface.setName("SonataService.ext.internal." + instanceId);
-    HashMap<String, Object> extSubnetMapInt = new HashMap<String, Object>();
-    extSubnetMapInt.put("get_resource", "SonataService.external.subnet." + instanceId);
-    extRouterInterface.putProperty("subnet", extSubnetMapInt);
-    extRouterInterface.putProperty("router", tenantExtRouter);
-    model.addResource(extRouterInterface);
-
-    // Create the internal net and subnet
-    HeatResource internalNetwork = new HeatResource();
-    internalNetwork.setType("OS::Neutron::Net");
-    internalNetwork.setName("SonataService.internal.net." + instanceId);
-    internalNetwork.putProperty("name", "SonatService.internal.net." + instanceId);
-    model.addResource(internalNetwork);
-
-    HeatResource internalSubnet = new HeatResource();
-
-    internalSubnet.setType("OS::Neutron::Subnet");
-    internalSubnet.setName("SonataService.internal.subnet." + instanceId);
-    internalSubnet.putProperty("name", "SonataService.internal.subnet." + instanceId);
-    cidr = subnets.get(subnetIndex);
-    internalSubnet.putProperty("cidr", cidr);
-    internalSubnet.putProperty("gateway_ip", myPool.getGateway(cidr));
-    subnetIndex++;
-    HashMap<String, Object> internalNetMap = new HashMap<String, Object>();
-    internalNetMap.put("get_resource", "SonataService.internal.net." + instanceId);
-    internalSubnet.putProperty("network", internalNetMap);
-    model.addResource(internalSubnet);
-
-    // Create the input net and subnet
-    HeatResource inputNetwork = new HeatResource();
-    inputNetwork.setType("OS::Neutron::Net");
-    inputNetwork.setName("SonataService.input.net." + instanceId);
-    inputNetwork.putProperty("name", "SonatService.input.net." + instanceId);
-    model.addResource(inputNetwork);
-
-    HeatResource inputSubnet = new HeatResource();
-
-    inputSubnet.setType("OS::Neutron::Subnet");
-    inputSubnet.setName("SonataService.input.subnet." + instanceId);
-    inputSubnet.putProperty("name", "SonataService.input.subnet." + instanceId);
-    cidr = subnets.get(subnetIndex);
-    inputSubnet.putProperty("cidr", cidr);
-    inputSubnet.putProperty("gateway_ip", myPool.getGateway(cidr));
-    subnetIndex++;
-    HashMap<String, Object> inputNetMap = new HashMap<String, Object>();
-    inputNetMap.put("get_resource", "SonataService.input.net." + instanceId);
-    inputSubnet.putProperty("network", inputNetMap);
-    model.addResource(inputSubnet);
-    
-    // Internal input network router interface
-    HeatResource inputRouterInterface = new HeatResource();
-    inputRouterInterface.setType("OS::Neutron::RouterInterface");
-    inputRouterInterface.setName("SonataService.input.internal." + instanceId);
-    HashMap<String, Object> inputSubnetMapInt = new HashMap<String, Object>();
-    inputSubnetMapInt.put("get_resource", "SonataService.input.subnet." + instanceId);
-    inputRouterInterface.putProperty("subnet", inputSubnetMapInt);
-    inputRouterInterface.putProperty("router", tenantExtRouter);
-    model.addResource(inputRouterInterface);
-
-    // Create the output net and subnet
-    HeatResource outputNetwork = new HeatResource();
-    outputNetwork.setType("OS::Neutron::Net");
-    outputNetwork.setName("SonataService.output.net." + instanceId);
-    outputNetwork.putProperty("name", "SonatService.output.net." + instanceId);
-    model.addResource(outputNetwork);
-
-    HeatResource outputSubnet = new HeatResource();
-
-    outputSubnet.setType("OS::Neutron::Subnet");
-    outputSubnet.setName("SonataService.output.subnet." + instanceId);
-    outputSubnet.putProperty("name", "SonataService.output.subnet." + instanceId);
-    cidr = subnets.get(subnetIndex);
-    outputSubnet.putProperty("cidr", cidr);
-    outputSubnet.putProperty("gateway_ip", myPool.getGateway(cidr));
-    subnetIndex++;
-    HashMap<String, Object> outputNetMap = new HashMap<String, Object>();
-    outputNetMap.put("get_resource", "SonataService.output.net." + instanceId);
-    outputSubnet.putProperty("network", outputNetMap);
-    model.addResource(outputSubnet);
-
-    // Internal output network router interface
-    HeatResource outputRouterInterface = new HeatResource();
-    outputRouterInterface.setType("OS::Neutron::RouterInterface");
-    outputRouterInterface.setName("SonataService.output.internal." + instanceId);
-    HashMap<String, Object> outputSubnetMapInt = new HashMap<String, Object>();
-    outputSubnetMapInt.put("get_resource", "SonataService.output.subnet." + instanceId);
-    outputRouterInterface.putProperty("subnet", outputSubnetMapInt);
-    outputRouterInterface.putProperty("router", tenantExtRouter);
-    model.addResource(outputRouterInterface);
+    }
     
     model.prepare();
 
@@ -1635,12 +1535,14 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     JSONObject object = (JSONObject) tokener.nextValue();
     // String tenant = object.getString("tenant");
     String tenantExtNet = object.getString("tenant_ext_net");
-    // String tenantExtRouter = object.getString("tenant_ext_router");
+    String tenantExtRouter = object.getString("tenant_ext_router");
     // END COMMENT
     HeatModel model = new HeatModel();
     ArrayList<String> publicPortNames = new ArrayList<String>();
 
     ArrayList<HashMap<String,Object>> configList = new ArrayList<HashMap<String, Object>>();
+
+    ArrayList<VnfVirtualLink> NewVnfVirtualLinks = new ArrayList<VnfVirtualLink>();
 
     boolean hasPubKey = (publicKey != null);
 
@@ -1789,80 +1691,169 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       }
       server.putProperty("flavor", flavorName);
       ArrayList<HashMap<String, Object>> net = new ArrayList<HashMap<String, Object>>();
-      for (ConnectionPoint cp : vdu.getConnectionPoints()) {
+      for (ConnectionPoint vduCp : vdu.getConnectionPoints()) {
         // create the port resource
         HeatResource port = new HeatResource();
         port.setType("OS::Neutron::Port");
         String cpQualifiedName =
-            vnfd.getName() + "." + vdu.getId() + "." + cp.getId() + "." + instanceUuid;
+            vnfd.getName() + "." + vdu.getId() + "." + vduCp.getId() + "." + instanceUuid;
         port.setName(cpQualifiedName);
         port.putProperty("name", cpQualifiedName);
         HashMap<String, Object> netMap = new HashMap<String, Object>();
         Logger.debug("Mapping CP Type to the relevant network");
-        if (cp.getType().equals(ConnectionPointType.MANAGEMENT)) {
-          // Get a public IP
-          netMap.put("get_resource", "SonataService.mgmt.net." + instanceUuid);
-          publicPortNames.add(cpQualifiedName);
-        } else if (cp.getId().equals("input") || cp.getId().equals("output")) {
-          // The VDU uses the INPUT/OUTPUT VDU template, CPs go either on the input net or on the
-          // output net.
-          if (cp.getId().equals("input")) {
-            netMap.put("get_resource", "SonataService.input.net." + instanceUuid);
-          } else if (cp.getId().equals("output")) {
-            netMap.put("get_resource", "SonataService.output.net." + instanceUuid);
+
+        //Find the vnf connection point for the virtual link which contains the vdu cp
+        String vnfCp = null;
+        for (VnfVirtualLink link : vnfd.getVirtualLinks()) {
+          if (link.getConnectionPointsReference().contains(vdu.getId() + ":" + vduCp.getId())) {
+            for (String cpr : link.getConnectionPointsReference()) {
+              if (!cpr.contains(":")) {
+                vnfCp = cpr;
+                break;
+              }
+            }
+            break;
           }
-          // If an input or output interface is also of type ext gets a floating IP.
-          // if (cp.getType().equals(ConnectionPointType.EXT)) {
-          // publicPortNames.add(cpQualifiedName);
-          // }
+        }
+
+        String netId = null;
+        ServiceVirtualLinksRepo serviceVirtualLinksRepo =  ServiceVirtualLinksRepo.getInstance();
+        if (vnfCp != null) {
+          //Retrieve service virtual link information from internal db
+          synchronized (serviceVirtualLinksRepo) {
+            netId = serviceVirtualLinksRepo.getVirtualLinkIdFromServiceIdAndConnectionPoint(instanceUuid, vnfd.getId()+":"+vnfCp);
+          }
+        }
+
+        if (netId != null) {
+          netMap.put("get_resource", "SonataService." + netId + ".net." + instanceUuid);
+
+          if (vduCp.getType() != ConnectionPointType.INT ) {
+            //Need to check if the network was external access (access)
+            //Retrieve virtual link access information from internal db
+            Boolean access = null;
+            synchronized (serviceVirtualLinksRepo) {
+              access = serviceVirtualLinksRepo.getVirtualLinkAccessFromServiceIdAndVirtualLinkId(instanceUuid,netId);
+            }
+            if (access) {
+              publicPortNames.add(cpQualifiedName);
+            }
+          }
         } else {
-          // The VDU doesn't use any template, CP are mapped depending on their type
-          // (loops may occur)
-          if (cp.getType().equals(ConnectionPointType.INT)) {
-            // Only able access other VNFC from this port
-            netMap.put("get_resource", "SonataService.internal.net." + instanceUuid);
-          } else if (cp.getType().equals(ConnectionPointType.EXT)) {
-            // Port for external access
-            netMap.put("get_resource", "SonataService.external.net." + instanceUuid);
-            publicPortNames.add(cpQualifiedName);
-          } else {
-            Logger.error("Cannot map the parsed CP type " + cp.getType() + " to a known one");
-            throw new Exception(
-                "Unable to translate CP " + vnfd.getName() + "." + vdu.getId() + "." + cp.getId());
+          //Need to create or use the vnf network
+          VnfVirtualLink link = null;
+          for ( VnfVirtualLink vnfLink : vnfd.getVirtualLinks()) {
+            if (vnfLink.getConnectionPointsReference().contains(vdu.getId()+":"+vduCp.getId())) {
+              link = vnfLink;
+              break;
+            }
           }
+
+          if (link == null) {
+            Logger.error("Cannot find the virtual link for  connection point: " + vduCp.getId() + " from vdu: " + vdu.getId());
+            throw new Exception("Cannot find the virtual link for  connection point: " + vduCp.getId() + " from vdu: " + vdu.getId());
+          }
+
+          // Already created the vnf virtual link
+          if (NewVnfVirtualLinks.contains(link)) {
+            netMap.put("get_resource", "SonataService." + link.getId() + ".net." + instanceUuid);
+            if (vduCp.getType() != ConnectionPointType.INT ) {
+              //Check if the network was external access (access)
+              if (link.isAccess()) {
+                publicPortNames.add(cpQualifiedName);
+              }
+            }
+            // Need to create the vnf virtual link
+          } else {
+            ArrayList<String> subnets = myPool.reserveSubnets(instanceUuid, 1);
+            HeatResource network = new HeatResource();
+            network.setType("OS::Neutron::Net");
+            network.setName("SonataService." + link.getId() + ".net." + instanceUuid);
+            network.putProperty("name",
+                    "SonataService." + link.getId() + ".net." + instanceUuid);
+            model.addResource(network);
+            HeatResource subnet = new HeatResource();
+            subnet.setType("OS::Neutron::Subnet");
+            subnet.setName("SonataService." + link.getId() + ".subnet." + instanceUuid);
+            subnet.putProperty("name",
+                    "SonataService." + link.getId() + ".subnet." + instanceUuid);
+            String cidr = subnets.get(0);
+            if (link.getCidr() != null) {
+              subnet.putProperty("cidr", link.getCidr());
+            } else {
+              subnet.putProperty("cidr", cidr);
+              subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
+            }
+            if (link.isDhcp() != null) {
+              subnet.putProperty("enable_dhcp", link.isDhcp());
+            }
+            String[] dnsArray = {"8.8.8.8"};
+            subnet.putProperty("dns_nameservers", dnsArray);
+
+            HashMap<String, Object> subnetMap = new HashMap<String, Object>();
+            subnetMap.put("get_resource",
+                    "SonataService." + link.getId() + ".net." + instanceUuid);
+            subnet.putProperty("network", subnetMap);
+            model.addResource(subnet);
+
+            if (link.isAccess()) {
+              // internal router interface for network
+              HeatResource routerInterface = new HeatResource();
+              routerInterface.setType("OS::Neutron::RouterInterface");
+              routerInterface.setName("SonataService." + link.getId() + ".internal." + instanceUuid);
+              HashMap<String, Object> subnetMapInt = new HashMap<String, Object>();
+              subnetMapInt.put("get_resource", "SonataService." + link.getId() + ".subnet." + instanceUuid);
+              routerInterface.putProperty("subnet", subnetMapInt);
+              routerInterface.putProperty("router", tenantExtRouter);
+              model.addResource(routerInterface);
+            }
+
+            NewVnfVirtualLinks.add(link);
+
+            netMap.put("get_resource", "SonataService." + link.getId() + ".net." + instanceUuid);
+            if (vduCp.getType() != ConnectionPointType.INT ) {
+              //Check if the network was external access (access)
+              if (link.isAccess()) {
+                publicPortNames.add(cpQualifiedName);
+              }
+            }
+
+          }
+
         }
+
         port.putProperty("network", netMap);
-        if (cp.getMac() != null) {
-          port.putProperty("mac_address", cp.getMac());
+        if (vduCp.getMac() != null) {
+          port.putProperty("mac_address", vduCp.getMac());
         }
-        if (cp.getIp() != null) {
+        if (vduCp.getIp() != null) {
           ArrayList<HashMap<String, Object>> ip = new ArrayList<HashMap<String, Object>>();
           // add the fixed ip to the port
           HashMap<String, Object> n1 = new HashMap<String, Object>();
-          n1.put("ip_address", cp.getIp());
+          n1.put("ip_address", vduCp.getIp());
           ip.add(n1);
 
           port.putProperty("fixed_ips", ip);
         }
         String qosPolicy = null;
-        if (cp.getQos() != null) {
-          if (!searchQosPolicyByName(cp.getQos(),policies)) {
-            Logger.error("Cannot find the Qos Policy: " + cp.getQos());
-            throw new Exception("Cannot find the Qos Policy: " + cp.getQos());
+        if (vduCp.getQos() != null) {
+          if (!searchQosPolicyByName(vduCp.getQos(),policies)) {
+            Logger.error("Cannot find the Qos Policy: " + vduCp.getQos());
+            throw new Exception("Cannot find the Qos Policy: " + vduCp.getQos());
           }
-          qosPolicy = cp.getQos();
-        } else if (cp.getQosRequirements()!= null) {
+          qosPolicy = vduCp.getQos();
+        } else if (vduCp.getQosRequirements()!= null) {
 
           double bandwidthLimitInMbps = 0;
           double minimumBandwidthInMbps = 0;
-          if (cp.getQosRequirements().getBandwidthLimit()!= null) {
-            bandwidthLimitInMbps = cp.getQosRequirements().getBandwidthLimit().getBandwidth()
-                    * cp.getQosRequirements().getBandwidthLimit().getBandwidthUnit().getMultiplier();
+          if (vduCp.getQosRequirements().getBandwidthLimit()!= null) {
+            bandwidthLimitInMbps = vduCp.getQosRequirements().getBandwidthLimit().getBandwidth()
+                    * vduCp.getQosRequirements().getBandwidthLimit().getBandwidthUnit().getMultiplier();
           }
 
-          if (cp.getQosRequirements().getMinimumBandwidth()!= null) {
-            minimumBandwidthInMbps = cp.getQosRequirements().getMinimumBandwidth().getBandwidth()
-                    * cp.getQosRequirements().getMinimumBandwidth().getBandwidthUnit().getMultiplier();
+          if (vduCp.getQosRequirements().getMinimumBandwidth()!= null) {
+            minimumBandwidthInMbps = vduCp.getQosRequirements().getMinimumBandwidth().getBandwidth()
+                    * vduCp.getQosRequirements().getMinimumBandwidth().getBandwidthUnit().getMultiplier();
           }
 
           try {
@@ -1878,9 +1869,9 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           // add the qos to the port
           port.putProperty("qos_policy", qosPolicy);
         }
-        if (cp.getSecurityGroups() != null) {
+        if (vduCp.getSecurityGroups() != null) {
           // add the security groups to the port
-          port.putProperty("security_groups", cp.getSecurityGroups());
+          port.putProperty("security_groups", vduCp.getSecurityGroups());
         }
         model.addResource(port);
 

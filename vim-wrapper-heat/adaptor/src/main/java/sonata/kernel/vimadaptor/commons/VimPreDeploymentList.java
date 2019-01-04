@@ -27,6 +27,7 @@
 package sonata.kernel.vimadaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import sonata.kernel.vimadaptor.commons.nsd.NetworkFunction;
 
 import java.util.ArrayList;
 
@@ -36,6 +37,8 @@ public class VimPreDeploymentList {
   private ArrayList<VnfImage> images;
   @JsonProperty("uuid")
   private String uuid;
+  @JsonProperty("vnf_id_list")
+  private String[] vnfIdList;
 
   public ArrayList<VnfImage> getImages() {
     return images;
@@ -45,12 +48,20 @@ public class VimPreDeploymentList {
     return uuid;
   }
 
+  public String[] getVnfIdList() {
+    return vnfIdList;
+  }
+
   public void setImages(ArrayList<VnfImage> images) {
     this.images = images;
   }
 
   public void setUuid(String uuid) {
     this.uuid = uuid;
+  }
+
+  public void setVnfIdList(String[] vnfIdList) {
+    this.vnfIdList = vnfIdList;
   }
 
 }

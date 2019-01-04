@@ -208,4 +208,35 @@ public class IpNetPool {
 
     return output;
   }
+
+  /**
+   * Reserve a set of sub-nets for a given service instance already existent
+   *
+   * @param instanceUuid the UUID of the service instance
+   * @param numberOfSubnets the number of needed sub-nets
+   * @return an ArrayList of string representing available CIDR
+   */
+
+  public ArrayList<String> reserveMoreSubnets(String instanceUuid, int numberOfSubnets) {
+
+    if (numberOfSubnets > freeSubnets.size()) {
+      return null;
+    }
+    ArrayList<String> previousReservation = null;
+    if ((previousReservation = this.reservationTable.get(instanceUuid)) == null) {
+      return null;
+    }
+    ArrayList<String> output = new ArrayList<String>();
+
+    for (int i = 0; i < numberOfSubnets; i++) {
+      String subnet = freeSubnets.remove(0);
+      reservedSubnets.put(subnet, instanceUuid);
+      previousReservation.add(subnet);
+      output.add(subnet);
+    }
+
+    reservationTable.put(instanceUuid, previousReservation);
+
+    return output;
+  }
 }
