@@ -269,8 +269,12 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     Logger.info("Response created");
     Logger.info("body");
 
-    // WrapperBay.getInstance().getVimRepo().writeFunctionInstanceEntry(vnfd.getInstanceUuid(),
-    //     data.getServiceInstanceId(), this.getConfig().getUuid());
+    WrapperBay.getInstance().getVimRepo().removeFunctionInstanceEntry(data.getVnfUuid(), this.getConfig().getUuid());
+    try {
+      myPool.freeSubnets(data.getVnfUuid());
+    } catch (Exception e) {
+      Logger.info(e.getMessage());
+    }
     WrapperStatusUpdate update = new WrapperStatusUpdate(sid, "SUCCESS", body);
     this.markAsChanged();
     this.notifyObservers(update);
@@ -1527,7 +1531,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     return model;
   }
 
-  private HeatModel translate(VnfDescriptor vnfd, ArrayList<Flavor> flavors, ArrayList<QosPolicy> policies, String instanceUuid,
+  private HeatModel translate(VnfDescriptor vnfd, ArrayList<Flavor> flavors, ArrayList<QosPolicy> policies, String serviceInstanceUuid,
       String publicKey) throws Exception {
     // TODO This values should be per User, now they are per VIM. This should be re-desinged once
     // user management is in place.
@@ -1549,8 +1553,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     if (hasPubKey) {
       HeatResource keypair = new HeatResource();
       keypair.setType("OS::Nova::KeyPair");
-      keypair.setName(vnfd.getName() + "_" + instanceUuid + "_keypair");
-      keypair.putProperty("name", vnfd.getName() + "_" + instanceUuid + "_keypair");
+      keypair.setName(vnfd.getName() + "_" + vnfd.getInstanceUuid() + "_keypair");
+      keypair.putProperty("name", vnfd.getName() + "_" + vnfd.getInstanceUuid() + "_keypair");
       keypair.putProperty("save_private_key", "false");
       keypair.putProperty("public_key", publicKey);
       model.addResource(keypair);
@@ -1572,12 +1576,12 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
       HeatResource keycloudConfigObject = new HeatResource();
       keycloudConfigObject.setType("OS::Heat::CloudConfig");
-      keycloudConfigObject.setName(vnfd.getName() + "_" + instanceUuid + "_keyCloudConfig");
+      keycloudConfigObject.setName(vnfd.getName() + "_" + vnfd.getInstanceUuid() + "_keyCloudConfig");
       keycloudConfigObject.putProperty("cloud_config", keyCloudConfigMap);
       model.addResource(keycloudConfigObject);
     
       HashMap<String, Object> keyInitMap = new HashMap<String, Object>();
-      keyInitMap.put("get_resource", vnfd.getName() + "_" + instanceUuid + "_keyCloudConfig");
+      keyInitMap.put("get_resource", vnfd.getName() + "_" + vnfd.getInstanceUuid() + "_keyCloudConfig");
       
       HashMap<String,Object> partMap1 = new HashMap<String, Object>();
       partMap1.put("config", keyInitMap);
@@ -1599,7 +1603,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       Logger.debug("Each VDU goes into a resource group with a number of Heat Server...");
       HeatResource resourceGroup = new HeatResource();
       resourceGroup.setType("OS::Heat::ResourceGroup");
-      resourceGroup.setName(vnfd.getName() + "." + vdu.getId() + "." + instanceUuid);
+      resourceGroup.setName(vnfd.getName() + "." + vdu.getId() + "." + vnfd.getInstanceUuid());
       resourceGroup.putProperty("count", new Integer(1));
       String image =
           vnfd.getVendor() + "_" + vnfd.getName() + "_" + vnfd.getVersion() + "_" + vdu.getId();
@@ -1612,7 +1616,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       server.setType("OS::Nova::Server");
       server.setName(null);
       server.putProperty("name",
-          vnfd.getName() + "." + vdu.getId() + "." + instanceUuid + ".instance%index%");
+          vnfd.getName() + "." + vdu.getId() + "." + vnfd.getInstanceUuid() + ".instance%index%");
       server.putProperty("image", image);
       
       String userData = vdu.getUserData();
@@ -1631,13 +1635,13 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         } else {
           HeatResource userDataObject = new HeatResource();
           userDataObject.setType("OS::Heat::SoftwareConfig");
-          userDataObject.setName(vdu.getId() + "_" + instanceUuid + "_cloudInitConfig");
+          userDataObject.setName(vdu.getId() + "_" + vnfd.getInstanceUuid() + "_cloudInitConfig");
           userDataObject.putProperty("group", "ungrouped");
           userDataObject.putProperty("config", vdu.getUserData());
           model.addResource(userDataObject);
 
           HashMap<String, Object> cloudInitMap = new HashMap<String, Object>();
-          cloudInitMap.put("get_resource", vdu.getId() + "_" + instanceUuid + "_cloudInitConfig");
+          cloudInitMap.put("get_resource", vdu.getId() + "_" + vnfd.getInstanceUuid() + "_cloudInitConfig");
 
           HashMap<String,Object> partMap3 = new HashMap<String, Object>();
           partMap3.put("config", cloudInitMap);
@@ -1651,12 +1655,12 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       if (!newConfigList.isEmpty()){
         HeatResource serverInitObject = new HeatResource();
         serverInitObject.setType("OS::Heat::MultipartMime");
-        serverInitObject.setName(vdu.getId() + "_" + instanceUuid + "_serverInit");
+        serverInitObject.setName(vdu.getId() + "_" + vnfd.getInstanceUuid() + "_serverInit");
         serverInitObject.putProperty("parts", newConfigList);
         model.addResource(serverInitObject);
 
         HashMap<String, Object> userDataMap = new HashMap<String, Object>();
-        userDataMap.put("get_resource", vdu.getId() + "_" + instanceUuid + "_serverInit");
+        userDataMap.put("get_resource", vdu.getId() + "_" + vnfd.getInstanceUuid() + "_serverInit");
         server.putProperty("user_data", userDataMap);
         server.putProperty("user_data_format", "SOFTWARE_CONFIG");
       }
@@ -1696,7 +1700,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         HeatResource port = new HeatResource();
         port.setType("OS::Neutron::Port");
         String cpQualifiedName =
-            vnfd.getName() + "." + vdu.getId() + "." + vduCp.getId() + "." + instanceUuid;
+            vnfd.getName() + "." + vdu.getId() + "." + vduCp.getId() + "." + vnfd.getInstanceUuid();
         port.setName(cpQualifiedName);
         port.putProperty("name", cpQualifiedName);
         HashMap<String, Object> netMap = new HashMap<String, Object>();
@@ -1721,19 +1725,19 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         if (vnfCp != null) {
           //Retrieve service virtual link information from internal db
           synchronized (serviceVirtualLinksRepo) {
-            netId = serviceVirtualLinksRepo.getVirtualLinkIdFromServiceIdAndConnectionPoint(instanceUuid, vnfd.getId()+":"+vnfCp);
+            netId = serviceVirtualLinksRepo.getVirtualLinkIdFromServiceIdAndConnectionPoint(serviceInstanceUuid, vnfd.getId()+":"+vnfCp);
           }
         }
 
         if (netId != null) {
-          netMap.put("get_resource", "SonataService." + netId + ".net." + instanceUuid);
+          netMap.put("get_resource", "SonataService." + netId + ".net." + serviceInstanceUuid);
 
           if (vduCp.getType() != ConnectionPointType.INT ) {
             //Need to check if the network was external access (access)
             //Retrieve virtual link access information from internal db
             Boolean access = null;
             synchronized (serviceVirtualLinksRepo) {
-              access = serviceVirtualLinksRepo.getVirtualLinkAccessFromServiceIdAndVirtualLinkId(instanceUuid,netId);
+              access = serviceVirtualLinksRepo.getVirtualLinkAccessFromServiceIdAndVirtualLinkId(serviceInstanceUuid,netId);
             }
             if (access) {
               publicPortNames.add(cpQualifiedName);
@@ -1756,7 +1760,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
           // Already created the vnf virtual link
           if (NewVnfVirtualLinks.contains(link)) {
-            netMap.put("get_resource", "SonataService." + link.getId() + ".net." + instanceUuid);
+            netMap.put("get_resource", "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             if (vduCp.getType() != ConnectionPointType.INT ) {
               //Check if the network was external access (access)
               if (link.isAccess()) {
@@ -1765,18 +1769,18 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             }
             // Need to create the vnf virtual link
           } else {
-            ArrayList<String> subnets = myPool.reserveSubnets(instanceUuid, 1);
+            ArrayList<String> subnets = myPool.reserveSubnets(vnfd.getInstanceUuid(), 1);
             HeatResource network = new HeatResource();
             network.setType("OS::Neutron::Net");
-            network.setName("SonataService." + link.getId() + ".net." + instanceUuid);
+            network.setName("SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             network.putProperty("name",
-                    "SonataService." + link.getId() + ".net." + instanceUuid);
+                    "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             model.addResource(network);
             HeatResource subnet = new HeatResource();
             subnet.setType("OS::Neutron::Subnet");
-            subnet.setName("SonataService." + link.getId() + ".subnet." + instanceUuid);
+            subnet.setName("SonataService." + link.getId() + ".subnet." + vnfd.getInstanceUuid());
             subnet.putProperty("name",
-                    "SonataService." + link.getId() + ".subnet." + instanceUuid);
+                    "SonataService." + link.getId() + ".subnet." + vnfd.getInstanceUuid());
             String cidr = subnets.get(0);
             if (link.getCidr() != null) {
               subnet.putProperty("cidr", link.getCidr());
@@ -1792,7 +1796,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
             HashMap<String, Object> subnetMap = new HashMap<String, Object>();
             subnetMap.put("get_resource",
-                    "SonataService." + link.getId() + ".net." + instanceUuid);
+                    "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             subnet.putProperty("network", subnetMap);
             model.addResource(subnet);
 
@@ -1800,9 +1804,9 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
               // internal router interface for network
               HeatResource routerInterface = new HeatResource();
               routerInterface.setType("OS::Neutron::RouterInterface");
-              routerInterface.setName("SonataService." + link.getId() + ".internal." + instanceUuid);
+              routerInterface.setName("SonataService." + link.getId() + ".internal." + vnfd.getInstanceUuid());
               HashMap<String, Object> subnetMapInt = new HashMap<String, Object>();
-              subnetMapInt.put("get_resource", "SonataService." + link.getId() + ".subnet." + instanceUuid);
+              subnetMapInt.put("get_resource", "SonataService." + link.getId() + ".subnet." + vnfd.getInstanceUuid());
               routerInterface.putProperty("subnet", subnetMapInt);
               routerInterface.putProperty("router", tenantExtRouter);
               model.addResource(routerInterface);
@@ -1810,7 +1814,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
             NewVnfVirtualLinks.add(link);
 
-            netMap.put("get_resource", "SonataService." + link.getId() + ".net." + instanceUuid);
+            netMap.put("get_resource", "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             if (vduCp.getType() != ConnectionPointType.INT ) {
               //Check if the network was external access (access)
               if (link.isAccess()) {

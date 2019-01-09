@@ -1097,6 +1097,62 @@ public class VimRepo {
   }
 
   /**
+   * delete the function instance record into the repository.
+   *
+   * @param instanceUuid the uuid of the instance in the VNFD
+   *
+   * @return true for process success
+   */
+  public boolean removeFunctionInstanceEntry(String instanceUuid, String vimUuid) {
+    boolean out = true;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "vimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      String sql = "DELETE FROM function_instances WHERE INSTANCE_UUID=? AND VIM_UUID=?;";
+      stmt = connection.prepareStatement(sql);
+      stmt.setString(1, instanceUuid);
+      stmt.setString(2, vimUuid);
+      stmt.executeUpdate();
+      connection.commit();
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = false;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = false;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = false;
+      }
+    }
+    if (!out) {
+      Logger.info("Function instance removed successfully");
+    }
+
+    return out;
+  }
+
+
+
+
+  /**
    * delete the service instance record into the repository.
    * 
    * @param instanceUuid the uuid of the instance in the NSD
