@@ -513,7 +513,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         for (ConnectionPoint cp : vdu.getConnectionPoints()) {
           Logger.debug("Mapping CP " + cp.getId());
           Logger.debug("Looking for port " + vnfd.getName() + "." + vdu.getId() + "." + cp.getId()
-              + "." + data.getServiceInstanceId());
+              + "." + vnfd.getInstanceUuid());
           ConnectionPointRecord cpr = new ConnectionPointRecord();
           cpr.setId(cp.getId());
 
@@ -524,7 +524,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           for (HeatPort port : ports.getPorts()) {
             Logger.debug("port " + port.getPortName());
             if (port.getPortName().equals(vnfd.getName() + "." + vdu.getId() + "." + cp.getId()
-                + "." + data.getServiceInstanceId())) {
+                + "." + vnfd.getInstanceUuid())) {
               found = true;
               Logger.debug("Found! Filling VDUR parameters");
               InterfaceRecord ip = new InterfaceRecord();
