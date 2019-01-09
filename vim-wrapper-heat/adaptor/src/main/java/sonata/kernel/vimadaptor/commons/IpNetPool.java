@@ -177,9 +177,9 @@ public class IpNetPool {
   }
 
   /**
-   * Reserve a set of sub-nets for a given service instance.
+   * Reserve a set of sub-nets for a given service/function instance.
    * 
-   * @param instanceUuid the UUID of the service instance
+   * @param instanceUuid the UUID of the service/function instance
    * @param numberOfSubnets the number of needed sub-nets
    * @return an ArrayList of string representing available CIDR
    */
@@ -189,13 +189,16 @@ public class IpNetPool {
     if (numberOfSubnets > freeSubnets.size()) {
       return null;
     }
+
     ArrayList<String> previousReservation = null;
-    if ((previousReservation = this.reservationTable.get(instanceUuid)) != null) {
-      // System.out.println("[IpNetPool] - Reservation exists for this instance. returning it");
-      return previousReservation;
-    }
+    ArrayList<String> subnetPool = null;
     ArrayList<String> output = new ArrayList<String>();
-    ArrayList<String> subnetPool = new ArrayList<String>();
+
+    if ((previousReservation = this.reservationTable.get(instanceUuid)) != null) {
+      subnetPool = previousReservation;
+    } else {
+      subnetPool = new ArrayList<String>();
+    }
 
     for (int i = 0; i < numberOfSubnets; i++) {
       String subnet = freeSubnets.remove(0);
@@ -205,37 +208,6 @@ public class IpNetPool {
     }
 
     reservationTable.put(instanceUuid, subnetPool);
-
-    return output;
-  }
-
-  /**
-   * Reserve a set of sub-nets for a given service instance already existent
-   *
-   * @param instanceUuid the UUID of the service instance
-   * @param numberOfSubnets the number of needed sub-nets
-   * @return an ArrayList of string representing available CIDR
-   */
-
-  public ArrayList<String> reserveMoreSubnets(String instanceUuid, int numberOfSubnets) {
-
-    if (numberOfSubnets > freeSubnets.size()) {
-      return null;
-    }
-    ArrayList<String> previousReservation = null;
-    if ((previousReservation = this.reservationTable.get(instanceUuid)) == null) {
-      return null;
-    }
-    ArrayList<String> output = new ArrayList<String>();
-
-    for (int i = 0; i < numberOfSubnets; i++) {
-      String subnet = freeSubnets.remove(0);
-      reservedSubnets.put(subnet, instanceUuid);
-      previousReservation.add(subnet);
-      output.add(subnet);
-    }
-
-    reservationTable.put(instanceUuid, previousReservation);
 
     return output;
   }

@@ -280,7 +280,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     this.notifyObservers(update);
     long stop = System.currentTimeMillis();
 
-    Logger.info("[OpenStackWrapper]FunctionDeploy-time: " + (stop - start) + " ms");
+    Logger.info("[OpenStackWrapper]FunctionRemove-time: " + (stop - start) + " ms");
 
   }
 
@@ -886,8 +886,20 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       String output = client.deleteStack(stackName, stackUuid);
 
       if (output.equals("DELETED")) {
+        ArrayList<String> functionInstanceUUids = repo.getFunctionUuidByServiceInstanceIdAndVimUuid(instanceUuid, this.getConfig().getUuid());
+        for (String  functionInstanceUUid : functionInstanceUUids) {
+          try {
+            myPool.freeSubnets(functionInstanceUUid);
+          } catch (Exception e) {
+            Logger.info(e.getMessage());
+          }
+        }
+        try {
+          myPool.freeSubnets(instanceUuid);
+        } catch (Exception e) {
+          Logger.info(e.getMessage());
+        }
         repo.removeServiceInstanceEntry(instanceUuid, this.getConfig().getUuid());
-        myPool.freeSubnets(instanceUuid);
         this.setChanged();
         String body =
             "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + this.getConfig().getUuid() + "\"}";
@@ -989,12 +1001,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     Logger.debug("Creating init stack template");
 
     HeatModel model = new HeatModel();
-    int subnetIndex = 0;
-    ArrayList<String> subnets = myPool.reserveSubnets(instanceId, virtualLinks.size());
-
-    if (subnets == null) {
-      throw new Exception("Unable to allocate internal addresses. Too many service instances");
-    }
 
     for (VirtualLink link : virtualLinks) {
       HeatResource network = new HeatResource();
@@ -1008,10 +1014,14 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       subnet.setName("SonataService." + link.getId() + ".subnet." + instanceId);
       subnet.putProperty("name",
               "SonataService." + link.getId() + ".subnet." + instanceId);
-      String cidr = subnets.get(subnetIndex);
       if (link.getCidr() != null) {
         subnet.putProperty("cidr", link.getCidr());
       } else {
+        ArrayList<String> subnets = myPool.reserveSubnets(instanceId, 1);
+        if (subnets == null) {
+          throw new Exception("Unable to allocate internal addresses. Too many service instances");
+        }
+        String cidr = subnets.get(0);
         subnet.putProperty("cidr", cidr);
         subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
       }
@@ -1020,7 +1030,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       }
       String[] dnsArray = {"8.8.8.8"};
       subnet.putProperty("dns_nameservers", dnsArray);
-      subnetIndex++;
       HashMap<String, Object> netMap = new HashMap<String, Object>();
       netMap.put("get_resource",
               "SonataService." + link.getId() + ".net." + instanceId);
@@ -1769,7 +1778,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             }
             // Need to create the vnf virtual link
           } else {
-            ArrayList<String> subnets = myPool.reserveSubnets(vnfd.getInstanceUuid(), 1);
             HeatResource network = new HeatResource();
             network.setType("OS::Neutron::Net");
             network.setName("SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
@@ -1781,10 +1789,11 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             subnet.setName("SonataService." + link.getId() + ".subnet." + vnfd.getInstanceUuid());
             subnet.putProperty("name",
                     "SonataService." + link.getId() + ".subnet." + vnfd.getInstanceUuid());
-            String cidr = subnets.get(0);
             if (link.getCidr() != null) {
               subnet.putProperty("cidr", link.getCidr());
             } else {
+              ArrayList<String> subnets = myPool.reserveSubnets(vnfd.getInstanceUuid(), 1);
+              String cidr = subnets.get(0);
               subnet.putProperty("cidr", cidr);
               subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
             }
