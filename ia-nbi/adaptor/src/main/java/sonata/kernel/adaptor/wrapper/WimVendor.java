@@ -28,7 +28,7 @@ package sonata.kernel.adaptor.wrapper;
 
 
 public enum WimVendor {
-  VTN("vtn"),MOCK("mock");
+  VTN("vtn"),MOCK("mock"),TAPI("tapi");
 
   private final String name;
 
