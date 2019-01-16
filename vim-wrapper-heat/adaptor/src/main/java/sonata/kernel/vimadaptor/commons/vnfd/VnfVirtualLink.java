@@ -29,6 +29,7 @@ package sonata.kernel.vimadaptor.commons.vnfd;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import sonata.kernel.vimadaptor.commons.nsd.QosRequirements;
 import sonata.kernel.vimadaptor.commons.nsd.VirtualLink.ConnectivityType;
 
 import java.util.ArrayList;
@@ -49,6 +50,8 @@ public class VnfVirtualLink {
   @JsonProperty("leaf_requirement")
   private String leafRequirement;
   private String qos;
+  @JsonProperty("qos_requirements")
+  private QosRequirements qosRequirements;
   @JsonProperty("root_requirement")
   private String rootRequirement;
 
@@ -75,6 +78,10 @@ public class VnfVirtualLink {
 
   public String getQos() {
     return qos;
+  }
+
+  public QosRequirements getQosRequirements() {
+    return qosRequirements;
   }
 
   public String getRootRequirement() {
@@ -127,6 +134,10 @@ public class VnfVirtualLink {
 
   public void setQos(String qos) {
     this.qos = qos;
+  }
+
+  public void setQosRequirements(QosRequirements qosRequirements) {
+    this.qosRequirements = qosRequirements;
   }
 
   public void setRootRequirement(String rootRequirement) {

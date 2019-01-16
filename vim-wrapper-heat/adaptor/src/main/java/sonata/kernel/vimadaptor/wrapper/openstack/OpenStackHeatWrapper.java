@@ -767,8 +767,13 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     // To prepare a service instance management and data networks/subnets must be created.
     OpenStackHeatClient client = new OpenStackHeatClient(getConfig().getVimEndpoint().toString(),
         getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+    OpenStackNeutronClient neutronClient = new OpenStackNeutronClient(getConfig().getVimEndpoint().toString(),
+            getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
 
-    HeatTemplate template = createInitStackTemplate(instanceId, virtualLinks);
+    ArrayList<QosPolicy> vimPolicies = neutronClient.getPolicies();
+    Collections.sort(vimPolicies);
+
+    HeatTemplate template = createInitStackTemplate(instanceId, virtualLinks, vimPolicies);
 
     Logger.info("Deploying new stack for service preparation.");
     ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
@@ -987,7 +992,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     Logger.info("[OpenStackWrapper]UploadImage-time: " + (stop - start) + " ms");
   }
 
-  private HeatTemplate createInitStackTemplate(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception {
+  private HeatTemplate createInitStackTemplate(String instanceId, ArrayList<VirtualLink> virtualLinks, ArrayList<QosPolicy> policies) throws Exception {
 
     // TODO This values should be per User, now they are per VIM. This should be re-desinged once
     // user management is in place.
@@ -1008,6 +1013,42 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       network.setName("SonataService." + link.getId() + ".net." + instanceId);
       network.putProperty("name",
               "SonataService." + link.getId() + ".net." + instanceId);
+
+      String qosPolicy = null;
+      if (link.getQos() != null) {
+        if (!searchQosPolicyByName(link.getQos(),policies)) {
+          Logger.error("Cannot find the Qos Policy: " + link.getQos());
+          throw new Exception("Cannot find the Qos Policy: " + link.getQos());
+        }
+        qosPolicy = link.getQos();
+      } else if (link.getQosRequirements()!= null) {
+
+        double bandwidthLimitInMbps = 0;
+        double minimumBandwidthInMbps = 0;
+        if (link.getQosRequirements().getBandwidthLimit()!= null) {
+          bandwidthLimitInMbps = link.getQosRequirements().getBandwidthLimit().getBandwidth()
+                  * link.getQosRequirements().getBandwidthLimit().getBandwidthUnit().getMultiplier();
+        }
+
+        if (link.getQosRequirements().getMinimumBandwidth()!= null) {
+          minimumBandwidthInMbps = link.getQosRequirements().getMinimumBandwidth().getBandwidth()
+                  * link.getQosRequirements().getMinimumBandwidth().getBandwidthUnit().getMultiplier();
+        }
+
+        try {
+          qosPolicy = this.selectQosPolicy(bandwidthLimitInMbps, minimumBandwidthInMbps, policies);
+        } catch (Exception e) {
+          Logger.error("Exception while searching for available  Qos Policies for the requirements: "
+                  + e.getMessage());
+          throw new Exception("Cannot find an available  Qos Policies for requirements. Bandwidth Limit: "
+                  + bandwidthLimitInMbps + " - Minimum Bandwidth: " + minimumBandwidthInMbps);
+        }
+      }
+      if (qosPolicy != null) {
+        // add the qos to the port
+        network.putProperty("qos_policy", qosPolicy);
+      }
+
       model.addResource(network);
       HeatResource subnet = new HeatResource();
       subnet.setType("OS::Neutron::Subnet");
@@ -1783,6 +1824,42 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             network.setName("SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             network.putProperty("name",
                     "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
+
+            String qosPolicy = null;
+            if (link.getQos() != null) {
+              if (!searchQosPolicyByName(link.getQos(),policies)) {
+                Logger.error("Cannot find the Qos Policy: " + link.getQos());
+                throw new Exception("Cannot find the Qos Policy: " + link.getQos());
+              }
+              qosPolicy = link.getQos();
+            } else if (link.getQosRequirements()!= null) {
+
+              double bandwidthLimitInMbps = 0;
+              double minimumBandwidthInMbps = 0;
+              if (link.getQosRequirements().getBandwidthLimit()!= null) {
+                bandwidthLimitInMbps = link.getQosRequirements().getBandwidthLimit().getBandwidth()
+                        * link.getQosRequirements().getBandwidthLimit().getBandwidthUnit().getMultiplier();
+              }
+
+              if (link.getQosRequirements().getMinimumBandwidth()!= null) {
+                minimumBandwidthInMbps = link.getQosRequirements().getMinimumBandwidth().getBandwidth()
+                        * link.getQosRequirements().getMinimumBandwidth().getBandwidthUnit().getMultiplier();
+              }
+
+              try {
+                qosPolicy = this.selectQosPolicy(bandwidthLimitInMbps, minimumBandwidthInMbps, policies);
+              } catch (Exception e) {
+                Logger.error("Exception while searching for available  Qos Policies for the requirements: "
+                        + e.getMessage());
+                throw new Exception("Cannot find an available  Qos Policies for requirements. Bandwidth Limit: "
+                        + bandwidthLimitInMbps + " - Minimum Bandwidth: " + minimumBandwidthInMbps);
+              }
+            }
+            if (qosPolicy != null) {
+              // add the qos to the port
+              network.putProperty("qos_policy", qosPolicy);
+            }
+
             model.addResource(network);
             HeatResource subnet = new HeatResource();
             subnet.setType("OS::Neutron::Subnet");

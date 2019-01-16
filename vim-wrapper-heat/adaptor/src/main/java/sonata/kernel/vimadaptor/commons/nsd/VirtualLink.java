@@ -66,6 +66,8 @@ public class VirtualLink {
   @JsonProperty("leaf_requirement")
   private String leafRequirement;
   private String qos;
+  @JsonProperty("qos_requirements")
+  private QosRequirements qosRequirements;
   @JsonProperty("root_requirement")
   private String rootRequirement;
   @JsonProperty("vl_description")
@@ -100,6 +102,10 @@ public class VirtualLink {
 
   public String getQos() {
     return qos;
+  }
+
+  public QosRequirements getQosRequirements() {
+    return qosRequirements;
   }
 
   public String getRootRequirement() {
@@ -168,6 +174,10 @@ public class VirtualLink {
 
   public void setQos(String qos) {
     this.qos = qos;
+  }
+
+  public void setQosRequirements(QosRequirements qosRequirements) {
+    this.qosRequirements = qosRequirements;
   }
 
   public void setRootRequirement(String rootRequirement) {
