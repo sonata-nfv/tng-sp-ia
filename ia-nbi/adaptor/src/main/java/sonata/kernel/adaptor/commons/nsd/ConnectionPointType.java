@@ -27,7 +27,7 @@
 package sonata.kernel.adaptor.commons.nsd;
 
 public enum ConnectionPointType {
-  EXT("external"), INT("internal"), INTERFACE("interface"), MANAGEMENT("management");
+  EXT("external"), INT("internal"), INTERFACE("interface"), MANAGEMENT("management"), SERVICEENDPOINT("serviceendpoint");
   private final String name;
 
   ConnectionPointType(String name) {
