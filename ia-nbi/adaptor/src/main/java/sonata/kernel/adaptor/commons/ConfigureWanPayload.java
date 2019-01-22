@@ -37,8 +37,8 @@ public class ConfigureWanPayload {
   private String instanceId;
   @JsonProperty("vim_list")
   private ArrayList<ComparableUuid> vimList;
-  @JsonProperty("nap")
-  private NetworkAttachmentPoints nap;
+//  @JsonProperty("nap")
+//  private NetworkAttachmentPoints nap;
 
   public String getInstanceId() {
     return instanceId;
@@ -48,9 +48,9 @@ public class ConfigureWanPayload {
     return vimList;
   }
 
-  public NetworkAttachmentPoints getNap() {
-    return nap;
-  }
+//  public NetworkAttachmentPoints getNap() {
+//    return nap;
+//  }
 
   public void setInstanceId(String instanceId) {
     this.instanceId = instanceId;
@@ -60,9 +60,9 @@ public class ConfigureWanPayload {
     this.vimList = vimList;
   }
 
-  public void setNap(NetworkAttachmentPoints nap) {
-    this.nap = nap;
-  }
+//  public void setNap(NetworkAttachmentPoints nap) {
+//    this.nap = nap;
+//  }
 
 
 
