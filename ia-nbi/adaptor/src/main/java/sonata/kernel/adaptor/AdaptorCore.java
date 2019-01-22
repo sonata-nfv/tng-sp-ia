@@ -27,6 +27,10 @@
 
 package sonata.kernel.adaptor;
 
+import org.apache.catalina.Context;
+import org.apache.catalina.startup.Tomcat;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
@@ -64,6 +68,7 @@ public class AdaptorCore {
   private static final String SONATA_CONFIG_FILEPATH = "/etc/son-mano/sonata.config";
   private static AdaptorCore myInstance = null;
   private Properties sonataProperties;
+  private static final String JERSEY_SERVLET_NAME = "jersey-container-servlet";
 
   
   public static AdaptorCore getInstance(){
@@ -303,6 +308,32 @@ public class AdaptorCore {
     // - Start pumping blood
     this.heartbeat = new HeartBeat(northMux, rate, this);
     new Thread(this.heartbeat).start();
+
+    String port = System.getenv("PORT");
+    if (port == null || port.isEmpty()) {
+      port = "8080";
+    }
+
+    String contextPath = "";
+    String appBase = ".";
+
+    Tomcat tomcat = new Tomcat();
+    tomcat.setPort(Integer.valueOf(port));
+    tomcat.getHost().setAppBase(appBase);
+
+    Context context = tomcat.addContext(contextPath, appBase);
+    Tomcat.addServlet(context, JERSEY_SERVLET_NAME,
+            new ServletContainer(new JerseyConfiguration()));
+    context.addServletMappingDecoded("/api/*", JERSEY_SERVLET_NAME);
+
+    try {
+      tomcat.start();
+    } catch (Exception e) {
+      Logger.error(e.getMessage(), e);
+    }
+    tomcat.getServer().await();
+
+
   }
 
   /**
@@ -375,3 +406,4 @@ public class AdaptorCore {
   }
   
 }
+
