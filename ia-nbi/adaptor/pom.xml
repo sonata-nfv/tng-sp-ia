@@ -40,66 +40,37 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- The versions of ALL the libraries used by this project. -->
-		<powermock.all.version>1.6.5</powermock.all.version>
-		<mockito.all.version>1.9.5</mockito.all.version>
-		<postgresql.version>9.4.1208.jre7</postgresql.version>
+		<postgresql.version>42.2.5.jre7</postgresql.version>
 		<junit.version>4.12</junit.version>
-		<json.version>20160212</json.version>
-		<amqp.client.version>4.8.3</amqp.client.version>
-		<jackson.databind.version>2.8.11.3</jackson.databind.version>
-		<jackson.dataformat.version>2.8.11</jackson.dataformat.version>
+		<json.version>20180813</json.version>
+		<amqp.client.version>5.5.3</amqp.client.version>
+		<jackson.databind.version>2.9.8</jackson.databind.version>
+		<jackson.dataformat.version>2.9.8</jackson.dataformat.version>
 		<commons.io.version>1.3.2</commons.io.version>
-		<logback.classic.version>1.1.7</logback.classic.version>
-		<!--jersy.core.version>2.23.2</jersy.core.version-->
-		<httpcomponents.httpclient.version>4.5.2</httpcomponents.httpclient.version>
-		<httpcomponents.httpcore.version>4.4.5</httpcomponents.httpcore.version>
-		<org.yaml.version>1.17</org.yaml.version>
-		<!--google.guava.version>19.0</google.guava.version-->
-		<!--pacesys.openstack4j.version>2.20</pacesys.openstack4j.version-->
+		<logback.classic.version>1.2.3</logback.classic.version>
+		<httpcomponents.httpclient.version>4.5.6</httpcomponents.httpclient.version>
+		<httpcomponents.httpcore.version>4.4.11</httpcomponents.httpcore.version>
 		<org.slf4j.version>1.7.25</org.slf4j.version>
-		<jboss.resteasy.version>3.0.16.Final</jboss.resteasy.version>
-		<commons.lang3.version>3.1</commons.lang3.version>
-		<!--springframework.spring.version>4.3.17</springframework.spring.version-->
-		<!--jetbrains.annotations.version>13.0</jetbrains.annotations.version-->
+		<jboss.resteasy.version>3.6.2.Final</jboss.resteasy.version>
+		<commons.lang3.version>3.8.1</commons.lang3.version>
+		<jsch.version>0.1.55</jsch.version>
+		<asm.version>7.0</asm.version>
+		<tomcat.version>8.5.37</tomcat.version>
+		<jersey.version>2.27</jersey.version>
 
 		<!-- The versions of ALL the plugins used by this project. -->
 		<maven.surefire.report.version>3.0.0-M1</maven.surefire.report.version>
 		<maven.surefire.version>3.0.0-M1</maven.surefire.version>
-		<maven.site.version>2.1</maven.site.version>
-		<maven.checkstyle.version>2.17</maven.checkstyle.version>
-		<findbugs.maven.version>3.0.3</findbugs.maven.version>
-		<maven.assembly.version>2.6</maven.assembly.version>
-		<maven.compiler.version>3.7.0</maven.compiler.version>
-		<tomcat.version>8.5.23</tomcat.version>
-		<jersey.version>2.26</jersey.version>
+		<maven.site.version>3.7.1</maven.site.version>
+		<maven.checkstyle.version>3.0.0</maven.checkstyle.version>
+		<findbugs.maven.version>3.0.5</findbugs.maven.version>
+		<maven.assembly.version>3.1.1</maven.assembly.version>
+		<maven.compiler.version>3.8.0</maven.compiler.version>
+                <maven.shade.version>3.2.1</maven.shade.version>
 	</properties>
 
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>${maven.assembly.version}</version>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<mainClass>sonata.kernel.adaptor.AdaptorCore</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id> <!-- this is used for inheritance merges -->
-						<phase>package</phase> <!-- bind to the packaging phase -->
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -117,10 +88,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.4.3</version>
-				<configuration>
-					<finalName>tomcat-embedded-example-${project.version}</finalName>
-				</configuration>
+				<version>${maven.shade.version}</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -128,6 +96,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+                                                        <shadedArtifactAttached>true</shadedArtifactAttached>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>sonata.kernel.adaptor.AdaptorCore</mainClass>
@@ -199,22 +168,10 @@
 			<artifactId>jersey-hk2</artifactId>
 			<version>${jersey.version}</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.powermock</groupId> <artifactId>powermock-api-mockito</artifactId> 
-			<version>${powermock.all.version}</version> </dependency> <dependency> <groupId>org.powermock</groupId> 
-			<artifactId>powermock-core</artifactId> <version>${powermock.all.version}</version> 
-			</dependency> <dependency> <groupId>org.powermock</groupId> <artifactId>powermock-module-junit4</artifactId> 
-			<version>${powermock.all.version}</version> </dependency> <dependency> <groupId>org.mockito</groupId> 
-			<artifactId>mockito-all</artifactId> <version>${mockito.all.version}</version> 
-			</dependency> -->
-		<!--dependency>
-			<groupId>org.bouncycastle</groupId>
-			<artifactId>bcprov-jdk15on</artifactId>
-			<version>1.51</version>
-		</dependency-->	
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
-			<version>0.1.54</version>
+			<version>${jsch.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -243,13 +200,6 @@
 			<!--</exclusion> -->
 			<!--</exclusions> -->
 		</dependency>
-		<!--dependency> <groupId>org.yaml</groupId> <artifactId>snakeyaml</artifactId> 
-			<version>${org.yaml.version}</version> </dependency -->
-		<!--dependency>
-			<groupId>org.glassfish.jersey.core</groupId>
-			<artifactId>jersey-client</artifactId>
-			<version>${jersy.core.version}</version>
-		</dependency-->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -285,21 +235,6 @@
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.classic.version}</version>
 		</dependency>
-		<!--dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${google.guava.version}</version>
-		</dependency-->
-		<!--dependency>
-			<groupId>org.pacesys</groupId>
-			<artifactId>openstack4j-core</artifactId>
-			<version>${pacesys.openstack4j.version}</version>
-		</dependency-->
-		<!--dependency>
-			<groupId>org.pacesys.openstack4j.connectors</groupId>
-			<artifactId>openstack4j-httpclient</artifactId>
-			<version>${pacesys.openstack4j.version}</version>
-		</dependency-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>
@@ -315,16 +250,6 @@
 			<artifactId>commons-lang3</artifactId>
 			<version>${commons.lang3.version}</version>
 		</dependency>
-		<!--dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>${springframework.spring.version}</version>
-		</dependency-->
-		<!--dependency>
-			<groupId>org.jetbrains</groupId>
-			<artifactId>annotations</artifactId>
-			<version>${jetbrains.annotations.version}</version>
-		</dependency-->
 		<!-- Plugin dependencies to automatically download and install the plugins 
 			needed. -->
                 <dependency>
@@ -381,15 +306,10 @@
 			<version>${maven.compiler.version}</version>
 			<type>maven-plugin</type>
 		</dependency>
-		<!--dependency>
-   			<groupId>com.googlecode.json-simple</groupId>
-   			<artifactId>json-simple</artifactId>
-   			<version>1.1.1</version>
-		</dependency-->
                 <dependency>
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm</artifactId>
-                        <version>6.1.1</version>
+                        <version>${asm.version}</version>
                 </dependency>
 	</dependencies>
 
