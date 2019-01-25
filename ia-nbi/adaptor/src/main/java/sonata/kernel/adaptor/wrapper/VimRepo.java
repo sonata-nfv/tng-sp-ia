@@ -132,7 +132,7 @@ public class VimRepo {
         stmt = connection.createStatement();
         sql = "CREATE TABLE vim " + "(UUID TEXT PRIMARY KEY NOT NULL," + "NAME TEXT,"
             + " TYPE TEXT NOT NULL," + " VENDOR TEXT NOT NULL," + " ENDPOINT TEXT NOT NULL,"
-            + " USERNAME TEXT NOT NULL," + " DOMAIN TEXT NOT NULL," + " CONFIGURATION TEXT NOT NULL," + " CITY TEXT,"
+            + " USERNAME TEXT NOT NULL," + " DOMAIN TEXT NOT NULL," + " CONFIGURATION JSONB NOT NULL," + " CITY TEXT,"
             + "COUNTRY TEXT," + " PASS TEXT," + " AUTHKEY TEXT" + ");";
         stmt.executeUpdate(sql);
         sql = "CREATE TABLE service_instances " + "(" + "INSTANCE_UUID TEXT NOT NULL,"
@@ -1061,7 +1061,7 @@ public class VimRepo {
 
       String sql = "INSERT INTO VIM "
           + "(UUID, NAME, TYPE, VENDOR, ENDPOINT, USERNAME, CONFIGURATION, CITY, COUNTRY, PASS, AUTHKEY, DOMAIN) "
-          + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+          + "VALUES (?, ?, ?, ?, ?, ?, ?::JSONB, ?, ?, ?, ?, ?);";
       stmt = connection.prepareStatement(sql);
       stmt.setString(1, uuid);
       stmt.setString(2, config.getName());
