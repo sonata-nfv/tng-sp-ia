@@ -324,7 +324,7 @@ public class AdaptorCore {
     Context context = tomcat.addContext(contextPath, appBase);
     Tomcat.addServlet(context, JERSEY_SERVLET_NAME,
             new ServletContainer(new JerseyConfiguration()));
-    context.addServletMappingDecoded("/api/*", JERSEY_SERVLET_NAME);
+    context.addServletMappingDecoded("/api/ia/v1/*", JERSEY_SERVLET_NAME);
 
     try {
       tomcat.start();
