@@ -99,7 +99,7 @@ public class VimsAPI {
      */
     @POST
     @Path("/{type}")
-    @SuppressWarnings("null")
+    //@SuppressWarnings("null")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response addVim(@PathParam("type") String type, String newVim) {
@@ -154,6 +154,45 @@ public class VimsAPI {
             apiResponse = Response.ok((String) body);
             apiResponse.header("Content-Length", body.length());
             return apiResponse.status(400).build();
+        }
+
+    }
+
+
+    /**
+     * api call in order to delete a specific registered compute VIM
+     */
+    @DELETE
+    @Path("/{vimUuid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteVim(@PathParam("vimUuid") String vimUuid) {
+
+        Response.ResponseBuilder apiResponse = null;
+        try {
+            Logger.info("Retrieving VIM");
+            VimWrapperConfiguration vim = WrapperBay.getInstance().getConfig(vimUuid);
+
+            if (vim == null) {
+                String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM UUID " + vimUuid + "\"}";
+                apiResponse = Response.ok((String) body);
+                apiResponse.header("Content-Length", body.length());
+                return apiResponse.status(404).build();
+            }
+
+            WrapperBay.getInstance().removeComputeWrapper(vimUuid);
+
+            Logger.info("Delete VIM call completed.");
+            String body = "{\"status\":\"SUCCESS\",\"message\":\"Deleted VIM UUID " + vimUuid + "\"}";
+            apiResponse = Response.ok((String) body);
+            apiResponse.header("Content-Length", body.length());
+            return apiResponse.status(200).build();
+
+        } catch (Exception e) {
+            Logger.error("Error getting the vim: " + e.getMessage(), e);
+            String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM\"}";
+            apiResponse = Response.ok((String) body);
+            apiResponse.header("Content-Length", body.length());
+            return apiResponse.status(404).build();
         }
 
     }
