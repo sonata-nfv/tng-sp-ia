@@ -303,7 +303,7 @@ public class VimRepo {
    * @param computeUuid the uuid of the computeVim
    * @return
    */
-  public String getNetworkVimFromComputeVimUuid(String computeUuid) {
+  public String getNetworkVimUuidFromComputeVimUuid(String computeUuid) {
     String output = null;
     Connection connection = null;
     PreparedStatement stmt = null;

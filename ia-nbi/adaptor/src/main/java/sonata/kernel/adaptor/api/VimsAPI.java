@@ -2,11 +2,11 @@ package sonata.kernel.adaptor.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
-import sonata.kernel.adaptor.wrapper.ComputeVimVendor;
-import sonata.kernel.adaptor.wrapper.VimWrapperConfiguration;
-import sonata.kernel.adaptor.wrapper.WrapperBay;
+import sonata.kernel.adaptor.wrapper.*;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -26,16 +26,27 @@ public class VimsAPI {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getVims() {
 
-        ArrayList<VimWrapperConfiguration> output = new ArrayList<>();
+        ArrayList<VimApiConfiguration> output = new ArrayList<>();
         Response.ResponseBuilder apiResponse = null;
         try {
             ArrayList<String> vimUuids = WrapperBay.getInstance().getComputeWrapperList();
             Logger.info("Found " + vimUuids.size() + " VIMs");
             Logger.info("Retrieving VIM(s)");
+            VimWrapperConfiguration vimWrapperConfig = null;
+            VimWrapperConfiguration netVimWrapperConfig = null;
+            VimApiConfiguration vimApiConfig = null;
             for (String vimUuid : vimUuids) {
-                VimWrapperConfiguration vim = WrapperBay.getInstance().getConfig(vimUuid);
-                if (vim != null) {
-                    output.add(vim);
+                vimWrapperConfig = WrapperBay.getInstance().getConfig(vimUuid);
+                String netVimUuid = WrapperBay.getInstance().getVimRepo().getNetworkVimUuidFromComputeVimUuid(vimUuid);
+                if (netVimUuid != null) {
+                    netVimWrapperConfig = WrapperBay.getInstance().getConfig(netVimUuid);
+                } else {
+                    netVimWrapperConfig = null;
+                }
+                if ((vimWrapperConfig != null) && (netVimWrapperConfig != null)) {
+                    vimApiConfig = getVimApiFromWrapperApi(vimWrapperConfig);
+                    vimApiConfig.setNetworkEndpoint(netVimWrapperConfig.getVimEndpoint());
+                    output.add(vimApiConfig);
                 }
             }
             ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
@@ -67,17 +78,24 @@ public class VimsAPI {
         Response.ResponseBuilder apiResponse = null;
         try {
             Logger.info("Retrieving VIM");
-            VimWrapperConfiguration vim = WrapperBay.getInstance().getConfig(vimUuid);
+            VimWrapperConfiguration vimWrapperConfig = WrapperBay.getInstance().getConfig(vimUuid);
+            String netVimUuid = WrapperBay.getInstance().getVimRepo().getNetworkVimUuidFromComputeVimUuid(vimUuid);
+            VimWrapperConfiguration netVimWrapperConfig = null;
+            if (netVimUuid != null) {
+                netVimWrapperConfig = WrapperBay.getInstance().getConfig(netVimUuid);
+            }
 
-            if (vim == null) {
+            if ((vimWrapperConfig == null) || (netVimWrapperConfig == null)) {
                 String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM UUID " + vimUuid + "\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
                 return apiResponse.status(404).build();
             }
 
+            VimApiConfiguration vimApiConfig = getVimApiFromWrapperApi(vimWrapperConfig);
+            vimApiConfig.setNetworkEndpoint(netVimWrapperConfig.getVimEndpoint());
             ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
-            String body = mapper.writeValueAsString(vim);
+            String body = mapper.writeValueAsString(vimApiConfig);
 
             Logger.info("Get VIM call completed.");
             apiResponse = Response.ok((String) body);
@@ -110,38 +128,77 @@ public class VimsAPI {
         System.out.println(newVim);
 
         try {
-            VimWrapperConfiguration vimConfig = mapper.readValue(newVim, VimWrapperConfiguration.class);
+            VimApiConfiguration vimApiConfig = mapper.readValue(newVim, VimApiConfiguration.class);
             Logger.info("Try Retrieving VIM");
-            VimWrapperConfiguration vim = WrapperBay.getInstance().getConfig(vimConfig.getUuid());
+            VimWrapperConfiguration vimComputeWrapperConfig = WrapperBay.getInstance().getConfig(vimApiConfig.getUuid());
 
-            if (vim != null) {
-                String body = "{\"status\":\"ERROR\",\"message\":\"VIM " + vimConfig.getUuid() + " already exist\"}";
+            if (vimComputeWrapperConfig != null) {
+                String body = "{\"status\":\"ERROR\",\"message\":\"VIM " + vimApiConfig.getUuid() + " already exist\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
                 return apiResponse.status(405).build();
             }
 
             Logger.debug("Registering a COMPUTE wrapper.");
-            vimConfig.setVimVendor(ComputeVimVendor.getByName(type));
-            if (vimConfig.getUuid() == null) {
-                vimConfig.setUuid(UUID.randomUUID().toString());
+            vimComputeWrapperConfig = getVimWrapperFromVimApi(vimApiConfig);
+            vimComputeWrapperConfig.setVimVendor(ComputeVimVendor.getByName(type));
+            if (vimComputeWrapperConfig.getUuid() == null) {
+                vimComputeWrapperConfig.setUuid(UUID.randomUUID().toString());
             }
-            if (vimConfig.getDomain() == null) {
-                vimConfig.setDomain("Default");
+            if (vimComputeWrapperConfig.getDomain() == null) {
+                vimComputeWrapperConfig.setDomain("Default");
             }
+            WrapperBay.getInstance().registerComputeWrapper(vimComputeWrapperConfig);
 
-            WrapperBay.getInstance().registerComputeWrapper(vimConfig);
+            //Register ovs network wrapper or use mock
+            VimWrapperConfiguration vimNetworkWrapperConfig = new VimWrapperConfiguration();
+            if (vimApiConfig.getNetworkEndpoint() != null) {
+                // Register ovs network wrapper
+                if (!vimApiConfig.getNetworkEndpoint().equals("")) {
+                    vimNetworkWrapperConfig.setUuid(UUID.randomUUID().toString());
+                    vimNetworkWrapperConfig.setName(vimComputeWrapperConfig.getName() + "-Net");
+                    vimNetworkWrapperConfig.setWrapperType(WrapperType.getByName("network"));
+                    vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("ovs"));
+                    vimNetworkWrapperConfig.setVimEndpoint(vimApiConfig.getNetworkEndpoint());
+                    vimNetworkWrapperConfig.setAuthUserName("");
+                    vimNetworkWrapperConfig.setDomain("");
+                    vimNetworkWrapperConfig.setConfiguration("{}");
+                    WrapperBay.getInstance().registerNetworkWrapper(vimNetworkWrapperConfig, vimComputeWrapperConfig.getUuid());
+                }
+            }
+            // Use mock network wrapper
+            if (vimNetworkWrapperConfig.getVimEndpoint() == null) {
+                vimNetworkWrapperConfig.setUuid(UUID.randomUUID().toString());
+                vimNetworkWrapperConfig.setName("Mock-Net");
+                vimNetworkWrapperConfig.setWrapperType(WrapperType.getByName("network"));
+                vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("networkmock"));
+                vimNetworkWrapperConfig.setVimEndpoint("");
+                vimNetworkWrapperConfig.setAuthUserName("");
+                vimNetworkWrapperConfig.setDomain("");
+                vimNetworkWrapperConfig.setConfiguration("{}");
+                WrapperBay.getInstance().registerNetworkWrapper(vimNetworkWrapperConfig, vimComputeWrapperConfig.getUuid());
+            }
 
             Logger.info("Retrieving new VIM");
-            vim = WrapperBay.getInstance().getConfig(vimConfig.getUuid());
-            if (vim == null) {
-                String body = "{\"status\":\"ERROR\",\"message\":\"VIM " + vimConfig.getUuid() + " register failed\"}";
+            vimComputeWrapperConfig = WrapperBay.getInstance().getConfig(vimComputeWrapperConfig.getUuid());
+            String netVimUuid = null;
+            if (vimComputeWrapperConfig != null) {
+                netVimUuid = WrapperBay.getInstance().getVimRepo().getNetworkVimUuidFromComputeVimUuid(vimComputeWrapperConfig.getUuid());
+            }
+            if (netVimUuid != null) {
+                vimNetworkWrapperConfig = WrapperBay.getInstance().getConfig(netVimUuid);
+            } else {
+                vimNetworkWrapperConfig = null;
+            }
+            if ((vimComputeWrapperConfig == null) || (vimNetworkWrapperConfig == null)) {
+                String body = "{\"status\":\"ERROR\",\"message\":\"VIM register failed\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
                 return apiResponse.status(400).build();
             }
-            //ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
-            String body = mapper.writeValueAsString(vim);
+            vimApiConfig = getVimApiFromWrapperApi(vimComputeWrapperConfig);
+            vimApiConfig.setNetworkEndpoint(vimNetworkWrapperConfig.getVimEndpoint());
+            String body = mapper.writeValueAsString(vimApiConfig);
 
             Logger.info("Add VIM call completed.");
             apiResponse = Response.ok((String) body);
@@ -171,14 +228,16 @@ public class VimsAPI {
         try {
             Logger.info("Retrieving VIM");
             VimWrapperConfiguration vim = WrapperBay.getInstance().getConfig(vimUuid);
+            String netVimUuid = WrapperBay.getInstance().getVimRepo().getNetworkVimUuidFromComputeVimUuid(vimUuid);
 
-            if (vim == null) {
+            if ((vim == null) || (netVimUuid == null)) {
                 String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM UUID " + vimUuid + "\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
                 return apiResponse.status(404).build();
             }
 
+            WrapperBay.getInstance().removeNetworkWrapper(netVimUuid);
             WrapperBay.getInstance().removeComputeWrapper(vimUuid);
 
             Logger.info("Delete VIM call completed.");
@@ -196,4 +255,159 @@ public class VimsAPI {
         }
 
     }
+
+    /**
+     * Returns a VimWrapperConfiguration translated from the VimApiConfiguration
+     *
+     * @param vimApiConfig the user data received from api
+     * @return VimWrapperConfiguration object translated from the given data
+     * @throws Exception if unable to translate
+     */
+    private VimWrapperConfiguration getVimWrapperFromVimApi(VimApiConfiguration vimApiConfig) throws Exception {
+        VimWrapperConfiguration vimWrapperConfig = new VimWrapperConfiguration();
+
+        vimWrapperConfig.setWrapperType(WrapperType.getByName("compute"));
+        if (vimApiConfig.getUuid() != null) {
+            vimWrapperConfig.setUuid(vimApiConfig.getUuid());
+        }
+        if (vimApiConfig.getName() != null) {
+            vimWrapperConfig.setName(vimApiConfig.getName());
+        }
+        if (vimApiConfig.getCountry() != null) {
+            vimWrapperConfig.setCountry(vimApiConfig.getCountry());
+        }
+        if (vimApiConfig.getCity() != null) {
+            vimWrapperConfig.setCity(vimApiConfig.getCity());
+        }
+        if (vimApiConfig.getEndpoint() != null) {
+            vimWrapperConfig.setVimEndpoint(vimApiConfig.getEndpoint());
+        }
+        if (vimApiConfig.getUserName() != null) {
+            vimWrapperConfig.setAuthUserName(vimApiConfig.getUserName());
+        }
+        if (vimApiConfig.getPassword() != null) {
+            vimWrapperConfig.setAuthPass(vimApiConfig.getPassword());
+        }
+        if (vimApiConfig.getAuthKey() != null) {
+            vimWrapperConfig.setAuthKey(vimApiConfig.getAuthKey());
+        }
+        if (vimApiConfig.getDomain() != null) {
+            vimWrapperConfig.setDomain(vimApiConfig.getDomain());
+        }
+        //Construct configuration json
+        String config = null;
+        if (vimApiConfig.getTenant() != null) {
+            if (config == null) {
+                config = "{";
+            } else {
+                config = config + ", ";
+            }
+            config = config + "\"tenant\":\"" + vimApiConfig.getTenant() + "\"";
+        }
+        if (vimApiConfig.getPrivateNetworkPrefix() != null) {
+            if (config == null) {
+                config = "{";
+            } else {
+                config = config + ", ";
+            }
+            config = config + "\"tenant_private_net_id\":\"" + vimApiConfig.getPrivateNetworkPrefix() + "\"";
+        }
+        if (vimApiConfig.getPrivateNetworkLength() != null) {
+            if (config == null) {
+                config = "{";
+            } else {
+                config = config + ", ";
+            }
+            config = config + "\"tenant_private_net_length\":\"" + vimApiConfig.getPrivateNetworkLength() + "\"";
+        }
+        if (vimApiConfig.getExternalNetworkId() != null) {
+            if (config == null) {
+                config = "{";
+            } else {
+                config = config + ", ";
+            }
+            config = config + "\"tenant_ext_net\":\"" + vimApiConfig.getExternalNetworkId() + "\"";
+        }
+        if (vimApiConfig.getExternalRouterId() != null) {
+            if (config == null) {
+                config = "{";
+            } else {
+                config = config + ", ";
+            }
+            config = config + "\"tenant_ext_router\":\"" + vimApiConfig.getExternalRouterId() + "\"";
+        }
+        if (config == null) {
+            config = "{}";
+        } else {
+            config = config + "}";
+        }
+
+        vimWrapperConfig.setConfiguration(config);
+
+        return vimWrapperConfig;
+    }
+
+    /**
+     * Returns a VimApiConfiguration translated from the VimWrapperConfiguration
+     *
+     * @param vimWrapperConfig the wrapper data received from the db
+     * @return VimApiConfiguration object translated from the given data
+     * @throws Exception if unable to translate
+     */
+    private VimApiConfiguration getVimApiFromWrapperApi(VimWrapperConfiguration vimWrapperConfig) throws Exception {
+        VimApiConfiguration vimApiConfig = new VimApiConfiguration();
+
+        if (vimWrapperConfig.getUuid() != null) {
+            vimApiConfig.setUuid(vimWrapperConfig.getUuid());
+        }
+        if (vimWrapperConfig.getName() != null) {
+            vimApiConfig.setName(vimWrapperConfig.getName());
+        }
+        if (vimWrapperConfig.getCountry() != null) {
+            vimApiConfig.setCountry(vimWrapperConfig.getCountry());
+        }
+        if (vimWrapperConfig.getCity() != null) {
+            vimApiConfig.setCity(vimWrapperConfig.getCity());
+        }
+        if (vimWrapperConfig.getVimEndpoint() != null) {
+            vimApiConfig.setEndpoint(vimWrapperConfig.getVimEndpoint());
+        }
+        if (vimWrapperConfig.getAuthUserName() != null) {
+            vimApiConfig.setUserName(vimWrapperConfig.getAuthUserName());
+        }
+        if (vimWrapperConfig.getAuthPass() != null) {
+            vimApiConfig.setPassword(vimWrapperConfig.getAuthPass());
+        }
+        if (vimWrapperConfig.getAuthKey() != null) {
+            vimApiConfig.setAuthKey(vimWrapperConfig.getAuthKey());
+        }
+        if (vimWrapperConfig.getDomain() != null) {
+            vimApiConfig.setDomain(vimWrapperConfig.getDomain());
+        }
+        if (vimWrapperConfig.getConfiguration() != null) {
+            JSONTokener tokener = new JSONTokener(vimWrapperConfig.getConfiguration());
+            JSONObject object = (JSONObject) tokener.nextValue();
+            if (object.has("tenant")) {
+                vimApiConfig.setTenant(object.getString("tenant"));
+            }
+            if (object.has("tenant_private_net_id")) {
+                vimApiConfig.setPrivateNetworkPrefix(object.getString("tenant_private_net_id"));
+            }
+            if (object.has("tenant_private_net_length")) {
+                vimApiConfig.setPrivateNetworkLength(object.getString("tenant_private_net_length"));
+            }
+            if (object.has("tenant_ext_net")) {
+                vimApiConfig.setExternalNetworkId(object.getString("tenant_ext_net"));
+            }
+            if (object.has("tenant_ext_router")) {
+                vimApiConfig.setExternalRouterId(object.getString("tenant_ext_router"));
+            }
+        }
+
+
+
+
+        return vimApiConfig;
+    }
+
 }
