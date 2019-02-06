@@ -146,8 +146,10 @@ public class VimsAPI {
             if (vimComputeWrapperConfig.getUuid() == null) {
                 vimComputeWrapperConfig.setUuid(UUID.randomUUID().toString());
             }
-            if (vimComputeWrapperConfig.getDomain() == null) {
-                vimComputeWrapperConfig.setDomain("Default");
+            if (type.equals("heat")) {
+                if (vimComputeWrapperConfig.getDomain() == null) {
+                    vimComputeWrapperConfig.setDomain("Default");
+                }
             }
             WrapperBay.getInstance().registerComputeWrapper(vimComputeWrapperConfig);
 
@@ -402,55 +404,60 @@ public class VimsAPI {
         if (vimApiConfig.getDomain() != null) {
             vimWrapperConfig.setDomain(vimApiConfig.getDomain());
         }
-        //Construct configuration json
-        String config = null;
-        if (vimApiConfig.getTenant() != null) {
-            if (config == null) {
-                config = "{";
-            } else {
-                config = config + ", ";
-            }
-            config = config + "\"tenant\":\"" + vimApiConfig.getTenant() + "\"";
-        }
-        if (vimApiConfig.getPrivateNetworkPrefix() != null) {
-            if (config == null) {
-                config = "{";
-            } else {
-                config = config + ", ";
-            }
-            config = config + "\"tenant_private_net_id\":\"" + vimApiConfig.getPrivateNetworkPrefix() + "\"";
-        }
-        if (vimApiConfig.getPrivateNetworkLength() != null) {
-            if (config == null) {
-                config = "{";
-            } else {
-                config = config + ", ";
-            }
-            config = config + "\"tenant_private_net_length\":\"" + vimApiConfig.getPrivateNetworkLength() + "\"";
-        }
-        if (vimApiConfig.getExternalNetworkId() != null) {
-            if (config == null) {
-                config = "{";
-            } else {
-                config = config + ", ";
-            }
-            config = config + "\"tenant_ext_net\":\"" + vimApiConfig.getExternalNetworkId() + "\"";
-        }
-        if (vimApiConfig.getExternalRouterId() != null) {
-            if (config == null) {
-                config = "{";
-            } else {
-                config = config + ", ";
-            }
-            config = config + "\"tenant_ext_router\":\"" + vimApiConfig.getExternalRouterId() + "\"";
-        }
-        if (config == null) {
-            config = "{}";
+        // If have configuration (k8s)
+        if (vimApiConfig.getConfiguration() != null) {
+            vimWrapperConfig.setConfiguration(vimApiConfig.getConfiguration());
         } else {
-            config = config + "}";
-        }
+            //Construct configuration json (heat)
+            String config = null;
+            if (vimApiConfig.getTenant() != null) {
+                if (config == null) {
+                    config = "{";
+                } else {
+                    config = config + ", ";
+                }
+                config = config + "\"tenant\":\"" + vimApiConfig.getTenant() + "\"";
+            }
+            if (vimApiConfig.getPrivateNetworkPrefix() != null) {
+                if (config == null) {
+                    config = "{";
+                } else {
+                    config = config + ", ";
+                }
+                config = config + "\"tenant_private_net_id\":\"" + vimApiConfig.getPrivateNetworkPrefix() + "\"";
+            }
+            if (vimApiConfig.getPrivateNetworkLength() != null) {
+                if (config == null) {
+                    config = "{";
+                } else {
+                    config = config + ", ";
+                }
+                config = config + "\"tenant_private_net_length\":\"" + vimApiConfig.getPrivateNetworkLength() + "\"";
+            }
+            if (vimApiConfig.getExternalNetworkId() != null) {
+                if (config == null) {
+                    config = "{";
+                } else {
+                    config = config + ", ";
+                }
+                config = config + "\"tenant_ext_net\":\"" + vimApiConfig.getExternalNetworkId() + "\"";
+            }
+            if (vimApiConfig.getExternalRouterId() != null) {
+                if (config == null) {
+                    config = "{";
+                } else {
+                    config = config + ", ";
+                }
+                config = config + "\"tenant_ext_router\":\"" + vimApiConfig.getExternalRouterId() + "\"";
+            }
+            if (config == null) {
+                config = "{}";
+            } else {
+                config = config + "}";
+            }
 
-        vimWrapperConfig.setConfiguration(config);
+            vimWrapperConfig.setConfiguration(config);
+        }
 
         return vimWrapperConfig;
     }
@@ -493,22 +500,27 @@ public class VimsAPI {
             vimApiConfig.setDomain(vimWrapperConfig.getDomain());
         }
         if (vimWrapperConfig.getConfiguration() != null) {
-            JSONTokener tokener = new JSONTokener(vimWrapperConfig.getConfiguration());
-            JSONObject object = (JSONObject) tokener.nextValue();
-            if (object.has("tenant")) {
-                vimApiConfig.setTenant(object.getString("tenant"));
-            }
-            if (object.has("tenant_private_net_id")) {
-                vimApiConfig.setPrivateNetworkPrefix(object.getString("tenant_private_net_id"));
-            }
-            if (object.has("tenant_private_net_length")) {
-                vimApiConfig.setPrivateNetworkLength(object.getString("tenant_private_net_length"));
-            }
-            if (object.has("tenant_ext_net")) {
-                vimApiConfig.setExternalNetworkId(object.getString("tenant_ext_net"));
-            }
-            if (object.has("tenant_ext_router")) {
-                vimApiConfig.setExternalRouterId(object.getString("tenant_ext_router"));
+            //If is heat, parse configuration json
+            if (vimWrapperConfig.getVimVendor() == ComputeVimVendor.getByName("heat")) {
+                JSONTokener tokener = new JSONTokener(vimWrapperConfig.getConfiguration());
+                JSONObject object = (JSONObject) tokener.nextValue();
+                if (object.has("tenant")) {
+                    vimApiConfig.setTenant(object.getString("tenant"));
+                }
+                if (object.has("tenant_private_net_id")) {
+                    vimApiConfig.setPrivateNetworkPrefix(object.getString("tenant_private_net_id"));
+                }
+                if (object.has("tenant_private_net_length")) {
+                    vimApiConfig.setPrivateNetworkLength(object.getString("tenant_private_net_length"));
+                }
+                if (object.has("tenant_ext_net")) {
+                    vimApiConfig.setExternalNetworkId(object.getString("tenant_ext_net"));
+                }
+                if (object.has("tenant_ext_router")) {
+                    vimApiConfig.setExternalRouterId(object.getString("tenant_ext_router"));
+                }
+            } else {
+                vimApiConfig.setConfiguration(vimWrapperConfig.getConfiguration());
             }
         }
 
@@ -569,6 +581,9 @@ public class VimsAPI {
         }
         if (vimUpdateApiConfig.getNetworkEndpoint() != null) {
             vimApiConfig.setNetworkEndpoint(vimUpdateApiConfig.getNetworkEndpoint());
+        }
+        if (vimUpdateApiConfig.getConfiguration() != null) {
+            vimApiConfig.setConfiguration(vimUpdateApiConfig.getConfiguration());
         }
         //return vimApiConfig;
     }

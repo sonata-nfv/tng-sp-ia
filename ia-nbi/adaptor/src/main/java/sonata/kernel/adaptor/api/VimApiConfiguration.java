@@ -52,6 +52,8 @@ public class VimApiConfiguration {
   private String externalNetworkId;
   @JsonProperty("external_router_id")
   private String externalRouterId;
+  @JsonProperty("config")
+  private String configuration;
 
 
 
@@ -115,6 +117,10 @@ public class VimApiConfiguration {
     return externalRouterId;
   }
 
+  public String getConfiguration() {
+        return configuration;
+    }
+
 
   public void setUuid(String uuid) {
     this.uuid = uuid;
@@ -175,5 +181,9 @@ public class VimApiConfiguration {
   public void setExternalRouterId(String externalRouterId) {
     this.externalRouterId = externalRouterId;
   }
+
+  public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
 
 }
