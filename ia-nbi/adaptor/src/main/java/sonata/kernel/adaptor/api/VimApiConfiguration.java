@@ -38,6 +38,7 @@ public class VimApiConfiguration {
   @JsonProperty("username")
   private String userName;
   private String password;
+  @JsonProperty("authkey")
   private String authKey;
   private String tenant;
   private String domain;

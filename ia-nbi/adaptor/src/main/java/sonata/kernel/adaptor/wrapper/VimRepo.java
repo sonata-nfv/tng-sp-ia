@@ -132,7 +132,7 @@ public class VimRepo {
         stmt = connection.createStatement();
         sql = "CREATE TABLE vim " + "(UUID TEXT PRIMARY KEY NOT NULL," + "NAME TEXT,"
             + " TYPE TEXT NOT NULL," + " VENDOR TEXT NOT NULL," + " ENDPOINT TEXT NOT NULL,"
-            + " USERNAME TEXT NOT NULL," + " DOMAIN TEXT NOT NULL," + " CONFIGURATION TEXT NOT NULL," + " CITY TEXT,"
+            + " USERNAME TEXT," + " DOMAIN TEXT," + " CONFIGURATION TEXT," + " CITY TEXT,"
             + "COUNTRY TEXT," + " PASS TEXT," + " AUTHKEY TEXT" + ");";
         stmt.executeUpdate(sql);
         sql = "CREATE TABLE service_instances " + "(" + "INSTANCE_UUID TEXT NOT NULL,"
@@ -1102,6 +1102,71 @@ public class VimRepo {
     return out;
   }
 
+    /**
+     * Update the VimWrapperConfiguration into the repository with the specified UUID.
+     *
+     * @param uuid the UUID to search
+     * @param config the Configuration object with the information to store
+     *
+     * @return true for process success
+     */
+    public boolean updateVimEntry(String uuid, VimWrapperConfiguration config) {
+        boolean out = true;
+
+        Connection connection = null;
+        PreparedStatement stmt = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            connection =
+                    DriverManager.getConnection(
+                            "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                                    + prop.getProperty("repo_port") + "/" + "vimregistry",
+                            prop.getProperty("user"), prop.getProperty("pass"));
+            connection.setAutoCommit(false);
+
+            String sql = "UPDATE VIM SET "
+                    + "(UUID, NAME, TYPE, VENDOR, ENDPOINT, USERNAME, CONFIGURATION, CITY, COUNTRY, PASS, AUTHKEY, DOMAIN) "
+                    + "= (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) WHERE UUID=?;";
+            stmt = connection.prepareStatement(sql);
+            stmt.setString(1, config.getUuid());
+            stmt.setString(2, config.getName());
+            stmt.setString(3, config.getWrapperType().toString());
+            stmt.setString(4, config.getVimVendor().toString());
+            stmt.setString(5, config.getVimEndpoint().toString());
+            stmt.setString(6, config.getAuthUserName());
+            stmt.setString(7, config.getConfiguration());
+            stmt.setString(8, config.getCity());
+            stmt.setString(9, config.getCountry());
+            stmt.setString(10, config.getAuthPass());
+            stmt.setString(11, config.getAuthKey());
+            stmt.setString(12, config.getDomain());
+            stmt.setString(13, uuid);
+
+            stmt.executeUpdate();
+            connection.commit();
+        } catch (SQLException e) {
+            Logger.error(e.getMessage());
+            out = false;
+        } catch (ClassNotFoundException e) {
+            Logger.error(e.getMessage(), e);
+            out = false;
+        } finally {
+            try {
+                if (stmt != null) {
+                    stmt.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                Logger.error(e.getMessage());
+                out = false;
+            }
+        }
+        Logger.info("VIM Wrapper updated successfully");
+
+        return out;
+    }
 
   public static Properties parseConfigFile() {
     Properties prop = new Properties();
