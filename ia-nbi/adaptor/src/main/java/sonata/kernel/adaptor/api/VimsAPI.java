@@ -1,6 +1,7 @@
 package sonata.kernel.adaptor.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.json.JSONObject;
@@ -406,7 +407,7 @@ public class VimsAPI {
         }
         // If have configuration (k8s)
         if (vimApiConfig.getConfiguration() != null) {
-            vimWrapperConfig.setConfiguration(vimApiConfig.getConfiguration());
+            vimWrapperConfig.setConfiguration(vimApiConfig.getConfiguration().toString());
         } else {
             //Construct configuration json (heat)
             String config = null;
@@ -520,7 +521,8 @@ public class VimsAPI {
                     vimApiConfig.setExternalRouterId(object.getString("tenant_ext_router"));
                 }
             } else {
-                vimApiConfig.setConfiguration(vimWrapperConfig.getConfiguration());
+                ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
+                vimApiConfig.setConfiguration(mapper.readTree(vimWrapperConfig.getConfiguration()));
             }
         }
 

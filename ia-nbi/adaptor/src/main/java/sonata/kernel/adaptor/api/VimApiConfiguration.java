@@ -27,6 +27,9 @@
 package sonata.kernel.adaptor.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class VimApiConfiguration {
 
@@ -53,7 +56,7 @@ public class VimApiConfiguration {
   @JsonProperty("external_router_id")
   private String externalRouterId;
   @JsonProperty("config")
-  private String configuration;
+  private JsonNode configuration;
 
 
 
@@ -117,7 +120,7 @@ public class VimApiConfiguration {
     return externalRouterId;
   }
 
-  public String getConfiguration() {
+  public JsonNode getConfiguration() {
         return configuration;
     }
 
@@ -182,7 +185,7 @@ public class VimApiConfiguration {
     this.externalRouterId = externalRouterId;
   }
 
-  public void setConfiguration(String configuration) {
+  public void setConfiguration(JsonNode configuration) {
         this.configuration = configuration;
     }
 
