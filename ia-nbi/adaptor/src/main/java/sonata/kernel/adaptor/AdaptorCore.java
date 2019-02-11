@@ -303,11 +303,6 @@ public class AdaptorCore {
     northDispatcher.start();
     southDispatcher.start();
 
-    register();
-    status = "RUNNING";
-    // - Start pumping blood
-    this.heartbeat = new HeartBeat(northMux, rate, this);
-    new Thread(this.heartbeat).start();
 
     String port = System.getenv("PORT");
     if (port == null || port.isEmpty()) {
@@ -331,8 +326,13 @@ public class AdaptorCore {
     } catch (Exception e) {
       Logger.error(e.getMessage(), e);
     }
-    tomcat.getServer().await();
+    //tomcat.getServer().await();
 
+    register();
+    status = "RUNNING";
+    // - Start pumping blood
+    this.heartbeat = new HeartBeat(northMux, rate, this);
+    new Thread(this.heartbeat).start();
 
   }
 
