@@ -646,4 +646,66 @@ public class WimRepo {
 
   }
 
+  /**
+   * Update the WimWrapperConfiguration into the repository with the specified UUID.
+   *
+   * @param uuid the UUID to search
+   * @param config the Configuration object with the information to store
+   *
+   * @return true for process success
+   */
+  public boolean updateWimEntry(String uuid, WimWrapperConfiguration config) {
+    boolean out = true;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "wimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      String sql = "UPDATE WIM SET "
+              + "(UUID, TYPE, VENDOR, ENDPOINT, USERNAME, PASS, AUTHKEY, NAME) "
+              + "= (?, ?, ?, ?, ?, ?, ?, ?) WHERE UUID=?;";
+      stmt = connection.prepareStatement(sql);
+      stmt.setString(1, config.getUuid());
+      stmt.setString(2, config.getWrapperType());
+      stmt.setString(3, config.getWimVendor().toString());
+      stmt.setString(4, config.getWimEndpoint().toString());
+      stmt.setString(5, config.getAuthUserName());
+      stmt.setString(6, config.getAuthPass());
+      stmt.setString(7, config.getAuthKey());
+      stmt.setString(8, config.getName());
+      stmt.setString(9, uuid);
+
+      stmt.executeUpdate();
+      connection.commit();
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = false;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = false;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = false;
+      }
+    }
+    Logger.info("WIM Wrapper updated successfully");
+
+    return out;
+  }
+
 }

@@ -6,7 +6,9 @@ ADD adaptor /adaptor
 
 WORKDIR /adaptor
 
-RUN mvn -e -q compile assembly:single;
+#RUN mvn -e -q compile assembly:single;
+RUN mvn -e -q compile;
+RUN mvn -e -q package -Dmaven.test.skip=true;
 
 # New small container with java 10
 FROM openjdk:10-jre-slim
@@ -43,8 +45,10 @@ ENV repo_pass sonata
 ENV SONATA_SP_ADDRESS 127.0.0.1
 
 # Copy the artifact generated on first container to this one
-COPY --from=0 /adaptor/target/adaptor-0.0.1-SNAPSHOT-jar-with-dependencies.jar /adaptor/target/
+COPY --from=0 /adaptor/target/adaptor-0.0.1-SNAPSHOT-shaded.jar /adaptor/target/
 
+EXPOSE 8082
+ENV PORT 8082
 
 CMD ["/docker-entrypoint.sh"]
 
