@@ -88,6 +88,7 @@ public class VimsAPI {
             }
 
             if ((vimWrapperConfig == null) || (netVimWrapperConfig == null)) {
+                Logger.error("Not Found VIM UUID " + vimUuid);
                 String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM UUID " + vimUuid + "\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
@@ -135,6 +136,7 @@ public class VimsAPI {
             VimWrapperConfiguration vimComputeWrapperConfig = WrapperBay.getInstance().getConfig(vimApiConfig.getUuid());
 
             if (vimComputeWrapperConfig != null) {
+                Logger.error("VIM " + vimApiConfig.getUuid() + " already exist");
                 String body = "{\"status\":\"ERROR\",\"message\":\"VIM " + vimApiConfig.getUuid() + " already exist\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
@@ -195,6 +197,7 @@ public class VimsAPI {
                 vimNetworkWrapperConfig = null;
             }
             if ((vimComputeWrapperConfig == null) || (vimNetworkWrapperConfig == null)) {
+                Logger.error("VIM register failed");
                 String body = "{\"status\":\"ERROR\",\"message\":\"VIM register failed\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
@@ -243,6 +246,7 @@ public class VimsAPI {
             }
 
             if ((vimComputeWrapperConfig == null) || (vimNetworkWrapperConfig == null)) {
+                Logger.error("Not Found VIM UUID " + vimUuid);
                 String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM UUID " + vimUuid + "\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
@@ -303,6 +307,7 @@ public class VimsAPI {
                 vimNetworkWrapperConfig = null;
             }
             if ((vimComputeWrapperConfig == null) || (vimNetworkWrapperConfig == null)) {
+                Logger.error("VIM register failed");
                 String body = "{\"status\":\"ERROR\",\"message\":\"VIM register failed\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
@@ -342,6 +347,7 @@ public class VimsAPI {
             String netVimUuid = WrapperBay.getInstance().getVimRepo().getNetworkVimUuidFromComputeVimUuid(vimUuid);
 
             if ((vim == null) || (netVimUuid == null)) {
+                Logger.error("Not Found VIM UUID " + vimUuid);
                 String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM UUID " + vimUuid + "\"}";
                 apiResponse = Response.ok((String) body);
                 apiResponse.header("Content-Length", body.length());
