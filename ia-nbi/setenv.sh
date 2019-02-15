@@ -8,7 +8,8 @@ sed -i "s/REPOPORT/$repo_port/" /etc/son-mano/postgres.config
 sed -i "s/REPOUSER/$repo_user/" /etc/son-mano/postgres.config
 sed -i "s/REPOPASS/$repo_pass/" /etc/son-mano/postgres.config
 
-sed -i "s/SONATA_SP_ADDRESS/$SONATA_SP_ADDRESS/" /etc/son-mano/sonata.config
+sed -i "s/SONATA_SP_ADDRESS/$sonata_sp_address/" /etc/son-mano/sonata.config
+sed -i "s/IAAPIPORT/$ia_api_port/" /etc/son-mano/sonata.config
 
 cat /etc/son-mano/postgres.config
 cat /etc/son-mano/broker.config
