@@ -42,13 +42,13 @@ ENV repo_host postgres
 ENV repo_port 5432
 ENV repo_user sonatatest
 ENV repo_pass sonata
-ENV SONATA_SP_ADDRESS 127.0.0.1
+ENV sonata_sp_address 127.0.0.1
 
 # Copy the artifact generated on first container to this one
 COPY --from=0 /adaptor/target/adaptor-0.0.1-SNAPSHOT-shaded.jar /adaptor/target/
 
-EXPOSE 8082
-ENV PORT 8082
+EXPOSE 8083
+ENV ia_api_port 8083
 
 CMD ["/docker-entrypoint.sh"]
 

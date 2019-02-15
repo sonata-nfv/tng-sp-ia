@@ -303,10 +303,9 @@ public class AdaptorCore {
     northDispatcher.start();
     southDispatcher.start();
 
-
-    String port = System.getenv("PORT");
+    String port = (String) getSystemParameter("ia_api_port");
     if (port == null || port.isEmpty()) {
-      port = "8082";
+      port = "8083";
     }
 
     String contextPath = "";
@@ -396,7 +395,9 @@ public class AdaptorCore {
       JSONObject jsonObject = (JSONObject) tokener.nextValue();
 
       String brokerUrl = jsonObject.getString("sonata_sp_address");
+      String apiPort = jsonObject.getString("ia_api_port");
       prop.put("sonata_sp_address", brokerUrl);
+      prop.put("ia_api_port", apiPort);
     } catch (FileNotFoundException e) {
       Logger.error("Unable to load Broker Config file", e);
       System.exit(1);
