@@ -708,4 +708,66 @@ public class WimRepo {
     return out;
   }
 
+  /**
+   * Get the WIM UUID from the VIM UUID in the repository.
+   *
+   * @param vimUuid the VIM UUID to search
+   *
+   * @return WIM UUID if exist, otherwise null
+   */
+  public String getWimUuidFromVimUuid(String vimUuid) {
+    String output = null;
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "wimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      stmt = connection.prepareStatement(
+              "SELECT wim_uuid FROM attached_vim WHERE vim_uuid = ?;");
+      stmt.setString(1, vimUuid);
+      rs = stmt.executeQuery();
+
+      while (rs.next()) {
+        output = rs.getString("wim_uuid");
+
+
+      }
+
+    } catch (SQLException e) {
+      Logger.error(e.getMessage(), e);
+      output = null;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      output = null;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (rs != null) {
+          rs.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage(), e);
+        output = null;
+
+      }
+    }
+    Logger.info("Operation done successfully");
+    return output;
+
+  }
+
+
+
 }
