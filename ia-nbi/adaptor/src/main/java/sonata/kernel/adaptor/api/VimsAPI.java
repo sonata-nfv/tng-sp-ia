@@ -26,7 +26,7 @@ public class VimsAPI {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getVims() {
+    public Response getVims(@QueryParam("type") String type) {
 
         ArrayList<VimApiConfiguration> output = new ArrayList<>();
         Response.ResponseBuilder apiResponse = null;
@@ -39,6 +39,12 @@ public class VimsAPI {
             VimApiConfiguration vimApiConfig = null;
             for (String vimUuid : vimUuids) {
                 vimWrapperConfig = WrapperBay.getInstance().getConfig(vimUuid);
+
+                // If query by type, filter the type supplied
+                if ((type != null) && (vimWrapperConfig.getVimVendor() != ComputeVimVendor.getByName(type))) {
+                    continue;
+                }
+
                 String netVimUuid = WrapperBay.getInstance().getVimRepo().getNetworkVimUuidFromComputeVimUuid(vimUuid);
                 if (netVimUuid != null) {
                     netVimWrapperConfig = WrapperBay.getInstance().getConfig(netVimUuid);

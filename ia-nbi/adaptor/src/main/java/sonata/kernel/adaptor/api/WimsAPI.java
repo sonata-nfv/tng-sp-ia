@@ -23,7 +23,7 @@ public class WimsAPI {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWims() {
+    public Response getWims(@QueryParam("type") String type) {
 
         ArrayList<WimApiConfiguration> output = new ArrayList<>();
         Response.ResponseBuilder apiResponse = null;
@@ -35,6 +35,12 @@ public class WimsAPI {
             WimApiConfiguration wimApiConfig = null;
             for (String wimUuid : wimUuids) {
                 wimWrapperConfig = WrapperBay.getInstance().getWimConfigFromWimUuid(wimUuid);
+
+                // If query by type, filter the type supplied
+                if ((type != null) && (wimWrapperConfig.getWimVendor() != WimVendor.getByName(type))) {
+                    continue;
+                }
+
                 ArrayList<String> attachedVims = WrapperBay.getInstance().getAttachedVims(wimUuid);
                 if ((wimWrapperConfig != null) && (attachedVims != null)) {
                     wimWrapperConfig.setAttachedVims(attachedVims);
