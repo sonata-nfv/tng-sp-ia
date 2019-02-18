@@ -482,6 +482,9 @@ public class VimsAPI {
         if (vimWrapperConfig.getUuid() != null) {
             vimApiConfig.setUuid(vimWrapperConfig.getUuid());
         }
+        if (vimWrapperConfig.getVimVendor() != null) {
+            vimApiConfig.setType(vimWrapperConfig.getVimVendor().toString());
+        }
         if (vimWrapperConfig.getName() != null) {
             vimApiConfig.setName(vimWrapperConfig.getName());
         }

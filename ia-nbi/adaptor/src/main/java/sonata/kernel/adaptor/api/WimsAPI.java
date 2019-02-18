@@ -429,6 +429,9 @@ public class WimsAPI {
         if (wimWrapperConfig.getUuid() != null) {
             wimApiConfig.setUuid(wimWrapperConfig.getUuid());
         }
+        if (wimWrapperConfig.getWimVendor() != null) {
+            wimApiConfig.setType(wimWrapperConfig.getWimVendor().toString());
+        }
         if (wimWrapperConfig.getName() != null) {
             wimApiConfig.setName(wimWrapperConfig.getName());
         }

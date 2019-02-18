@@ -34,6 +34,7 @@ import java.util.ArrayList;
 public class WimApiConfiguration {
 
   private String uuid;
+  private String type;
   private String name;
   private String endpoint;
   @JsonProperty("username")
@@ -47,6 +48,10 @@ public class WimApiConfiguration {
 
   public String getUuid() {
     return this.uuid;
+  }
+
+  public String getType() {
+    return this.type;
   }
 
   public String getName() {
@@ -76,6 +81,10 @@ public class WimApiConfiguration {
 
   public void setUuid(String uuid) {
     this.uuid = uuid;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 
   public void setName(String name) {
