@@ -34,6 +34,7 @@ import org.json.JSONTokener;
 public class VimApiConfiguration {
 
   private String uuid;
+  private String type;
   private String name;
   private String country;
   private String city;
@@ -62,6 +63,10 @@ public class VimApiConfiguration {
 
   public String getUuid() {
     return this.uuid;
+  }
+
+  public String getType() {
+    return this.type;
   }
 
   public String getName() {
@@ -127,6 +132,10 @@ public class VimApiConfiguration {
 
   public void setUuid(String uuid) {
     this.uuid = uuid;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 
   public void setName(String name) {

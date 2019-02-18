@@ -137,11 +137,21 @@ public class WimsAPI {
                 wimWrapperConfig.setUuid(UUID.randomUUID().toString());
             }
 
-            //Get Vims address, and check if exist
+            //Get Vims address, check if exist, and check if is not already associated with wim
             ArrayList<VimWrapperConfiguration> vims = new ArrayList<>();
             VimWrapperConfiguration vimComputeWrapperConfig;
+            String wimUuid;
             if (wimWrapperConfig.getAttachedVims() != null) {
                 for (String vimUuid : wimWrapperConfig.getAttachedVims()) {
+                    wimUuid = WrapperBay.getInstance().getWimRepo().getWimUuidFromVimUuid(vimUuid);
+                    if (wimUuid != null) {
+                        Logger.error("VIM " + vimUuid + " already attached to WIM " + wimUuid);
+                        String body = "{\"status\":\"ERROR\",\"message\":\"VIM " + vimUuid + " already attached to WIM " + wimUuid + "\"}";
+                        apiResponse = Response.ok((String) body);
+                        apiResponse.header("Content-Length", body.length());
+                        return apiResponse.status(405).build();
+                    }
+
                     vimComputeWrapperConfig = WrapperBay.getInstance().getConfig(vimUuid);
                     if (vimComputeWrapperConfig == null) {
                         Logger.error("VIM " + vimUuid + " not exist");
@@ -243,8 +253,18 @@ public class WimsAPI {
             ArrayList<VimWrapperConfiguration> vims = new ArrayList<>();
             if ((!wimUuid.equals(wimWrapperConfig.getUuid())) || (attachedVims != wimWrapperConfig.getAttachedVims())) {
                 VimWrapperConfiguration vimComputeWrapperConfig;
+                String wimUuidDb;
                 if (wimWrapperConfig.getAttachedVims() != null) {
                     for (String vimUuid : wimWrapperConfig.getAttachedVims()) {
+                        wimUuidDb = WrapperBay.getInstance().getWimRepo().getWimUuidFromVimUuid(vimUuid);
+                        if ((wimUuidDb != null) && !wimUuidDb.equals(wimUuid)) {
+                            Logger.error("VIM " + vimUuid + " already attached to WIM " + wimUuidDb);
+                            String body = "{\"status\":\"ERROR\",\"message\":\"VIM " + vimUuid + " already attached to WIM " + wimUuidDb + "\"}";
+                            apiResponse = Response.ok((String) body);
+                            apiResponse.header("Content-Length", body.length());
+                            return apiResponse.status(405).build();
+                        }
+
                         vimComputeWrapperConfig = WrapperBay.getInstance().getConfig(vimUuid);
                         if (vimComputeWrapperConfig == null) {
                             Logger.error("VIM " + vimUuid + " not exist");
@@ -408,6 +428,9 @@ public class WimsAPI {
 
         if (wimWrapperConfig.getUuid() != null) {
             wimApiConfig.setUuid(wimWrapperConfig.getUuid());
+        }
+        if (wimWrapperConfig.getWimVendor() != null) {
+            wimApiConfig.setType(wimWrapperConfig.getWimVendor().toString());
         }
         if (wimWrapperConfig.getName() != null) {
             wimApiConfig.setName(wimWrapperConfig.getName());
