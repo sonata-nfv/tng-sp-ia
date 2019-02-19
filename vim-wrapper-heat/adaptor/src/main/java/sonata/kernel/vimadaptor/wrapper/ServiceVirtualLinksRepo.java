@@ -152,7 +152,9 @@ public class ServiceVirtualLinksRepo {
 
     for (VirtualLink link : virtualLinks) {
       virtualLinksMap.put(link.getId(),link.getConnectionPointsReference());
-      virtualLinksAccessMap.put(link.getId(),link.isAccess());
+      if (link.isAccess() != null) {
+        virtualLinksAccessMap.put(link.getId(),link.isAccess());
+      }
     }
 
     return true;

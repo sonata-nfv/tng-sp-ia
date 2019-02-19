@@ -1077,7 +1077,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       subnet.putProperty("network", netMap);
       model.addResource(subnet);
 
-      if (link.isAccess()) {
+      if ((link.isAccess() == null) || link.isAccess()) {
         // internal router interface for network
         HeatResource routerInterface = new HeatResource();
         routerInterface.setType("OS::Neutron::RouterInterface");
@@ -1789,7 +1789,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             synchronized (serviceVirtualLinksRepo) {
               access = serviceVirtualLinksRepo.getVirtualLinkAccessFromServiceIdAndVirtualLinkId(serviceInstanceUuid,netId);
             }
-            if (access) {
+            if ((access == null) || access) {
               publicPortNames.add(cpQualifiedName);
             }
           }
@@ -1813,7 +1813,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             netMap.put("get_resource", "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             if (vduCp.getType() != ConnectionPointType.INT ) {
               //Check if the network was external access (access)
-              if (link.isAccess()) {
+                if ((link.isAccess() == null) || link.isAccess()) {
                 publicPortNames.add(cpQualifiedName);
               }
             }
@@ -1886,7 +1886,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             subnet.putProperty("network", subnetMap);
             model.addResource(subnet);
 
-            if (link.isAccess()) {
+            if ((link.isAccess() == null) || link.isAccess()) {
               // internal router interface for network
               HeatResource routerInterface = new HeatResource();
               routerInterface.setType("OS::Neutron::RouterInterface");
@@ -1903,7 +1903,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             netMap.put("get_resource", "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             if (vduCp.getType() != ConnectionPointType.INT ) {
               //Check if the network was external access (access)
-              if (link.isAccess()) {
+              if ((link.isAccess() == null) || link.isAccess()) {
                 publicPortNames.add(cpQualifiedName);
               }
             }
