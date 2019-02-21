@@ -52,11 +52,14 @@ public class ServiceVirtualLinksRepo {
 
   private ConcurrentHashMap<String, ConcurrentHashMap<String, ArrayList<String>>> ServiceVirtualLinksCpMap;
   private ConcurrentHashMap<String, ConcurrentHashMap<String, Boolean>> ServiceVirtualLinksAccessMap;
+  private ConcurrentHashMap<String, ConcurrentHashMap<String, String>> ServiceVirtualLinksNetIdMap;
+
 
 
   private ServiceVirtualLinksRepo() {
     ServiceVirtualLinksCpMap = new ConcurrentHashMap<>();
     ServiceVirtualLinksAccessMap = new ConcurrentHashMap<>();
+    ServiceVirtualLinksNetIdMap = new ConcurrentHashMap<>();
   }
 
 
@@ -129,6 +132,27 @@ public class ServiceVirtualLinksRepo {
 
 
   /**
+   * Return the network id for a specific service id and virtual link id
+   *
+   * @param serviceId The id of the service
+   * @param virtualLinkId The id of the virtual link
+   *
+   * @return String with the network id for a specific service id and virtual link id
+   */
+  public String getNetworkIdFromServiceIdAndVirtualLinkId(String serviceId, String virtualLinkId) {
+    if (ServiceVirtualLinksNetIdMap.containsKey(serviceId)) {
+      ConcurrentHashMap<String, String> virtualLinksNetIdMap = ServiceVirtualLinksNetIdMap.get(serviceId);
+      for ( ConcurrentHashMap.Entry<String, String> virtualLinkEntry : virtualLinksNetIdMap.entrySet()) {
+        if (virtualLinkEntry.getKey().equals(virtualLinkId)) {
+          return virtualLinkEntry.getValue();
+        }
+      }
+    }
+    return null;
+  }
+
+
+  /**
    * Store the content for specific service id
    *
    * @param serviceId The id of the request
@@ -139,21 +163,27 @@ public class ServiceVirtualLinksRepo {
   public Boolean putServiceVirtualLinksForServiceId(String serviceId, ArrayList<VirtualLink> virtualLinks) {
     ConcurrentHashMap<String, ArrayList<String>> virtualLinksMap;
     ConcurrentHashMap<String, Boolean> virtualLinksAccessMap;
+    ConcurrentHashMap<String, String> virtualLinksNetIdMap;
     if (!ServiceVirtualLinksCpMap.containsKey(serviceId)) {
       virtualLinksMap = new ConcurrentHashMap<>();
       ServiceVirtualLinksCpMap.put(serviceId,virtualLinksMap);
       virtualLinksAccessMap = new ConcurrentHashMap<>();
       ServiceVirtualLinksAccessMap.put(serviceId,virtualLinksAccessMap);
+      virtualLinksNetIdMap = new ConcurrentHashMap<>();
+      ServiceVirtualLinksNetIdMap.put(serviceId,virtualLinksNetIdMap);
     }
 
     virtualLinksMap = ServiceVirtualLinksCpMap.get(serviceId);
     virtualLinksAccessMap = ServiceVirtualLinksAccessMap.get(serviceId);
-
+    virtualLinksNetIdMap = ServiceVirtualLinksNetIdMap.get(serviceId);
 
     for (VirtualLink link : virtualLinks) {
       virtualLinksMap.put(link.getId(),link.getConnectionPointsReference());
       if (link.isAccess() != null) {
         virtualLinksAccessMap.put(link.getId(),link.isAccess());
+      }
+      if (link.getNetworkId() != null) {
+        virtualLinksNetIdMap.put(link.getId(),link.getNetworkId());
       }
     }
 
@@ -170,6 +200,7 @@ public class ServiceVirtualLinksRepo {
     if (ServiceVirtualLinksCpMap.containsKey(serviceId)) {
       ServiceVirtualLinksCpMap.remove(serviceId);
       ServiceVirtualLinksAccessMap.remove(serviceId);
+      ServiceVirtualLinksNetIdMap.remove(serviceId);
     }
   }
 

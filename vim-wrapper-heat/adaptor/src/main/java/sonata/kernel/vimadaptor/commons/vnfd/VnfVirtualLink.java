@@ -54,6 +54,8 @@ public class VnfVirtualLink {
   private QosRequirements qosRequirements;
   @JsonProperty("root_requirement")
   private String rootRequirement;
+  @JsonProperty("network_id")
+  private String networkId;
 
 
   public ArrayList<String> getConnectionPointsReference() {
@@ -87,6 +89,10 @@ public class VnfVirtualLink {
   public String getRootRequirement() {
     return rootRequirement;
   }
+
+  public String getNetworkId() {
+        return networkId;
+    }
 
   public Boolean isAccess() {
     return access;
@@ -143,5 +149,9 @@ public class VnfVirtualLink {
   public void setRootRequirement(String rootRequirement) {
     this.rootRequirement = rootRequirement;
   }
+
+  public void setNetworkId(String networkId) {
+        this.networkId = networkId;
+    }
 
 }

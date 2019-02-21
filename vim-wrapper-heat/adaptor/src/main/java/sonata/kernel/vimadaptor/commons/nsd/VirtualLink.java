@@ -70,6 +70,8 @@ public class VirtualLink {
   private QosRequirements qosRequirements;
   @JsonProperty("root_requirement")
   private String rootRequirement;
+  @JsonProperty("network_id")
+  private String networkId;
   @JsonProperty("vl_description")
   private String vlDescription;
   // Virtual Link reference case
@@ -79,6 +81,7 @@ public class VirtualLink {
   private String vlName;
   @JsonProperty("vl_version")
   private String vlVersion;
+
 
   public ArrayList<String> getConnectionPointsReference() {
     return connectionPointsReference;
@@ -110,6 +113,10 @@ public class VirtualLink {
 
   public String getRootRequirement() {
     return rootRequirement;
+  }
+
+  public String getNetworkId() {
+    return networkId;
   }
 
   public String getVlDescription() {
@@ -182,6 +189,10 @@ public class VirtualLink {
 
   public void setRootRequirement(String rootRequirement) {
     this.rootRequirement = rootRequirement;
+  }
+
+  public void setNetworkId(String networkId) {
+    this.networkId = networkId;
   }
 
   public void setVlDescription(String vlDescription) {

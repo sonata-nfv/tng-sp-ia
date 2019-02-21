@@ -1008,6 +1008,9 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     HeatModel model = new HeatModel();
 
     for (VirtualLink link : virtualLinks) {
+      if (link.getNetworkId() != null) {
+        continue;
+      }
       HeatResource network = new HeatResource();
       network.setType("OS::Neutron::Net");
       network.setName("SonataService." + link.getId() + ".net." + instanceId);
@@ -1770,24 +1773,30 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           }
         }
 
+        String vLinkId = null;
         String netId = null;
         ServiceVirtualLinksRepo serviceVirtualLinksRepo =  ServiceVirtualLinksRepo.getInstance();
         if (vnfCp != null) {
           //Retrieve service virtual link information from internal db
           synchronized (serviceVirtualLinksRepo) {
-            netId = serviceVirtualLinksRepo.getVirtualLinkIdFromServiceIdAndConnectionPoint(serviceInstanceUuid, vnfd.getId()+":"+vnfCp);
+            vLinkId = serviceVirtualLinksRepo.getVirtualLinkIdFromServiceIdAndConnectionPoint(serviceInstanceUuid, vnfd.getId()+":"+vnfCp);
+            if (vLinkId != null) {
+              netId = serviceVirtualLinksRepo.getNetworkIdFromServiceIdAndVirtualLinkId(serviceInstanceUuid,vLinkId);
+            }
           }
         }
 
-        if (netId != null) {
-          netMap.put("get_resource", "SonataService." + netId + ".net." + serviceInstanceUuid);
+        if (vLinkId != null) {
+          if (netId == null) {
+            netMap.put("get_resource", "SonataService." + vLinkId + ".net." + serviceInstanceUuid);
+          }
 
           if (vduCp.getType() != ConnectionPointType.INT ) {
             //Need to check if the network was external access (access)
             //Retrieve virtual link access information from internal db
             Boolean access = null;
             synchronized (serviceVirtualLinksRepo) {
-              access = serviceVirtualLinksRepo.getVirtualLinkAccessFromServiceIdAndVirtualLinkId(serviceInstanceUuid,netId);
+              access = serviceVirtualLinksRepo.getVirtualLinkAccessFromServiceIdAndVirtualLinkId(serviceInstanceUuid,vLinkId);
             }
             if ((access == null) || access) {
               publicPortNames.add(cpQualifiedName);
@@ -1796,9 +1805,12 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         } else {
           //Need to create or use the vnf network
           VnfVirtualLink link = null;
-          for ( VnfVirtualLink vnfLink : vnfd.getVirtualLinks()) {
-            if (vnfLink.getConnectionPointsReference().contains(vdu.getId()+":"+vduCp.getId())) {
+          for (VnfVirtualLink vnfLink : vnfd.getVirtualLinks()) {
+            if (vnfLink.getConnectionPointsReference().contains(vdu.getId() + ":" + vduCp.getId())) {
               link = vnfLink;
+              if (link.getNetworkId() != null) {
+                netId = link.getNetworkId();
+              }
               break;
             }
           }
@@ -1807,13 +1819,21 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             Logger.error("Cannot find the virtual link for  connection point: " + vduCp.getId() + " from vdu: " + vdu.getId());
             throw new Exception("Cannot find the virtual link for  connection point: " + vduCp.getId() + " from vdu: " + vdu.getId());
           }
+          // Already exist network
+          if (netId != null) {
+            if (vduCp.getType() != ConnectionPointType.INT) {
+              //Check if the network was external access (access)
+              if ((link.isAccess() == null) || link.isAccess()) {
+                publicPortNames.add(cpQualifiedName);
+              }
+            }
 
           // Already created the vnf virtual link
-          if (NewVnfVirtualLinks.contains(link)) {
+          } else if (NewVnfVirtualLinks.contains(link)) {
             netMap.put("get_resource", "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
             if (vduCp.getType() != ConnectionPointType.INT ) {
               //Check if the network was external access (access)
-                if ((link.isAccess() == null) || link.isAccess()) {
+              if ((link.isAccess() == null) || link.isAccess()) {
                 publicPortNames.add(cpQualifiedName);
               }
             }
@@ -1911,8 +1931,14 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           }
 
         }
-
-        port.putProperty("network", netMap);
+        if (netId != null) {
+          port.putProperty("network", netId);
+          if (netId.equals(tenantExtNet)) {
+              publicPortNames.remove(cpQualifiedName);
+          }
+        } else {
+          port.putProperty("network", netMap);
+        }
         if (vduCp.getMac() != null) {
           port.putProperty("mac_address", vduCp.getMac());
         }
