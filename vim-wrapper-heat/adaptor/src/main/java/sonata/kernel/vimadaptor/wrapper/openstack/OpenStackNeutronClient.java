@@ -90,11 +90,11 @@ public class OpenStackNeutronClient {
       mapper = new ObjectMapper();
       String listPolicies =
           JavaStackUtils.convertHttpResponseToString(javaStack.listQosPolicies());
-      System.out.println(listPolicies);
+      Logger.info(listPolicies);
       PoliciesData inputPolicies = mapper.readValue(listPolicies, PoliciesData.class);
-      System.out.println(inputPolicies.getPolicies());
+      Logger.info(inputPolicies.getPolicies().toString());
       for (PolicyProperties input_policy : inputPolicies.getPolicies()) {
-        System.out.println(input_policy.getId() + ": " + input_policy.getName());
+        Logger.info(input_policy.getId() + ": " + input_policy.getName());
 
         policyName = input_policy.getName();
         ArrayList<QosRule> qosRules = new ArrayList<>();
