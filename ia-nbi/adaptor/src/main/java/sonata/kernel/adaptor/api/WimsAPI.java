@@ -120,8 +120,7 @@ public class WimsAPI {
 
         ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
         Response.ResponseBuilder apiResponse = null;
-        Logger.debug("WIM Configuration received: ");
-        System.out.println(newWim);
+        Logger.debug("WIM Configuration received: " + newWim);
 
         try {
             WimApiConfiguration wimApiConfig = mapper.readValue(newWim, WimApiConfiguration.class);
@@ -223,8 +222,7 @@ public class WimsAPI {
 
         ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
         Response.ResponseBuilder apiResponse = null;
-        Logger.debug("WIM Update Configuration received: ");
-        System.out.println(updateWim);
+        Logger.debug("WIM Update Configuration received: " + updateWim);
 
         try {
             Logger.info("Retrieving WIM");

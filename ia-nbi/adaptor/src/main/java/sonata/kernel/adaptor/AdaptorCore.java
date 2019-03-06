@@ -34,6 +34,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import ch.qos.logback.classic.util.ContextInitializer;
 
@@ -91,6 +92,10 @@ public class AdaptorCore {
   public static void main(String[] args) throws IOException {
     // System.setProperty("log4j.logger.httpclient.wire.header", "WARN");
     // System.setProperty("log4j.logger.httpclient.wire.content", "WARN");
+
+    SLF4JBridgeHandler.removeHandlersForRootLogger();
+    SLF4JBridgeHandler.install();
+
 
     System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "/adaptor/src/main/resources/logback.xml");
 
