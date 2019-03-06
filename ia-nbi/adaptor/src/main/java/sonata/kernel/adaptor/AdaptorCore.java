@@ -35,6 +35,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.util.ContextInitializer;
+
 import sonata.kernel.adaptor.messaging.AbstractMsgBusConsumer;
 import sonata.kernel.adaptor.messaging.AbstractMsgBusProducer;
 import sonata.kernel.adaptor.messaging.MsgBusConsumer;
@@ -89,15 +91,18 @@ public class AdaptorCore {
   public static void main(String[] args) throws IOException {
     // System.setProperty("log4j.logger.httpclient.wire.header", "WARN");
     // System.setProperty("log4j.logger.httpclient.wire.content", "WARN");
-    System.setProperty("org.apache.commons.logging.Log",
-        "org.apache.commons.logging.impl.SimpleLog");
 
-    System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "false");
+    System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "/adaptor/src/main/resources/logback.xml");
 
-    System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire.header", "warn");
+    //System.setProperty("org.apache.commons.logging.Log",
+    //    "org.apache.commons.logging.impl.SimpleLog");
 
-    System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient",
-        "warn");
+    //System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "false");
+
+    //System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire.header", "warn");
+
+    //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient",
+    //    "warn");
     
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override

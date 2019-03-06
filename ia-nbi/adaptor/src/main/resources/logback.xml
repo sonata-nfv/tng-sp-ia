@@ -1,0 +1,14 @@
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>{"type": "%.-1level", "timestamp": "%d{yyyy-MM-dd HH:mm:ss,UTC} UTC", "component": "ia-nbi", "operation": "[%thread]:%replace(%logger){'sonata.kernel.adaptor.',''}.%M", "message": "%replace(%replace(%msg %xEx){'\"','\\"'}){'\R',' \\n '}"}%nopex%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="debug">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
