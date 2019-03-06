@@ -77,6 +77,8 @@ public class GetVimVendors {
             return this.GetVimVendorsPrepare(message);
         } else if (topic.equals("deploy")) {
             return this.GetVimVendorsDeploy(message);
+        } else if (topic.equals("function.configure")) {
+            return this.GetVimVendorsFConfigure(message);
         } else if (topic.equals("function.remove")) {
             return this.GetVimVendorsFRemove(message);
         } else if (topic.equals("service.remove")) {
@@ -178,6 +180,59 @@ public class GetVimVendors {
 
         return vimVendors;
     }
+
+    /**
+     * Retrieve the vim Vendors from the info in the message received for function configure.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsFConfigure(ServicePlatformMessage message) {
+
+        Logger.info("Call received - sid: " + message.getSid());
+        // parse the payload to get VIM UUID from the request body
+        Logger.info("Parsing payload...");
+        JSONTokener tokener = new JSONTokener(message.getBody());
+        JSONObject jsonObject = (JSONObject) tokener.nextValue();
+
+        String vimUuid = null;
+        ArrayList<String> vimUuids = new ArrayList<String>();
+        ArrayList<String> vimVendors = null;
+        try {
+            vimUuid = jsonObject.getString("vim_uuid");
+
+        } catch (Exception e) {
+            Logger.error("Error getting the vim_uuid: " + e.getMessage(), e);
+
+            return null;
+        }
+        try {
+
+            if (vimUuid != null) {
+                vimUuids.add(vimUuid);
+            }
+
+            if (vimUuids.isEmpty()) {
+                Logger.error("Error retrieving the Vims uuid");
+
+                return null;
+            }
+
+            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+
+            // Get the types from db
+            vimVendors = this.GetVimVendorsDB(vimUuids);
+            
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
+
+            return null;
+        }
+
+        return vimVendors;
+    }
+
 
     /**
      * Retrieve the vim Vendors from the info in the message received for function remove.

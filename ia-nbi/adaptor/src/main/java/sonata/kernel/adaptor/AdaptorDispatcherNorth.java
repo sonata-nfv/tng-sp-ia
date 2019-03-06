@@ -121,6 +121,8 @@ public class AdaptorDispatcherNorth implements Runnable {
     // Redirect VIM
     if (message.getTopic().endsWith("deploy")) {
       vimVendors = this.getVimVendors.GetVimVendors(message,"deploy");
+    } else if (message.getTopic().endsWith("configure")) {
+      vimVendors = this.getVimVendors.GetVimVendors(message,"function.configure");
     } else if (message.getTopic().endsWith("scale")) {
       vimVendors = this.getVimVendors.GetVimVendors(message,"scale");
     } else if (message.getTopic().endsWith("remove")) {
