@@ -50,7 +50,7 @@
 		<logback.classic.version>1.2.3</logback.classic.version>
 		<httpcomponents.httpclient.version>4.5.6</httpcomponents.httpclient.version>
 		<httpcomponents.httpcore.version>4.4.11</httpcomponents.httpcore.version>
-		<org.slf4j.version>1.7.25</org.slf4j.version>
+		<org.slf4j.version>1.7.26</org.slf4j.version>
 		<jboss.resteasy.version>3.6.2.Final</jboss.resteasy.version>
 		<commons.lang3.version>3.8.1</commons.lang3.version>
 		<jsch.version>0.1.55</jsch.version>
