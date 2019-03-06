@@ -193,25 +193,14 @@ public class GetVimVendors {
         Logger.info("Call received - sid: " + message.getSid());
         // parse the payload to get VIM UUID from the request body
         Logger.info("Parsing payload...");
-        JSONTokener tokener = new JSONTokener(message.getBody());
-        JSONObject jsonObject = (JSONObject) tokener.nextValue();
-
-        String vimUuid = null;
+        FunctionConfigurePayload data = null;
+        ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
         ArrayList<String> vimUuids = new ArrayList<String>();
         ArrayList<String> vimVendors = null;
         try {
-            vimUuid = jsonObject.getString("vim_uuid");
-
-        } catch (Exception e) {
-            Logger.error("Error getting the vim_uuid: " + e.getMessage(), e);
-
-            return null;
-        }
-        try {
-
-            if (vimUuid != null) {
-                vimUuids.add(vimUuid);
-            }
+            data = mapper.readValue(message.getBody(), FunctionConfigurePayload.class);
+            Logger.info("payload parsed");
+            vimUuids.add(data.getVimUuid());
 
             if (vimUuids.isEmpty()) {
                 Logger.error("Error retrieving the Vims uuid");
@@ -223,7 +212,7 @@ public class GetVimVendors {
 
             // Get the types from db
             vimVendors = this.GetVimVendorsDB(vimUuids);
-            
+
         } catch (Exception e) {
             Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
 
