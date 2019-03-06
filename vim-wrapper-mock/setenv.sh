@@ -10,6 +10,6 @@ sed -i "s/REPOPASS/$repo_pass/" /etc/son-mano/postgres.config
 
 sed -i "s/SONATA_SP_ADDRESS/$SONATA_SP_ADDRESS/" /etc/son-mano/sonata.config
 
-cat /etc/son-mano/postgres.config
-cat /etc/son-mano/broker.config
-cat /etc/son-mano/sonata.config
+#cat /etc/son-mano/postgres.config
+#cat /etc/son-mano/broker.config
+#cat /etc/son-mano/sonata.config

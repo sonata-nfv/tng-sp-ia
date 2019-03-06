@@ -72,13 +72,13 @@ public class WrapperFactory {
    */
   public static Wrapper createWimWrapper(WimWrapperConfiguration config) {
     Wrapper output = null;
-    System.out.println("  [WrapperFactory] - creating wrapper...");
+    Logger.info("  [WrapperFactory] - creating wrapper...");
 
     if (config.getWimVendor().equals(WimVendor.MOCK)){
       output = new WimMockWrapper(config);
     }
 
-    System.out.println("  [WrapperFactory] - Wrapper created...");
+    Logger.info("  [WrapperFactory] - Wrapper created...");
     return output;
   }
 

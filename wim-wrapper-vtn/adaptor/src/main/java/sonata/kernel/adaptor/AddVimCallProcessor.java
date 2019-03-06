@@ -106,8 +106,7 @@ public class AddVimCallProcessor extends AbstractCallProcessor {
     config.setConfiguration(configuration);
     config.setName(name);
     
-    Logger.debug("Parsed Wrapper Configuration: ");
-    System.out.println(config.toString());
+    Logger.debug("Parsed Wrapper Configuration: " + config.toString());
 
     String output = null;
     boolean out = true;

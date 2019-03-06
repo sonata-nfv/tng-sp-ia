@@ -134,7 +134,6 @@ public class VimsAPI {
         ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
         Response.ResponseBuilder apiResponse = null;
         Logger.debug("VIM Configuration received: " + newVim);
-        // System.out.println(newVim);
 
         try {
             VimApiConfiguration vimApiConfig = mapper.readValue(newVim, VimApiConfiguration.class);
@@ -239,8 +238,7 @@ public class VimsAPI {
 
         ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
         Response.ResponseBuilder apiResponse = null;
-        Logger.debug("VIM Update Configuration received: ");
-        System.out.println(updateVim);
+        Logger.debug("VIM Update Configuration received: " + updateVim);
 
         try {
             Logger.info("Retrieving VIM");

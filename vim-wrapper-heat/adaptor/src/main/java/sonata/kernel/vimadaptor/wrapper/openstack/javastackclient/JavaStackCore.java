@@ -262,7 +262,7 @@ public class JavaStackCore {
       this.isAuthenticated = true;
 
     } else {
-      System.out.println("You are already authenticated");
+      Logger.info("You are already authenticated");
     }
   }
 
@@ -400,7 +400,7 @@ public class JavaStackCore {
       this.isAuthenticated = true;
 
     } else {
-      System.out.println("You are already authenticated");
+      Logger.info("You are already authenticated");
     }
   }
 
@@ -848,8 +848,8 @@ public class JavaStackCore {
       buildUrl.append(Orchestration.getPORT());
       buildUrl.append(String.format("/%s/%s/stacks", Orchestration.getVERSION(), this.projectId));
 
-      System.out.println(buildUrl);
-      System.out.println(this.token_id);
+      Logger.info(buildUrl.toString());
+      Logger.info(this.token_id);
 
       listStacks = new HttpGet(buildUrl.toString());
       listStacks.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);
