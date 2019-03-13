@@ -33,10 +33,15 @@ import sonata.kernel.vimadaptor.commons.ServicePreparePayload;
 import sonata.kernel.vimadaptor.commons.SonataManifestMapper;
 import sonata.kernel.vimadaptor.commons.VimPreDeploymentList;
 import sonata.kernel.vimadaptor.commons.VnfImage;
+import sonata.kernel.vimadaptor.commons.nsd.NetworkFunction;
+import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.vimadaptor.wrapper.ComputeWrapper;
 import sonata.kernel.vimadaptor.wrapper.WrapperBay;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Observable;
 
 public class PrepareServiceCallProcessor extends AbstractCallProcessor {
@@ -100,7 +105,24 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
 
         if (WrapperBay.getInstance().getVimRepo().getServiceInstanceVimUuid(payload.getInstanceId(),
             vim.getUuid()) == null) {
-          boolean success = wr.prepareService(payload.getInstanceId());
+
+          //Choose the VLs for this compute
+          ArrayList<VirtualLink> virtualLinks = payload.getVirtualLinks();
+          ArrayList<VirtualLink> virtualLinksVim = new ArrayList<>();
+          for (VirtualLink link : virtualLinks) {
+            loop:
+            for (String cpRef: link.getConnectionPointsReference()) {
+              for (String vnfId : vim.getVnfIdList()) {
+                if (cpRef.startsWith(vnfId+":")){
+                  virtualLinksVim.add(link);
+                  break loop;
+                }
+              }
+
+            }
+          }
+
+          boolean success = wr.prepareService(payload.getInstanceId(), virtualLinksVim);
           if (!success) {
             throw new Exception("Unable to prepare the environment for instance: "
                 + payload.getInstanceId() + " on Compute VIM " + vim.getUuid());

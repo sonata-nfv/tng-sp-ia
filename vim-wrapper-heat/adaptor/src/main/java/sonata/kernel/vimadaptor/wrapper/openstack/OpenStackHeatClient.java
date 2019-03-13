@@ -204,7 +204,7 @@ public HeatServer getServerComposition(String stackName, String uuid, String ser
         if (resource.getResource_type().equals("OS::Heat::ResourceGroup")) {
           Logger.debug("Resource group found");
         }
-        if (resource.getResource_type().equals("OS::Nova::Server")  && resource.getResource_name().contains(serverIdentifier)) {
+        if (resource.getResource_type().equals("OS::Nova::Server")  && serverIdentifier.equals(resource.getResource_name().split("\\.")[1])) {
           
           String showResourceData = JavaStackUtils.convertHttpResponseToString(
               javaStack.showResourceData(stackName, uuid, resource.getResource_name()));
@@ -216,7 +216,7 @@ public HeatServer getServerComposition(String stackName, String uuid, String ser
           server.setServerId(serverResourceData.getResource().getPhysical_resource_id());
           server.setServerName(serverResourceData.getResource().getAttributes().getName());
           server.setHostId(serverResourceData.getResource().getAttributes().getHostId());
-        } else if (resource.getResource_type().equals("OS::Heat::ResourceGroup")  && resource.getResource_name().contains(serverIdentifier)) {
+        } else if (resource.getResource_type().equals("OS::Heat::ResourceGroup")  && serverIdentifier.equals(resource.getResource_name().split("\\.")[1])) {
 
           String showResourceData = JavaStackUtils.convertHttpResponseToString(
               javaStack.showResourceData(stackName, uuid, resource.getResource_name()));
@@ -283,7 +283,7 @@ public ServerPortsComposition getServerPortsComposition(String stackName, String
           mapper.readValue(listResources, Resources.class).getResources();
 
       for (Resource resource : resources) {
-        if (resource.getResource_type().equals("OS::Neutron::Port")  && resource.getResource_name().contains(serverIdentifier)) {
+        if (resource.getResource_type().equals("OS::Neutron::Port")  && serverIdentifier.equals(resource.getResource_name().split("\\.")[1])) {
 
           HeatPort heatPort = new HeatPort();
 
@@ -301,7 +301,7 @@ public ServerPortsComposition getServerPortsComposition(String stackName, String
           heatPort.setMacAddress(portResourceData.getResource().getAttributes().getMac_address());
           heatPort.setPortName(portResourceData.getResource().getAttributes().getName());
           ports.add(heatPort);
-        } else if (resource.getResource_type().equals("OS::Neutron::FloatingIP")  && resource.getResource_name().contains(serverIdentifier)) {
+        } else if (resource.getResource_type().equals("OS::Neutron::FloatingIP")  && serverIdentifier.equals(resource.getResource_name().split("\\.")[2])) {
 
           String showResourceData = JavaStackUtils.convertHttpResponseToString(
               javaStack.showResourceData(stackName, uuid, resource.getResource_name()));

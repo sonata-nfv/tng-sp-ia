@@ -31,8 +31,10 @@ import sonata.kernel.vimadaptor.commons.FunctionScalePayload;
 import sonata.kernel.vimadaptor.commons.FunctionRemovePayload;
 import sonata.kernel.vimadaptor.commons.ServiceDeployPayload;
 import sonata.kernel.vimadaptor.commons.VnfImage;
+import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper {
 
@@ -93,7 +95,7 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    * 
    * @return true if the remove process has started correctly, false otherwise
    */
-  public abstract boolean prepareService(String instanceId) throws Exception;
+  public abstract boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
 
   /**
    * Remove the given image from this compute VIM image repository.

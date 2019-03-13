@@ -59,6 +59,7 @@ public class VnfDescriptor {
   @JsonProperty("updated_at")
   private String updatedAt;
   private String uuid;
+  private String id;
   private String vendor;
   private String version;
   @JsonProperty("virtual_deployment_units")
@@ -129,6 +130,10 @@ public class VnfDescriptor {
     return uuid;
   }
 
+  public String getId() {
+    return id;
+  }
+
   public String getVendor() {
     return vendor;
   }
@@ -196,6 +201,10 @@ public class VnfDescriptor {
 
   public void setUuid(String uuid) {
     this.uuid = uuid;
+  }
+
+  public void setId(String id) {
+    this.id = id;
   }
 
   public void setVendor(String vendor) {
