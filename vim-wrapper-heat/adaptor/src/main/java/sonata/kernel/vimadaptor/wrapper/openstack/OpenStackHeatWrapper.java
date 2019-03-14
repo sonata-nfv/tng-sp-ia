@@ -818,17 +818,10 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       if (status.equals("CREATE_FAILED")) {
         Logger.error("Heat Stack creation process failed on the VIM side.");
         return false;
-
       }
       Logger.info("VIM prepared succesfully. Creating record in Infra Repo.");
       WrapperBay.getInstance().getVimRepo().writeServiceInstanceEntry(instanceId, stackUuid,
           stackName, this.getConfig().getUuid());
-
-      //Store virtual link information
-      ServiceVirtualLinksRepo serviceVirtualLinksRepo =  ServiceVirtualLinksRepo.getInstance();
-      synchronized (serviceVirtualLinksRepo) {
-        serviceVirtualLinksRepo.putServiceVirtualLinksForServiceId(instanceId,virtualLinks);
-      }
 
     } catch (Exception e) {
       Logger.error("Error during stack creation.");
@@ -1013,9 +1006,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       }
       HeatResource network = new HeatResource();
       network.setType("OS::Neutron::Net");
-      network.setName("SonataService." + link.getId() + ".net." + instanceId);
-      network.putProperty("name",
-              "SonataService." + link.getId() + ".net." + instanceId);
+      network.setName(link.getId());
+      network.putProperty("name", link.getId());
 
       String qosPolicy = null;
       if (link.getQos() != null) {
@@ -1055,9 +1047,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       model.addResource(network);
       HeatResource subnet = new HeatResource();
       subnet.setType("OS::Neutron::Subnet");
-      subnet.setName("SonataService." + link.getId() + ".subnet." + instanceId);
-      subnet.putProperty("name",
-              "SonataService." + link.getId() + ".subnet." + instanceId);
+      subnet.setName("subnet." + link.getId());
+      subnet.putProperty("name", "subnet." + link.getId());
       if (link.getCidr() != null) {
         subnet.putProperty("cidr", link.getCidr());
       } else {
@@ -1075,8 +1066,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       String[] dnsArray = {"8.8.8.8"};
       subnet.putProperty("dns_nameservers", dnsArray);
       HashMap<String, Object> netMap = new HashMap<String, Object>();
-      netMap.put("get_resource",
-              "SonataService." + link.getId() + ".net." + instanceId);
+      netMap.put("get_resource", link.getId());
       subnet.putProperty("network", netMap);
       model.addResource(subnet);
 
@@ -1084,9 +1074,9 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         // internal router interface for network
         HeatResource routerInterface = new HeatResource();
         routerInterface.setType("OS::Neutron::RouterInterface");
-        routerInterface.setName("SonataService." + link.getId() + ".internal." + instanceId);
+        routerInterface.setName("routerInterface." + link.getId());
         HashMap<String, Object> subnetMapInt = new HashMap<String, Object>();
-        subnetMapInt.put("get_resource", "SonataService." + link.getId() + ".subnet." + instanceId);
+        subnetMapInt.put("get_resource", "subnet." + link.getId());
         routerInterface.putProperty("subnet", subnetMapInt);
         routerInterface.putProperty("router", tenantExtRouter);
         model.addResource(routerInterface);
@@ -1759,48 +1749,13 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         HashMap<String, Object> netMap = new HashMap<String, Object>();
         Logger.debug("Mapping CP Type to the relevant network");
 
-        //Find the vnf connection point for the virtual link which contains the vdu cp
-        String vnfCp = null;
-        for (VnfVirtualLink link : vnfd.getVirtualLinks()) {
-          if (link.getConnectionPointsReference().contains(vdu.getId() + ":" + vduCp.getId())) {
-            for (String cpr : link.getConnectionPointsReference()) {
-              if (!cpr.contains(":")) {
-                vnfCp = cpr;
-                break;
-              }
-            }
-            break;
-          }
-        }
-
-        String vLinkId = null;
         String netId = null;
-        ServiceVirtualLinksRepo serviceVirtualLinksRepo =  ServiceVirtualLinksRepo.getInstance();
-        if (vnfCp != null) {
-          //Retrieve service virtual link information from internal db
-          synchronized (serviceVirtualLinksRepo) {
-            vLinkId = serviceVirtualLinksRepo.getVirtualLinkIdFromServiceIdAndConnectionPoint(serviceInstanceUuid, vnfd.getId()+":"+vnfCp);
-            if (vLinkId != null) {
-              netId = serviceVirtualLinksRepo.getNetworkIdFromServiceIdAndVirtualLinkId(serviceInstanceUuid,vLinkId);
-            }
-          }
-        }
+        // Already exist network
+        if (vduCp.getNetworkId() != null) {
+          netId = vduCp.getNetworkId();
 
-        if (vLinkId != null) {
-          if (netId == null) {
-            netMap.put("get_resource", "SonataService." + vLinkId + ".net." + serviceInstanceUuid);
-          }
-
-          if (vduCp.getType() != ConnectionPointType.INT ) {
-            //Need to check if the network was external access (access)
-            //Retrieve virtual link access information from internal db
-            Boolean access = null;
-            synchronized (serviceVirtualLinksRepo) {
-              access = serviceVirtualLinksRepo.getVirtualLinkAccessFromServiceIdAndVirtualLinkId(serviceInstanceUuid,vLinkId);
-            }
-            if ((access == null) || access) {
-              publicPortNames.add(cpQualifiedName);
-            }
+          if ((vduCp.getFIp() != null ) && vduCp.getFIp()) {
+            publicPortNames.add(cpQualifiedName);
           }
         } else {
           //Need to create or use the vnf network
@@ -1821,11 +1776,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           }
           // Already exist network
           if (netId != null) {
-            if (vduCp.getType() != ConnectionPointType.INT) {
-              //Check if the network was external access (access)
-              if ((link.isAccess() == null) || link.isAccess()) {
-                publicPortNames.add(cpQualifiedName);
-              }
+            if ((vduCp.getFIp() != null ) && vduCp.getFIp()) {
+              publicPortNames.add(cpQualifiedName);
             }
 
           // Already created the vnf virtual link
@@ -1921,11 +1873,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             NewVnfVirtualLinks.add(link);
 
             netMap.put("get_resource", "SonataService." + link.getId() + ".net." + vnfd.getInstanceUuid());
-            if (vduCp.getType() != ConnectionPointType.INT ) {
-              //Check if the network was external access (access)
-              if ((link.isAccess() == null) || link.isAccess()) {
-                publicPortNames.add(cpQualifiedName);
-              }
+            if ((vduCp.getFIp() != null ) && vduCp.getFIp()) {
+              publicPortNames.add(cpQualifiedName);
             }
 
           }

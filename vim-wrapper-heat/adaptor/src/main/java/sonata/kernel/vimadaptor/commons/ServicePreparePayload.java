@@ -27,7 +27,6 @@
 package sonata.kernel.vimadaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
 import java.util.ArrayList;
 
@@ -37,20 +36,13 @@ public class ServicePreparePayload {
   private String instanceId;
   @JsonProperty("vim_list")
   private ArrayList<VimPreDeploymentList> vimList;
-  @JsonProperty("virtual_links")
-  private ArrayList<VirtualLink> virtualLinks;
 
   public String getInstanceId() {
     return instanceId;
   }
 
-
   public ArrayList<VimPreDeploymentList> getVimList() {
     return vimList;
-  }
-
-  public ArrayList<VirtualLink> getVirtualLinks() {
-    return virtualLinks;
   }
 
   public void setInstanceId(String instanceId) {
@@ -59,10 +51,6 @@ public class ServicePreparePayload {
 
   public void setVimList(ArrayList<VimPreDeploymentList> vimList) {
     this.vimList = vimList;
-  }
-
-  public void setVirtualLinks(ArrayList<VirtualLink> virtualLinks) {
-    this.virtualLinks = virtualLinks;
   }
 
 }
