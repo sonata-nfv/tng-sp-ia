@@ -1066,7 +1066,7 @@ public class JavaStackCore {
       buildUrl.append(endpoint);
       buildUrl.append(":");
       buildUrl.append(Network.getPORT());
-      buildUrl.append(String.format("/%s/qos/policies?project_id=%s", Network.getVERSION(), this.projectId));
+      buildUrl.append(String.format("/%s/qos/policies?tenant_id=%s", Network.getVERSION(), this.projectId));
 
       // Logger.debug("[JavaStack] Authenticating client...");
       getQosPolicies = new HttpGet(buildUrl.toString());
