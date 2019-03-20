@@ -84,7 +84,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Hashtable;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class OpenStackHeatWrapper extends ComputeWrapper {
 
@@ -125,7 +124,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public synchronized void removeFunction(FunctionRemovePayload data, String sid) {
     Long start = System.currentTimeMillis();
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -169,7 +168,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
     HeatTemplate template = client.getStackTemplate(stackName, stackUuid);
     if (template == null) {
-      Logger.error("Error retrieveing the stack template.");
+      Logger.error("Error retrieving the stack template.");
       WrapperStatusUpdate update =
           new WrapperStatusUpdate(sid, "ERROR", "Cannot retrieve service stack from VIM.");
       this.markAsChanged();
@@ -236,7 +235,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     if (status == null) {
       Logger.error("unable to contact the VIM to check the update status");
       WrapperStatusUpdate update = new WrapperStatusUpdate(sid, "ERROR",
-          "Functiono deployment process failed. Can't get update status.");
+          "Function deployment process failed. Can't get update status.");
       this.markAsChanged();
       this.notifyObservers(update);
       return;
@@ -294,7 +293,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public synchronized void deployFunction(FunctionDeployPayload data, String sid) {
     Long start = System.currentTimeMillis();
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -360,7 +359,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     }
     HeatTemplate template = client.getStackTemplate(stackName, stackUuid);
     if (template == null) {
-      Logger.error("Error retrieveing the stack template.");
+      Logger.error("Error retrieving the stack template.");
       WrapperStatusUpdate update =
           new WrapperStatusUpdate(sid, "ERROR", "Cannot retrieve service stack from VIM.");
       this.markAsChanged();
@@ -420,7 +419,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     if (status == null) {
       Logger.error("unable to contact the VIM to check the update status");
       WrapperStatusUpdate update = new WrapperStatusUpdate(sid, "ERROR",
-          "Functiono deployment process failed. Can't get update status.");
+          "Function deployment process failed. Can't get update status.");
       this.markAsChanged();
       this.notifyObservers(update);
       return;
@@ -536,12 +535,12 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
                 ipMap.setInternalIp(port.getIpAddress());
                 response.addIp(ipMap);
                 // Logger.info("Port:" + port.getPortName() + "- Addr: " +
-                // port.getFloatinIp());
+                // port.getFloatingIp());
               } else {
                 ip.setAddress(port.getIpAddress());
                 ip.setHardwareAddress(port.getMacAddress());
                 // Logger.info("Port:" + port.getPortName() + "- Addr: " +
-                // port.getFloatinIp());
+                // port.getFloatingIp());
                 ip.setNetmask("255.255.255.248");
 
               }
@@ -592,7 +591,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Deprecated
   public boolean deployService(ServiceDeployPayload data, String callSid) {
 
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -666,7 +665,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public ResourceUtilisation getResourceUtilisation() {
     long start = System.currentTimeMillis();
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -706,7 +705,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public boolean isImageStored(VnfImage image, String callSid) {
     long start = System.currentTimeMillis();
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     Logger.debug("Checking image: " + image.getUuid());
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
@@ -751,7 +750,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception {
     long start = System.currentTimeMillis();
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -819,7 +818,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         Logger.error("Heat Stack creation process failed on the VIM side.");
         return false;
       }
-      Logger.info("VIM prepared succesfully. Creating record in Infra Repo.");
+      Logger.info("VIM prepared successfully. Creating record in Infra Repo.");
       WrapperBay.getInstance().getVimRepo().writeServiceInstanceEntry(instanceId, stackUuid,
           stackName, this.getConfig().getUuid());
 
@@ -832,6 +831,252 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     Logger.info("[OpenStackWrapper]PrepareService-time: " + (stop - start) + " ms");
     return true;
 
+  }
+
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#networkCreate(java.lang.String,
+   * ArrayList<VirtualLink> virtualLinks)
+   */
+  @Override
+  public boolean networkCreate(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception {
+    Long start = System.currentTimeMillis();
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
+    // user management is in place.
+    JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
+    JSONObject object = (JSONObject) tokener.nextValue();
+    String tenant = object.getString("tenant");
+    String identityPort = null;
+    if (object.has("identity_port")) {
+      identityPort = object.getString("identity_port");
+    }
+    // String tenantExtNet = object.getString("tenant_ext_net");
+    // String tenantExtRouter = object.getString("tenant_ext_router");
+    // END COMMENT
+
+    OpenStackHeatClient client = null;
+    OpenStackNeutronClient neutronClient = null;
+
+    try {
+      client = new OpenStackHeatClient(getConfig().getVimEndpoint().toString(),
+             getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+      neutronClient = new OpenStackNeutronClient(getConfig().getVimEndpoint().toString(),
+              getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+    } catch (IOException e) {
+      Logger.error("OpenStackHeat wrapper - Unable to connect to the VIM");
+      return false;
+    }
+
+
+    Logger.debug(
+            "Getting VIM stack name and UUID for service instance ID " + instanceId);
+    String stackUuid = WrapperBay.getInstance().getVimRepo()
+            .getServiceInstanceVimUuid(instanceId, this.getConfig().getUuid());
+    String stackName = WrapperBay.getInstance().getVimRepo()
+            .getServiceInstanceVimName(instanceId, this.getConfig().getUuid());
+
+    ArrayList<QosPolicy> vimPolicies = neutronClient.getPolicies();
+    Collections.sort(vimPolicies);
+    HeatModel stackAddition;
+
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+    mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+    mapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+    mapper.setSerializationInclusion(Include.NON_NULL);
+
+    try {
+      stackAddition =  translateNetwork(instanceId, virtualLinks, vimPolicies);
+    } catch (Exception e) {
+      Logger.error("Error: " + e.getMessage());
+      e.printStackTrace();
+      return false;
+      }
+    HeatTemplate template = client.getStackTemplate(stackName, stackUuid);
+    if (template == null) {
+      Logger.error("Error retrieving the stack template.");
+      return false;
+    }
+    for (HeatResource resource : stackAddition.getResources()) {
+      template.putResource(resource.getResourceName(), resource);
+    }
+
+    Logger.info("Updated stack for VNF network create created.");
+    Logger.info("Serializing updated stack...");
+    String stackString = null;
+    try {
+      stackString = mapper.writeValueAsString(template);
+    } catch (JsonProcessingException e) {
+      Logger.error(e.getMessage());
+      return false;
+    }
+    Logger.debug(stackString);
+    try {
+      client.updateStack(stackName, stackUuid, stackString);
+    } catch (Exception e) {
+      Logger.error(e.getMessage());
+      return false;
+    }
+
+    int counter = 0;
+    int wait = 1000;
+    int maxCounter = 50;
+    int maxWait = 5000;
+    String status = null;
+    while ((status == null || !status.equals("UPDATE_COMPLETE") || !status.equals("UPDATE_FAILED"))
+          && counter < maxCounter) {
+      status = client.getStackStatus(stackName, stackUuid);
+      Logger.info("Status of stack " + stackUuid + ": " + status);
+      if (status != null && (status.equals("UPDATE_COMPLETE") || status.equals("UPDATE_FAILED"))) {
+        break;
+      }
+      try {
+        Thread.sleep(wait);
+      } catch (InterruptedException e) {
+        Logger.error(e.getMessage(), e);
+      }
+      counter++;
+      wait = Math.min(wait * 2, maxWait);
+
+    }
+
+    if (status == null) {
+      Logger.error("unable to contact the VIM to check the update status");
+      return false;
+    }
+    if (status.equals("UPDATE_FAILED")) {
+      Logger.error("Heat Stack update process failed on the VIM side.");
+      return false;
+    }
+
+    Logger.info("VIM updated successfully.");
+
+    long stop = System.currentTimeMillis();
+    Logger.info("[OpenStackWrapper]NetworkCreate-time: " + (stop - start) + " ms");
+    return true;
+  }
+
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#networkDelete(java.lang.String,
+   * ArrayList<VirtualLink> virtualLinks)
+   */
+  @Override
+  public boolean networkDelete(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception {
+    Long start = System.currentTimeMillis();
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
+    // user management is in place.
+    JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
+    JSONObject object = (JSONObject) tokener.nextValue();
+    String tenant = object.getString("tenant");
+    String identityPort = null;
+    if (object.has("identity_port")) {
+      identityPort = object.getString("identity_port");
+    }
+    // String tenantExtNet = object.getString("tenant_ext_net");
+    // String tenantExtRouter = object.getString("tenant_ext_router");
+    // END COMMENT
+
+    OpenStackHeatClient client = null;
+
+    try {
+      client = new OpenStackHeatClient(getConfig().getVimEndpoint().toString(),
+              getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+    } catch (IOException e) {
+      Logger.error("OpenStackHeat wrapper - Unable to connect to the VIM");
+      return false;
+    }
+
+    Logger.debug("Getting VIM stack name and UUID for service instance ID " + instanceId);
+    String stackUuid = WrapperBay.getInstance().getVimRepo()
+            .getServiceInstanceVimUuid(instanceId, this.getConfig().getUuid());
+    String stackName = WrapperBay.getInstance().getVimRepo()
+            .getServiceInstanceVimName(instanceId, this.getConfig().getUuid());
+
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    mapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+    mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+    mapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+    mapper.setSerializationInclusion(Include.NON_NULL);
+
+
+    HeatTemplate template = client.getStackTemplate(stackName, stackUuid);
+    if (template == null) {
+      Logger.error("Error retrieving the stack template.");
+      return false;
+    }
+
+    //locate resources that should be removed
+    ArrayList<String> keysToRemove = new ArrayList<String>();
+    for (Entry<String, Object> e: template.getResources().entrySet()) {
+      for (VirtualLink link : virtualLinks) {
+        if (e.getKey().contains(link.getId())) {
+          keysToRemove.add(e.getKey());
+          break;
+        }
+      }
+    }
+    //remove the resources
+    for (String key: keysToRemove) {
+      template.removeResource(key);
+    }
+
+    Logger.info("Updated stack for VNF network delete created.");
+    Logger.info("Serializing updated stack...");
+    String stackString = null;
+    try {
+      stackString = mapper.writeValueAsString(template);
+    } catch (JsonProcessingException e) {
+      Logger.error(e.getMessage());
+      return false;
+    }
+    Logger.debug(stackString);
+    try {
+      client.updateStack(stackName, stackUuid, stackString);
+    } catch (Exception e) {
+      Logger.error(e.getMessage());
+      return false;
+    }
+
+    int counter = 0;
+    int wait = 1000;
+    int maxCounter = 50;
+    int maxWait = 5000;
+    String status = null;
+    while ((status == null || !status.equals("UPDATE_COMPLETE") || !status.equals("UPDATE_FAILED"))
+            && counter < maxCounter) {
+      status = client.getStackStatus(stackName, stackUuid);
+      Logger.info("Status of stack " + stackUuid + ": " + status);
+      if (status != null && (status.equals("UPDATE_COMPLETE") || status.equals("UPDATE_FAILED"))) {
+        break;
+      }
+      try {
+        Thread.sleep(wait);
+      } catch (InterruptedException e) {
+        Logger.error(e.getMessage(), e);
+      }
+      counter++;
+      wait = Math.min(wait * 2, maxWait);
+      }
+
+      if (status == null) {
+        Logger.error("unable to contact the VIM to check the update status");
+        return false;
+      }
+      if (status.equals("UPDATE_FAILED")) {
+        Logger.error("Heat Stack update process failed on the VIM side.");
+        return false;
+      }
+
+      Logger.info("VIM updated successfully.");
+
+      long stop = System.currentTimeMillis();
+      Logger.info("[OpenStackWrapper]NetworkDelete-time: " + (stop - start) + " ms");
+      return true;
   }
 
   /*
@@ -848,7 +1093,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public boolean removeService(String instanceUuid, String callSid) {
     long start = System.currentTimeMillis();
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -939,7 +1184,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   @Override
   public void uploadImage(VnfImage image) throws IOException {
     long start = System.currentTimeMillis();
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -973,7 +1218,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
     File f = new File(fileAbsolutePath);
     if (f.delete()) {
-      Logger.debug("temporary image file deleted succesfully from local environment.");
+      Logger.debug("temporary image file deleted successfully from local environment.");
     } else {
       Logger.error("Error deleting the temporary image file " + fileName
           + " from local environment. Relevant VNF: " + image.getUuid());
@@ -987,7 +1232,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
   private HeatTemplate createInitStackTemplate(String instanceId, ArrayList<VirtualLink> virtualLinks, ArrayList<QosPolicy> policies) throws Exception {
 
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(this.getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -1087,7 +1332,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     model.prepare();
 
     HeatTemplate template = new HeatTemplate();
-    Logger.debug("Created " + model.getResources().size() + " resurces.");
+    Logger.debug("Created " + model.getResources().size() + " resources.");
     for (HeatResource resource : model.getResources()) {
       template.putResource(resource.getResourceName(), resource);
     }
@@ -1215,7 +1460,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   private HeatModel translate(ServiceDeployPayload data, ArrayList<Flavor> vimFlavors)
       throws Exception {
 
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -1576,7 +1821,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
   private HeatModel translate(VnfDescriptor vnfd, ArrayList<Flavor> flavors, ArrayList<QosPolicy> policies, String serviceInstanceUuid,
       String publicKey) throws Exception {
-    // TODO This values should be per User, now they are per VIM. This should be re-desinged once
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
     JSONObject object = (JSONObject) tokener.nextValue();
@@ -1967,6 +2212,108 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       model.addResource(floatingIp);
     }
     model.prepare();
+    return model;
+  }
+
+  private HeatModel translateNetwork(String instanceId, ArrayList<VirtualLink> virtualLinks, ArrayList<QosPolicy> policies) throws Exception {
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
+    // user management is in place.
+    JSONTokener tokener = new JSONTokener(this.getConfig().getConfiguration());
+    JSONObject object = (JSONObject) tokener.nextValue();
+    // String tenant = object.getString("tenant");
+    // String tenantExtNet = object.getString("tenant_ext_net");
+    String tenantExtRouter = object.getString("tenant_ext_router");
+    // END COMMENT
+
+    HeatModel model = new HeatModel();
+
+    for (VirtualLink link : virtualLinks) {
+      if (link.getNetworkId() != null) {
+        continue;
+      }
+      HeatResource network = new HeatResource();
+      network.setType("OS::Neutron::Net");
+      network.setName(link.getId());
+      network.putProperty("name", link.getId());
+
+      String qosPolicy = null;
+      if (link.getQos() != null) {
+        if (!searchQosPolicyByName(link.getQos(),policies)) {
+          Logger.error("Cannot find the Qos Policy: " + link.getQos());
+          throw new Exception("Cannot find the Qos Policy: " + link.getQos());
+        }
+        qosPolicy = link.getQos();
+      } else if (link.getQosRequirements()!= null) {
+
+        double bandwidthLimitInMbps = 0;
+        double minimumBandwidthInMbps = 0;
+        if (link.getQosRequirements().getBandwidthLimit()!= null) {
+          bandwidthLimitInMbps = link.getQosRequirements().getBandwidthLimit().getBandwidth()
+              * link.getQosRequirements().getBandwidthLimit().getBandwidthUnit().getMultiplier();
+        }
+
+        if (link.getQosRequirements().getMinimumBandwidth()!= null) {
+          minimumBandwidthInMbps = link.getQosRequirements().getMinimumBandwidth().getBandwidth()
+              * link.getQosRequirements().getMinimumBandwidth().getBandwidthUnit().getMultiplier();
+        }
+
+        try {
+          qosPolicy = this.selectQosPolicy(bandwidthLimitInMbps, minimumBandwidthInMbps, policies);
+        } catch (Exception e) {
+          Logger.error("Exception while searching for available  Qos Policies for the requirements: "
+              + e.getMessage());
+          throw new Exception("Cannot find an available  Qos Policies for requirements. Bandwidth Limit: "
+              + bandwidthLimitInMbps + " - Minimum Bandwidth: " + minimumBandwidthInMbps);
+        }
+      }
+      if (qosPolicy != null) {
+        // add the qos to the port
+        network.putProperty("qos_policy", qosPolicy);
+      }
+
+      model.addResource(network);
+      HeatResource subnet = new HeatResource();
+      subnet.setType("OS::Neutron::Subnet");
+      subnet.setName("subnet." + link.getId());
+      subnet.putProperty("name", "subnet." + link.getId());
+      if (link.getCidr() != null) {
+        subnet.putProperty("cidr", link.getCidr());
+    } else {
+        ArrayList<String> subnets = myPool.reserveSubnets(instanceId, 1);
+        if (subnets == null) {
+          throw new Exception("Unable to allocate internal addresses. Too many service instances");
+        }
+        String cidr = subnets.get(0);
+        subnet.putProperty("cidr", cidr);
+        subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
+      }
+      if (link.isDhcp() != null) {
+        subnet.putProperty("enable_dhcp", link.isDhcp());
+      }
+      String[] dnsArray = {"8.8.8.8"};
+      subnet.putProperty("dns_nameservers", dnsArray);
+      HashMap<String, Object> netMap = new HashMap<String, Object>();
+      netMap.put("get_resource", link.getId());
+      subnet.putProperty("network", netMap);
+      model.addResource(subnet);
+
+      if ((link.isAccess() == null) || link.isAccess()) {
+        // internal router interface for network
+        HeatResource routerInterface = new HeatResource();
+        routerInterface.setType("OS::Neutron::RouterInterface");
+        routerInterface.setName("routerInterface." + link.getId());
+        HashMap<String, Object> subnetMapInt = new HashMap<String, Object>();
+        subnetMapInt.put("get_resource", "subnet." + link.getId());
+        routerInterface.putProperty("subnet", subnetMapInt);
+        routerInterface.putProperty("router", tenantExtRouter);
+        model.addResource(routerInterface);
+      }
+    }
+
+    model.prepare();
+
+    Logger.debug("Created " + model.getResources().size() + " resources.");
+
     return model;
   }
 

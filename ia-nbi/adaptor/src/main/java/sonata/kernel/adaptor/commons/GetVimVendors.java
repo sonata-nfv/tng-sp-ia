@@ -75,6 +75,10 @@ public class GetVimVendors {
 	public ArrayList<String> GetVimVendors(ServicePlatformMessage message, String topic) {
 		if (topic.equals("prepare")) {
             return this.GetVimVendorsPrepare(message);
+        } else if (topic.equals("network.create")) {
+            return this.GetVimVendorsNetworkCreate(message);
+        } else if (topic.equals("network.delete")) {
+            return this.GetVimVendorsNetworkDelete(message);
         } else if (topic.equals("deploy")) {
             return this.GetVimVendorsDeploy(message);
         } else if (topic.equals("function.configure")) {
@@ -138,6 +142,90 @@ public class GetVimVendors {
 		}
 		return vimVendors;
 	}
+
+    /**
+     * Retrieve the vim Vendors from the info in the message received for service network create.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsNetworkCreate(ServicePlatformMessage message) {
+
+        Logger.info("Call received - sid: " + message.getSid());
+        // parse the payload to get VIM UUID from the request body
+        Logger.info("Parsing payload...");
+        ServiceNetworkCreatePayload payload = null;
+        ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+        ArrayList<String> vimUuids = new ArrayList<String>();
+        ArrayList<String> vimVendors = null;
+
+        try {
+            payload = mapper.readValue(message.getBody(), ServiceNetworkCreatePayload.class);
+            Logger.info("payload parsed. Get VIMs");
+
+            for (VimPreDeploymentList vim : payload.getVimList()) {
+                vimUuids.add(vim.getUuid());
+            }
+            if (vimUuids.isEmpty()) {
+                Logger.error("Error retrieving the Vims uuid");
+
+                return null;
+            }
+            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+
+            // Get the types from db
+            vimVendors = this.GetVimVendorsDB(vimUuids);
+
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
+
+            return null;
+        }
+        return vimVendors;
+    }
+
+    /**
+     * Retrieve the vim Vendors from the info in the message received for service network delete.
+     *
+     * @param message the message received from RabbitMQ
+     *
+     * @return the list of vim Vendors or null
+     */
+    private ArrayList<String> GetVimVendorsNetworkDelete(ServicePlatformMessage message) {
+
+        Logger.info("Call received - sid: " + message.getSid());
+        // parse the payload to get VIM UUID from the request body
+        Logger.info("Parsing payload...");
+        ServiceNetworkDeletePayload payload = null;
+        ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+        ArrayList<String> vimUuids = new ArrayList<String>();
+        ArrayList<String> vimVendors = null;
+
+        try {
+            payload = mapper.readValue(message.getBody(), ServiceNetworkDeletePayload.class);
+            Logger.info("payload parsed. Get VIMs");
+
+            for (VimPreDeploymentList vim : payload.getVimList()) {
+                vimUuids.add(vim.getUuid());
+            }
+            if (vimUuids.isEmpty()) {
+                Logger.error("Error retrieving the Vims uuid");
+
+                return null;
+            }
+            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+
+            // Get the types from db
+            vimVendors = this.GetVimVendorsDB(vimUuids);
+
+        } catch (Exception e) {
+            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
+
+            return null;
+        }
+        return vimVendors;
+    }
 
     /**
      * Retrieve the vim Vendors from the info in the message received for service deploy.

@@ -92,10 +92,33 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    * 
    * @param instanceId the ID of the instance used as reference for the prepared environment in the
    *        VIM
+   * @param virtualLinks the virtual links containing information for the network creation
    * 
    * @return true if the remove process has started correctly, false otherwise
    */
   public abstract boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
+
+  /**
+   * Network create for a service instance in this VIM for the given instance ID.
+   *
+   * @param instanceId the ID of the instance used as reference for the environment in the
+   *        VIM
+   * @param virtualLinks the virtual links containing information for the network creation
+   *
+   * @return true if the remove process has started correctly, false otherwise
+   */
+  public abstract boolean networkCreate(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
+
+  /**
+   * Network delete for a service instance in this VIM for the given instance ID.
+   *
+   * @param instanceId the ID of the instance used as reference for the environment in the
+   *        VIM
+   * @param virtualLinks the virtual links containing information for the network deletion
+   *
+   * @return true if the remove process has started correctly, false otherwise
+   */
+  public abstract boolean networkDelete(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
 
   /**
    * Remove the given image from this compute VIM image repository.
@@ -134,7 +157,7 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
   /**
    * Upload the given image to this compute VIM image repository.
    * 
-   * @param imageUrl the URL from which the image can be downloded.
+   * @param image the VnfImage with URL from which the image can be downloaded.
    */
   public abstract void uploadImage(VnfImage image) throws IOException;
 }
