@@ -362,43 +362,37 @@ public class GetVimVendors {
      */
     private ArrayList<String> GetVimVendorsSRemove(ServicePlatformMessage message) {
 
-        Logger.info("Call received - sid: " + message.getSid());
-        // process json message to get the service UUID from the request body
-        Logger.info("Process payload...");
-        JSONTokener tokener = new JSONTokener(message.getBody());
-        JSONObject jsonObject = (JSONObject) tokener.nextValue();
-        String instanceUuid = null;
-        try {
-            instanceUuid = jsonObject.getString("instance_uuid");
-        } catch (Exception e) {
-            Logger.error("Error getting the instance_uuid: " + e.getMessage(), e);
+      Logger.info("Call received - sid: " + message.getSid());
+      // process json message to get the service UUID from the request body
+      Logger.info("Process payload...");
+      ServiceRemovePayload data = null;
+      ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
+      ArrayList<String> vimUuids = new ArrayList<String>();
+      ArrayList<String> vimVendors = null;
 
-            return null;
+      try {
+        data = mapper.readValue(message.getBody(), ServiceRemovePayload.class);
+        Logger.info("payload parsed");
+        vimUuids.add(data.getVimUuid());
+
+        if (vimUuids.isEmpty()) {
+          Logger.error("Error retrieving the Vims uuid");
+
+          return null;
         }
 
-        ArrayList<String> vimUuids = null;
-        ArrayList<String> vimVendors = null;
+        Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
 
-        try {
-            vimUuids = getComputeVimUuidFromInstance(instanceUuid);
+        // Get the types from db
+        vimVendors = this.GetVimVendorsDB(vimUuids);
 
-            if (vimUuids == null) {
-                Logger.error("Error retrieving the Vims uuid");
+      } catch (Exception e) {
+        Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
 
-                return null;
-            }
-            Logger.info(message.getSid().substring(0, 10) + " - Vims retrieved");
+        return null;
+      }
 
-            // Get the types from db
-            vimVendors = this.GetVimVendorsDB(vimUuids);
-
-        } catch (Exception e) {
-            Logger.error("Error retrieving the Vims Type: " + e.getMessage(), e);
-
-            return null;
-        }
-
-        return vimVendors;
+      return vimVendors;
     }
 
     /**
@@ -498,16 +492,15 @@ public class GetVimVendors {
         Logger.info("Process payload...");
         NetworkDeconfigurePayload data = null;
         ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-        ArrayList<String> vimUuids = null;
+        ArrayList<String> vimUuids = new ArrayList<String>();
         ArrayList<String> vimVendors = null;
 
         try {
             data = mapper.readValue(message.getBody(), NetworkDeconfigurePayload.class);
             Logger.info("payload parsed");
-            String serviceInstaceId = data.getServiceInstanceId();
-            vimUuids = getNetworkVimUuidFromInstance(serviceInstaceId);
+            vimUuids.add(data.getVimUuid());
 
-            if (vimUuids == null) {
+            if (vimUuids.isEmpty()) {
                 Logger.error("Error retrieving the Vims uuid");
 
                 return null;

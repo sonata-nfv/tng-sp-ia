@@ -34,17 +34,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.slf4j.LoggerFactory;
 
-import sonata.kernel.vimadaptor.commons.FunctionDeployPayload;
-import sonata.kernel.vimadaptor.commons.FunctionDeployResponse;
-import sonata.kernel.vimadaptor.commons.FunctionRemovePayload;
-import sonata.kernel.vimadaptor.commons.FunctionRemoveResponse;
-import sonata.kernel.vimadaptor.commons.FunctionScalePayload;
-import sonata.kernel.vimadaptor.commons.ServiceDeployPayload;
-import sonata.kernel.vimadaptor.commons.Status;
-import sonata.kernel.vimadaptor.commons.VduRecord;
-import sonata.kernel.vimadaptor.commons.VnfImage;
-import sonata.kernel.vimadaptor.commons.VnfRecord;
-import sonata.kernel.vimadaptor.commons.VnfcInstance;
+import sonata.kernel.vimadaptor.commons.*;
 import sonata.kernel.vimadaptor.commons.nsd.ConnectionPoint;
 import sonata.kernel.vimadaptor.commons.nsd.ConnectionPointRecord;
 import sonata.kernel.vimadaptor.commons.nsd.InterfaceRecord;
@@ -277,8 +267,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
   }
 
   @Override
-  public boolean removeService(String instanceUuid, String callSid) {
-    boolean out = true;
+  public void removeService(ServiceRemovePayload data, String callSid) {
 
     double avgTime = 1309;
     double stdTime = 343;
@@ -289,10 +278,9 @@ public class ComputeMockWrapper extends ComputeWrapper {
         "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + this.getConfig().getUuid() + "\"}";
     WrapperStatusUpdate update = new WrapperStatusUpdate(callSid, "SUCCESS", body);
 
-    WrapperBay.getInstance().getVimRepo().removeServiceInstanceEntry(instanceUuid, this.getConfig().getUuid());
+    WrapperBay.getInstance().getVimRepo().removeServiceInstanceEntry(data.getServiceInstanceId(), this.getConfig().getUuid());
     this.notifyObservers(update);
 
-    return out;
   }
 
   @Override

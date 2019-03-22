@@ -31,12 +31,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class NetworkDeconfigurePayload {
   @JsonProperty("service_instance_id")
   private String serviceInstanceId;
+  @JsonProperty("vim_uuid")
+  private String vimUuid;
 
   public String getServiceInstanceId() {
     return serviceInstanceId;
   }
 
+  public String getVimUuid() {
+    return vimUuid;
+  }
+
   public void setServiceInstanceId(String serviceInstanceId) {
     this.serviceInstanceId = serviceInstanceId;
+  }
+
+  public void setVimUuid(String vimUuid) {
+    this.vimUuid = vimUuid;
   }
 }

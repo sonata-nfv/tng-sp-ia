@@ -39,21 +39,7 @@ import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
 
 import sonata.kernel.vimadaptor.AdaptorCore;
-import sonata.kernel.vimadaptor.commons.FunctionDeployPayload;
-import sonata.kernel.vimadaptor.commons.FunctionDeployResponse;
-import sonata.kernel.vimadaptor.commons.FunctionRemovePayload;
-import sonata.kernel.vimadaptor.commons.FunctionRemoveResponse;
-import sonata.kernel.vimadaptor.commons.FunctionScalePayload;
-import sonata.kernel.vimadaptor.commons.IpNetPool;
-import sonata.kernel.vimadaptor.commons.ServiceDeployPayload;
-import sonata.kernel.vimadaptor.commons.SonataManifestMapper;
-import sonata.kernel.vimadaptor.commons.Status;
-import sonata.kernel.vimadaptor.commons.VduRecord;
-import sonata.kernel.vimadaptor.commons.IpMapping;
-import sonata.kernel.vimadaptor.commons.VimNetTable;
-import sonata.kernel.vimadaptor.commons.VnfImage;
-import sonata.kernel.vimadaptor.commons.VnfRecord;
-import sonata.kernel.vimadaptor.commons.VnfcInstance;
+import sonata.kernel.vimadaptor.commons.*;
 import sonata.kernel.vimadaptor.commons.nsd.ConnectionPoint;
 import sonata.kernel.vimadaptor.commons.nsd.ConnectionPointRecord;
 import sonata.kernel.vimadaptor.commons.nsd.ConnectionPointType;
@@ -1091,7 +1077,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   }
 
   @Override
-  public boolean removeService(String instanceUuid, String callSid) {
+  public void removeService(ServiceRemovePayload data, String callSid) {
     long start = System.currentTimeMillis();
     // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
@@ -1106,9 +1092,9 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     // String tenantExtRouter = object.getString("tenant_ext_router");
     // END COMMENT
     VimRepo repo = WrapperBay.getInstance().getVimRepo();
-    Logger.info("Trying to remove NS instance: " + instanceUuid);
-    String stackName = repo.getServiceInstanceVimName(instanceUuid, this.getConfig().getUuid());
-    String stackUuid = repo.getServiceInstanceVimUuid(instanceUuid, this.getConfig().getUuid());
+    Logger.info("Trying to remove NS instance: " + data.getServiceInstanceId());
+    String stackName = repo.getServiceInstanceVimName(data.getServiceInstanceId(), this.getConfig().getUuid());
+    String stackUuid = repo.getServiceInstanceVimUuid(data.getServiceInstanceId(), this.getConfig().getUuid());
     Logger.info("NS instance mapped to stack name: " + stackName);
     Logger.info("NS instance mapped to stack uuid: " + stackUuid);
 
@@ -1122,14 +1108,13 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       this.setChanged();
       WrapperStatusUpdate errorUpdate = new WrapperStatusUpdate(callSid, "ERROR", e.getMessage());
       this.notifyObservers(errorUpdate);
-      return false;
     }
 
     try {
       String output = client.deleteStack(stackName, stackUuid);
 
       if (output.equals("DELETED")) {
-        ArrayList<String> functionInstanceUUids = repo.getFunctionUuidByServiceInstanceIdAndVimUuid(instanceUuid, this.getConfig().getUuid());
+        ArrayList<String> functionInstanceUUids = repo.getFunctionUuidByServiceInstanceIdAndVimUuid(data.getServiceInstanceId(), this.getConfig().getUuid());
         for (String  functionInstanceUUid : functionInstanceUUids) {
           try {
             myPool.freeSubnets(functionInstanceUUid);
@@ -1138,11 +1123,11 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           }
         }
         try {
-          myPool.freeSubnets(instanceUuid);
+          myPool.freeSubnets(data.getServiceInstanceId());
         } catch (Exception e) {
           Logger.info(e.getMessage());
         }
-        repo.removeServiceInstanceEntry(instanceUuid, this.getConfig().getUuid());
+        repo.removeServiceInstanceEntry(data.getServiceInstanceId(), this.getConfig().getUuid());
         this.setChanged();
         String body =
             "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + this.getConfig().getUuid() + "\"}";
@@ -1154,11 +1139,9 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       this.setChanged();
       WrapperStatusUpdate errorUpdate = new WrapperStatusUpdate(callSid, "ERROR", e.getMessage());
       this.notifyObservers(errorUpdate);
-      return false;
     }
     long stop = System.currentTimeMillis();
     Logger.info("[OpenStackWrapper]RemoveService-time: " + (stop - start) + " ms");
-    return true;
   }
 
   @Override

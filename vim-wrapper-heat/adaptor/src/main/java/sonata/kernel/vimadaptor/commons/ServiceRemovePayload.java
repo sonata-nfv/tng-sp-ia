@@ -20,34 +20,36 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Dario Valocchi (Ph.D.), UCL
+ * @author Thomas Soenen, imec
  * 
  */
 
-package sonata.kernel.adaptor.commons;
+package sonata.kernel.vimadaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class DeconfigureWanPayload {
+public class ServiceRemovePayload {
 
-  @JsonProperty("service_instance_id")
+  @JsonProperty("instance_uuid")
   private String serviceInstanceId;
-  @JsonProperty("wim_uuid")
-  private String wimUuid;
+  @JsonProperty("vim_uuid")
+  private String vimUuid;
 
   public String getServiceInstanceId() {
     return serviceInstanceId;
   }
 
-  public String getWimUuid() {
-    return wimUuid;
+  public String getVimUuid() {
+    return vimUuid;
   }
+
 
   public void setServiceInstanceId(String serviceInstanceId) {
     this.serviceInstanceId = serviceInstanceId;
   }
 
-  public void setWimUuid(String wimUuid) {
-    this.wimUuid = wimUuid;
+  public void setVimUuid(String vimUuid) {
+    this.vimUuid = vimUuid;
   }
+
 }

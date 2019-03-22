@@ -150,7 +150,7 @@ public class GetWimVendors {
     private ArrayList<String> GetWimVendorsDeconfigure(ServicePlatformMessage message) {
 
         Logger.info("Call received - sid: " + message.getSid());
-        // parse the payload to get ??? from the request body
+        // parse the payload to get wim_uuid from the request body
         Logger.info("Parsing payload...");
         DeconfigureWanPayload request = null;
         ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
@@ -159,12 +159,10 @@ public class GetWimVendors {
 
         try {
             request = mapper.readValue(message.getBody(), DeconfigureWanPayload.class);
-            Logger.info("payload parsed. Get Service Instance Id");
-            String instanceId = request.getServiceInstanceId();
+            Logger.info("payload parsed");
+            wimUuids.add(request.getWimUuid());
 
-            wimUuids = getWimUuidFromInstance(instanceId);
-
-            if (wimUuids == null) {
+          if (wimUuids.isEmpty()) {
                 Logger.error("Error retrieving the Wims uuid");
 
                 return wimVendors;

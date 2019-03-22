@@ -26,11 +26,7 @@
 
 package sonata.kernel.vimadaptor.wrapper;
 
-import sonata.kernel.vimadaptor.commons.FunctionDeployPayload;
-import sonata.kernel.vimadaptor.commons.FunctionScalePayload;
-import sonata.kernel.vimadaptor.commons.FunctionRemovePayload;
-import sonata.kernel.vimadaptor.commons.ServiceDeployPayload;
-import sonata.kernel.vimadaptor.commons.VnfImage;
+import sonata.kernel.vimadaptor.commons.*;
 import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
 import java.io.IOException;
@@ -130,11 +126,11 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
   /**
    * Remove a service instance from this VIM.
    * 
-   * @param instanceUuid the identifier of the instance in the VIM scope
+   * @param data the payload of a service.Remove call
+   * @param sid the session ID for this Adaptor call
    * 
-   * @return true if the remove process has started correctly, false otherwise
    */
-  public abstract boolean removeService(String instanceUuid, String callSid);
+  public abstract void removeService(ServiceRemovePayload data, String sid);
 
   /**
    * Scale the VNF described in the payload in this compute VIM
