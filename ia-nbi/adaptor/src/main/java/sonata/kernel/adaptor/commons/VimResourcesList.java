@@ -20,37 +20,27 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Dario Valocchi (Ph.D.)
+ * @author Thomas Soenen, imec
  * 
  */
 
-package sonata.kernel.adaptor.wrapper;
+package sonata.kernel.adaptor.commons;
 
-public enum WrapperType {
-  COMPUTE("compute"), NETWORK("network"), STORAGE("storage"), ENDPOINT("endpoint"), WIM("wim");
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-  public static WrapperType getByName(String name) {
-    for (WrapperType vendor : values()) {
-      if (vendor.getName().toUpperCase().equals(name.toUpperCase())) {
-        return vendor;
-      }
-    }
+import java.util.ArrayList;
 
-    throw new IllegalArgumentException(name + " is not a valid WrapperType");
+
+public class VimResourcesList {
+
+  private ArrayList<VimResources> resources;
+
+  public ArrayList<VimResources> getResources() {
+    return resources;
   }
 
-  private final String name;
-
-  WrapperType(String name) {
-    this.name = name;
+  public void setResources(ArrayList<VimResources> resources) {
+    this.resources = resources;
   }
 
-  @Override
-  public String toString() {
-    return this.name;
-  }
-
-  private String getName() {
-    return this.toString();
-  }
 }

@@ -31,16 +31,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 
 
-public class ManagementComputeListResponse {
+public class ComputeListResponse {
 
-  private ArrayList<VimResources> resources;
+  @JsonProperty("vim_list")
+  private ArrayList<VimResources> vimList;
 
-  public ArrayList<VimResources> getResources() {
-    return resources;
+  @JsonProperty("nep_list")
+  private ArrayList<NepResources> nepList;
+
+  public ArrayList<VimResources> getVimList() {
+    return vimList;
   }
 
-  public void setResources(ArrayList<VimResources> resources) {
-    this.resources = resources;
+  public ArrayList<NepResources> getNepList() {
+    return nepList;
   }
 
+  public void setVimList(ArrayList<VimResources> vimList) {
+    this.vimList = vimList;
+  }
+
+  public void setNepList(ArrayList<NepResources> nepList) {
+    this.nepList = nepList;
+  }
 }
+

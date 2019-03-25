@@ -24,33 +24,40 @@
  * 
  */
 
-package sonata.kernel.adaptor.wrapper;
+package sonata.kernel.adaptor.commons;
 
-public enum WrapperType {
-  COMPUTE("compute"), NETWORK("network"), STORAGE("storage"), ENDPOINT("endpoint"), WIM("wim");
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-  public static WrapperType getByName(String name) {
-    for (WrapperType vendor : values()) {
-      if (vendor.getName().toUpperCase().equals(name.toUpperCase())) {
-        return vendor;
-      }
-    }
+public class NepResources {
 
-    throw new IllegalArgumentException(name + " is not a valid WrapperType");
+  @JsonProperty("nep_name")
+  private String nepName;
+  @JsonProperty("nep_uuid")
+  private String nepUuid;
+  private String type;
+
+  public String getNepName() {
+    return nepName;
   }
 
-  private final String name;
-
-  WrapperType(String name) {
-    this.name = name;
+  public String getNepUuid() {
+    return nepUuid;
   }
 
-  @Override
-  public String toString() {
-    return this.name;
+  public String getType() {
+    return type;
   }
 
-  private String getName() {
-    return this.toString();
+  public void setNepName(String nepName) {
+    this.nepName = nepName;
   }
+
+  public void setNepUuid(String nepUuid) {
+    this.nepUuid = nepUuid;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
 }

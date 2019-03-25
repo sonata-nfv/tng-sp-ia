@@ -30,11 +30,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.slf4j.LoggerFactory;
 
-import sonata.kernel.adaptor.commons.ManagementComputeListResponse;
-import sonata.kernel.adaptor.commons.SonataManifestMapper;
-import sonata.kernel.adaptor.commons.VimResources;
+import sonata.kernel.adaptor.commons.*;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.ResourceRepo;
+import sonata.kernel.adaptor.wrapper.VimWrapperConfiguration;
+import sonata.kernel.adaptor.wrapper.WrapperBay;
 
 import java.util.ArrayList;
 import java.util.Observable;
@@ -78,24 +78,50 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
 
             ArrayList<String> content= resourceRepo.getResourcesFromRequestId(message.getSid());
 
-            ManagementComputeListResponse data = null;
+            VimResourcesList data = null;
             ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-            ArrayList<VimResources> finalContent = new ArrayList<>();
+            ArrayList<VimResources> vimList = new ArrayList<>();
 
             try {
               for (String value : content) {
                 //Logger.debug("Data: " + value);
-                data = mapper.readValue(value, ManagementComputeListResponse.class);
-                finalContent.addAll(data.getResources());
+                data = mapper.readValue(value, VimResourcesList.class);
+                vimList.addAll(data.getResources());
               }
             } catch (Exception e) {
               Logger.error("Error parsing the payload: " + e.getMessage(), e);
-              finalContent = null;
+              vimList = null;
             }
 
-            if (finalContent != null) {
+            if (vimList != null) {
+
+              ArrayList<NepResources> nepList = new ArrayList<>();
+              ArrayList<String> nepsUuid = WrapperBay.getInstance().getNepList();
+
+              if (nepsUuid != null) {
+                Logger.debug(nepsUuid.toString());
+
+                for(String nep : nepsUuid){
+                  VimWrapperConfiguration config = WrapperBay.getInstance().getConfig(nep);
+
+                  if(config==null){
+                    continue;
+                  }
+                  NepResources bodyElement = new NepResources();
+                  bodyElement.setNepUuid(config.getUuid());
+                  bodyElement.setNepName(config.getName());
+                  bodyElement.setType(config.getWrapperType().toString());
+
+                  nepList.add(bodyElement);
+                }
+              }
+
+              ComputeListResponse computeListResponse = new ComputeListResponse();
+              computeListResponse.setVimList(vimList);
+              computeListResponse.setNepList(nepList);
+
               String body;
-              body = mapper.writeValueAsString(finalContent);
+              body = mapper.writeValueAsString(computeListResponse);
               //Logger.debug("Final Content: " + body);
 
               ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
