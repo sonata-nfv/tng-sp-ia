@@ -42,14 +42,12 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
-import sonata.kernel.adaptor.commons.Status;
-import sonata.kernel.adaptor.commons.WimRecord;
+import sonata.kernel.adaptor.commons.WimResources;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.messaging.TestConsumer;
 import sonata.kernel.adaptor.messaging.TestProducer;
@@ -247,9 +245,9 @@ public class WimAdaptorTest implements MessageReceiver {
     }
     
     System.out.println("Lis results:\n" +output);
-    WimRecord[] list = mapper.readValue(output, WimRecord[].class);
+    WimResources[] list = mapper.readValue(output, WimResources[].class);
 
-    for (WimRecord wim : list){
+    for (WimResources wim : list){
       System.out.println(wim);
       ArrayList<String> attachedVims = wim.getAttachedVims();
       if(wim.getUuid().equals(uuid1)){

@@ -30,12 +30,15 @@ import java.util.ArrayList;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class WimRecord {
+public class WimResources {
 
   private String uuid;
   private String name;
   @JsonProperty("attached_vims")
   private ArrayList<String> attachedVims = new ArrayList<String>();
+  @JsonProperty("attached_endpoints")
+  private ArrayList<String> attachedEndpoints = new ArrayList<String>();
+  private ArrayList<WimQos> qos = new ArrayList<>();
   
   public String getUuid() {
     return uuid;
@@ -46,6 +49,13 @@ public class WimRecord {
   public ArrayList<String> getAttachedVims() {
     return attachedVims;
   }
+  public ArrayList<String> getAttachedEndpoints() {
+    return attachedEndpoints;
+  }
+  public ArrayList<WimQos> getQos() {
+    return qos;
+  }
+
   public void setUuid(String uuid) {
     this.uuid = uuid;
   }
@@ -55,7 +65,13 @@ public class WimRecord {
   public void setAttachedVims(ArrayList<String> attachedVims) {
     this.attachedVims = attachedVims;
   }
-  
+  public void setAttachedEndpoints(ArrayList<String> attachedEndpoints) {
+    this.attachedEndpoints = attachedEndpoints;
+  }
+  public void setQos(ArrayList<WimQos> qos) {
+    this.qos = qos;
+  }
+
   @Override
   public String toString(){
     String out = "uuid: "+this.uuid+"\n"+
