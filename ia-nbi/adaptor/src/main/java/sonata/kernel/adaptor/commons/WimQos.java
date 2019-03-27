@@ -35,11 +35,11 @@ public class WimQos {
   @JsonProperty("node_2")
   private String node2;
   @JsonProperty("latency")
-  private String latency;
+  private int latency;
   @JsonProperty("latency_unit")
   private String latencyUnit;
   @JsonProperty("bandwidth")
-  private String bandwidth;
+  private int bandwidth;
   @JsonProperty("bandwidth_unit")
   private String bandwidthUnit;
 
@@ -52,7 +52,7 @@ public class WimQos {
     return node2;
   }
 
-  public String getLatency() {
+  public int getLatency() {
     return latency;
   }
 
@@ -60,7 +60,7 @@ public class WimQos {
     return latencyUnit;
   }
 
-  public String getBandwidth() {
+  public int getBandwidth() {
     return bandwidth;
   }
 
@@ -77,7 +77,7 @@ public class WimQos {
     this.node2 = node2;
   }
 
-  public void setLatency(String latency) {
+  public void setLatency(int latency) {
     this.latency = latency;
   }
 
@@ -85,7 +85,7 @@ public class WimQos {
     this.latencyUnit = latencyUnit;
   }
 
-  public void setBandwidth(String bandwidth) {
+  public void setBandwidth(int bandwidth) {
     this.bandwidth = bandwidth;
   }
 

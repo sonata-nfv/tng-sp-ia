@@ -98,9 +98,9 @@ public class ListWimCallProcessor extends AbstractCallProcessor {
           WimQos qos = new WimQos();
           qos.setNode1(vimOrNep1);
           qos.setNode2(vimOrNep2);
-          qos.setLatency("10");
+          qos.setLatency(10);
           qos.setLatencyUnit("ms");
-          qos.setBandwidth("1000");
+          qos.setBandwidth(1000);
           qos.setBandwidthUnit("Mbps");
           qosList.add(qos);
         }
