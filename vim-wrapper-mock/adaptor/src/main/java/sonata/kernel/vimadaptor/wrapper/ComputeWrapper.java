@@ -27,8 +27,10 @@
 package sonata.kernel.vimadaptor.wrapper;
 
 import sonata.kernel.vimadaptor.commons.*;
+import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper {
 
@@ -86,10 +88,33 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    * 
    * @param instanceId the ID of the instance used as reference for the prepared environment in the
    *        VIM
+   * @param virtualLinks the virtual links containing information for the network creation
    * 
    * @return true if the remove process has started correctly, false otherwise
    */
-  public abstract boolean prepareService(String instanceId) throws Exception;
+  public abstract boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
+
+  /**
+   * Network create for a service instance in this VIM for the given instance ID.
+   *
+   * @param instanceId the ID of the instance used as reference for the environment in the
+   *        VIM
+   * @param virtualLinks the virtual links containing information for the network creation
+   *
+   * @return true if the remove process has started correctly, false otherwise
+   */
+  public abstract boolean networkCreate(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
+
+  /**
+   * Network delete for a service instance in this VIM for the given instance ID.
+   *
+   * @param instanceId the ID of the instance used as reference for the environment in the
+   *        VIM
+   * @param virtualLinks the virtual links containing information for the network deletion
+   *
+   * @return true if the remove process has started correctly, false otherwise
+   */
+  public abstract boolean networkDelete(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
 
   /**
    * Remove the given image from this compute VIM image repository.
@@ -100,10 +125,10 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
 
   /**
    * Remove a service instance from this VIM.
-   *
+   * 
    * @param data the payload of a service.Remove call
    * @param sid the session ID for this Adaptor call
-   *
+   * 
    */
   public abstract void removeService(ServiceRemovePayload data, String sid);
 

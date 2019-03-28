@@ -159,6 +159,12 @@ public class AdaptorDispatcher implements Runnable {
     } else if (message.getTopic().endsWith("prepare")) {
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
       myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), mux));
+    } else if (message.getTopic().endsWith("network.create")) {
+      Logger.info("Received a \"network.create\" API call on topic: " + message.getTopic());
+      myThreadPool.execute(new NetworkCreateServiceCallProcessor(message, message.getSid(), mux));
+    } else if (message.getTopic().endsWith("network.delete")) {
+      Logger.info("Received a \"network.delete\" API call on topic: " + message.getTopic());
+      myThreadPool.execute(new NetworkDeleteServiceCallProcessor(message, message.getSid(), mux));
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());
       myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), mux));
