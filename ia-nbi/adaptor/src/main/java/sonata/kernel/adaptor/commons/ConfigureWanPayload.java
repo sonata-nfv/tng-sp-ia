@@ -34,36 +34,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ConfigureWanPayload {
 
   @JsonProperty("service_instance_id")
-  private String instanceId;
-  @JsonProperty("vim_list")
-  private ArrayList<ComparableUuid> vimList;
-//  @JsonProperty("nap")
-//  private NetworkAttachmentPoints nap;
+  private String serviceInstanceId;
+  @JsonProperty("wim_uuid")
+  private String wimUuid;
 
-  public String getInstanceId() {
-    return instanceId;
+  public String getServiceInstanceId() {
+    return serviceInstanceId;
   }
 
-  public ArrayList<ComparableUuid> getVimList() {
-    return vimList;
+  public String getWimUuid() {
+    return wimUuid;
   }
 
-//  public NetworkAttachmentPoints getNap() {
-//    return nap;
-//  }
-
-  public void setInstanceId(String instanceId) {
-    this.instanceId = instanceId;
+  public void setServiceInstanceId(String serviceInstanceId) {
+    this.serviceInstanceId = serviceInstanceId;
   }
 
-  public void setVimList(ArrayList<ComparableUuid> vimList) {
-    this.vimList = vimList;
+  public void setWimUuid(String wimUuid) {
+    this.wimUuid = wimUuid;
   }
-
-//  public void setNap(NetworkAttachmentPoints nap) {
-//    this.nap = nap;
-//  }
-
-
-
 }
