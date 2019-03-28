@@ -237,6 +237,63 @@ public class VimRepo {
   }
 
   /**
+   * Get the instance UUID of the VNFs for a given service instance
+   *
+   * @param serviceInstanceUuid the instance UUID of the service
+   *
+   * @return an arraylist of String with the instance UUID of the VNFs for this service, null if error occurs
+   *
+   */
+  public ArrayList<String> getFunctionUuidByServiceInstanceIdAndVimUuid(String serviceInstanceUuid, String vimUuid) {
+    ArrayList<String> out = new ArrayList<String>();
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "vimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      stmt = connection
+              .prepareStatement("SELECT INSTANCE_UUID FROM function_instances  WHERE SERVICE_INSTANCE_UUID=? AND VIM_UUID=?;");
+      stmt.setString(1, serviceInstanceUuid);
+      stmt.setString(2, vimUuid);
+      rs = stmt.executeQuery();
+      while (rs.next()) {
+        out.add(rs.getString("INSTANCE_UUID"));
+      }
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = null;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage());
+      out = null;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (rs != null) {
+          rs.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = null;
+
+      }
+    }
+    return out;
+  }
+
+  /**
    * Get the VIM UUID where the given VNF is deployed.
    * 
    * @param functionId the instance UUID of the VNF
@@ -362,7 +419,7 @@ public class VimRepo {
   /**
    * Get the NetworkWrapper identified by the given UUID.
    * 
-   * @param computeUuid the uuid of the network VIM
+   * @param vimUuid the uuid of the network VIM
    * @return
    */
   public NetworkWrapper getNetworkVim(String vimUuid) {
@@ -1049,7 +1106,7 @@ public class VimRepo {
   }
 
   /**
-   * @param uuid
+   * @param networkingUuid
    */
   public boolean removeNetworkVimLink(String networkingUuid) {
     boolean out = true;
@@ -1095,6 +1152,62 @@ public class VimRepo {
 
     return out;
   }
+
+  /**
+   * delete the function instance record into the repository.
+   *
+   * @param instanceUuid the uuid of the instance in the VNFD
+   *
+   * @return true for process success
+   */
+  public boolean removeFunctionInstanceEntry(String instanceUuid, String vimUuid) {
+    boolean out = true;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+              DriverManager.getConnection(
+                      "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                              + prop.getProperty("repo_port") + "/" + "vimregistry",
+                      prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      String sql = "DELETE FROM function_instances WHERE INSTANCE_UUID=? AND VIM_UUID=?;";
+      stmt = connection.prepareStatement(sql);
+      stmt.setString(1, instanceUuid);
+      stmt.setString(2, vimUuid);
+      stmt.executeUpdate();
+      connection.commit();
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = false;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = false;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = false;
+      }
+    }
+    if (!out) {
+      Logger.info("Function instance removed successfully");
+    }
+
+    return out;
+  }
+
+
+
 
   /**
    * delete the service instance record into the repository.

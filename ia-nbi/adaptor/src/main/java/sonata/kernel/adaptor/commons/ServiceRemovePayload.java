@@ -20,49 +20,36 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Dario Valocchi (Ph.D.)
+ * @author Thomas Soenen, imec
  * 
  */
 
-package sonata.kernel.vimadaptor.commons;
+package sonata.kernel.adaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import sonata.kernel.vimadaptor.commons.nsd.NetworkFunction;
-import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
-import java.util.ArrayList;
+public class ServiceRemovePayload {
 
-public class VimPreDeploymentList {
+  @JsonProperty("instance_uuid")
+  private String serviceInstanceId;
+  @JsonProperty("vim_uuid")
+  private String vimUuid;
 
-  @JsonProperty("vm_images")
-  private ArrayList<VnfImage> images;
-  @JsonProperty("uuid")
-  private String uuid;
-  @JsonProperty("virtual_links")
-  private ArrayList<VirtualLink> virtualLinks;
-
-  public ArrayList<VnfImage> getImages() {
-    return images;
+  public String getServiceInstanceId() {
+    return serviceInstanceId;
   }
 
-  public String getUuid() {
-    return uuid;
+  public String getVimUuid() {
+    return vimUuid;
   }
 
-  public ArrayList<VirtualLink> getVirtualLinks() {
-    return virtualLinks;
+
+  public void setServiceInstanceId(String serviceInstanceId) {
+    this.serviceInstanceId = serviceInstanceId;
   }
 
-  public void setImages(ArrayList<VnfImage> images) {
-    this.images = images;
-  }
-
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
-  public void setVirtualLinks(ArrayList<VirtualLink> virtualLinks) {
-    this.virtualLinks = virtualLinks;
+  public void setVimUuid(String vimUuid) {
+    this.vimUuid = vimUuid;
   }
 
 }

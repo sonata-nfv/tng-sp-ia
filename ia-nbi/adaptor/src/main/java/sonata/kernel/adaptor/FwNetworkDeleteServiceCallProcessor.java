@@ -25,18 +25,20 @@
  */
 package sonata.kernel.adaptor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import sonata.kernel.adaptor.commons.*;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
-import sonata.kernel.adaptor.wrapper.*;
+import sonata.kernel.adaptor.wrapper.ComputeVimVendor;
+import sonata.kernel.adaptor.wrapper.ResourceRepo;
+import sonata.kernel.adaptor.wrapper.VimVendor;
 
 import java.util.ArrayList;
 import java.util.Observable;
 
-public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
+public class FwNetworkDeleteServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(FwListComputeVimCallProcessor.class);
+      LoggerFactory.getLogger(FwNetworkDeleteServiceCallProcessor.class);
 
   private ArrayList<String> vimVendors;
 
@@ -45,7 +47,7 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
-  public FwListComputeVimCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
+  public FwNetworkDeleteServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
     super(message, sid, mux);
   }
 
@@ -59,7 +61,6 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
   public boolean process(ServicePlatformMessage message) {
 
     boolean out = true;
-    String type = null;
     Logger.info("Call received - sid: " + message.getSid());
 
     ResourceRepo resourceRepo =  ResourceRepo.getInstance();
@@ -67,44 +68,19 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
 
     if (message.getTopic().contains(".heat.")) {
       vimVendor = ComputeVimVendor.HEAT;
-      type = "vm";
     } else if (message.getTopic().contains(".mock.")) {
       vimVendor = ComputeVimVendor.MOCK;
-      type = "vm";
     } else if (message.getTopic().contains(".k8s.")) {
       vimVendor = ComputeVimVendor.K8S;
-      type = "container";
     }
 
-    if ((vimVendor == null) || (type == null)) {
+    if (vimVendor == null) {
       return false;
     }
 
-    String body = null;
-    ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-    ArrayList<VimResources> resList = new ArrayList<>();
-    try {
-      VimResourcesList payload = mapper.readValue(message.getBody(), VimResourcesList.class);
-      if (!payload.getResources().isEmpty()) {
-        for (VimResources resource : payload.getResources()) {
-          resource.setType(type);
-          resList.add(resource);
-        }
-        VimResourcesList responseBody = new VimResourcesList();
-        responseBody.setResources(resList);
-        body = mapper.writeValueAsString(responseBody);
-      } else {
-        body = message.getBody();
-      }
-    } catch (Exception e) {
-      Logger.error("Error parsing the payload: " + e.getMessage(), e);
-      return false;
-    }
-
-    //Logger.debug("Content modified: " + body);
     synchronized (resourceRepo) {
 
-      if (resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,body)) {
+      if (resourceRepo.putResourcesForRequestIdAndVendor(message.getSid(),vimVendor,message.getBody())) {
         if (resourceRepo.getStoredVendorsNumberForRequestId(message.getSid())
                 .equals(resourceRepo.getExpectedVendorsNumberForRequestId(message.getSid()))) {
           try {
@@ -114,50 +90,30 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
             //message.setTopic(message.getTopic().replace("nbi.",""));
 
             ArrayList<String> content= resourceRepo.getResourcesFromRequestId(message.getSid());
-
-            VimResourcesList data = null;
-            ArrayList<VimResources> vimList = new ArrayList<>();
+            String body = null;
 
             try {
               for (String value : content) {
-                data = mapper.readValue(value, VimResourcesList.class);
-                vimList.addAll(data.getResources());
+                JSONTokener tokener = new JSONTokener(value);
+                JSONObject jsonObject = (JSONObject) tokener.nextValue();
+                String requestStatus = null;
+                try {
+                  requestStatus = jsonObject.getString("request_status");
+                  if ((body == null) || !requestStatus.equals("COMPLETED")) {
+                    body = value;
+                  }
+                } catch (Exception e) {
+                  Logger.error("Error getting the request_status: " + e.getMessage(), e);
+                  return false;
+                }
+
               }
             } catch (Exception e) {
               Logger.error("Error parsing the payload: " + e.getMessage(), e);
               return false;
             }
 
-            ArrayList<NepResources> nepList = new ArrayList<>();
-            ArrayList<String> nepsUuid = WrapperBay.getInstance().getNepList();
-
-            if (nepsUuid != null) {
-              Logger.debug(nepsUuid.toString());
-
-              for(String nep : nepsUuid){
-                VimWrapperConfiguration config = WrapperBay.getInstance().getConfig(nep);
-
-                if(config==null){
-                  continue;
-                }
-                NepResources bodyElement = new NepResources();
-                bodyElement.setNepUuid(config.getUuid());
-                bodyElement.setNepName(config.getName());
-                bodyElement.setType(config.getWrapperType().toString());
-
-                nepList.add(bodyElement);
-              }
-            }
-
-            ComputeListResponse computeListResponse = new ComputeListResponse();
-            computeListResponse.setVimList(vimList);
-            computeListResponse.setNepList(nepList);
-
-            String finalBody;
-            finalBody = mapper.writeValueAsString(computeListResponse);
-
-            //Logger.debug("Final Content: " + finalBody);
-            ServicePlatformMessage response = new ServicePlatformMessage(finalBody, "application/json",
+            ServicePlatformMessage response = new ServicePlatformMessage(body, "application/json",
                     message.getTopic().replace("nbi.infrastructure."+vimVendor.toString()+".","infrastructure."), message.getSid(), null);
 
             resourceRepo.removeResourcesFromRequestId(message.getSid());

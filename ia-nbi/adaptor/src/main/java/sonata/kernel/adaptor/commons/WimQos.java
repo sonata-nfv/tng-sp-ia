@@ -24,45 +24,73 @@
  * 
  */
 
-package sonata.kernel.vimadaptor.commons;
+package sonata.kernel.adaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import sonata.kernel.vimadaptor.commons.nsd.NetworkFunction;
-import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
-import java.util.ArrayList;
+public class WimQos {
 
-public class VimPreDeploymentList {
+  @JsonProperty("node_1")
+  private String node1;
+  @JsonProperty("node_2")
+  private String node2;
+  @JsonProperty("latency")
+  private int latency;
+  @JsonProperty("latency_unit")
+  private String latencyUnit;
+  @JsonProperty("bandwidth")
+  private int bandwidth;
+  @JsonProperty("bandwidth_unit")
+  private String bandwidthUnit;
 
-  @JsonProperty("vm_images")
-  private ArrayList<VnfImage> images;
-  @JsonProperty("uuid")
-  private String uuid;
-  @JsonProperty("virtual_links")
-  private ArrayList<VirtualLink> virtualLinks;
 
-  public ArrayList<VnfImage> getImages() {
-    return images;
+  public String getNode1() {
+    return node1;
   }
 
-  public String getUuid() {
-    return uuid;
+  public String getNode2() {
+    return node2;
   }
 
-  public ArrayList<VirtualLink> getVirtualLinks() {
-    return virtualLinks;
+  public int getLatency() {
+    return latency;
   }
 
-  public void setImages(ArrayList<VnfImage> images) {
-    this.images = images;
+  public String getLatencyUnit() {
+    return latencyUnit;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+  public int getBandwidth() {
+    return bandwidth;
   }
 
-  public void setVirtualLinks(ArrayList<VirtualLink> virtualLinks) {
-    this.virtualLinks = virtualLinks;
+  public String getBandwidthUnit() {
+    return bandwidthUnit;
+  }
+
+
+  public void setNode1(String node1) {
+    this.node1 = node1;
+  }
+
+  public void setNode2(String node2) {
+    this.node2 = node2;
+  }
+
+  public void setLatency(int latency) {
+    this.latency = latency;
+  }
+
+  public void setLatencyUnit(String latencyUnit) {
+    this.latencyUnit = latencyUnit;
+  }
+
+  public void setBandwidth(int bandwidth) {
+    this.bandwidth = bandwidth;
+  }
+
+  public void setBandwidthUnit(String bandwidthUnit) {
+    this.bandwidthUnit = bandwidthUnit;
   }
 
 }

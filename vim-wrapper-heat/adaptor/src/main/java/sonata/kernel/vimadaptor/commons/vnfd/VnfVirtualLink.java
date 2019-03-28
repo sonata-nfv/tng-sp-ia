@@ -29,6 +29,7 @@ package sonata.kernel.vimadaptor.commons.vnfd;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import sonata.kernel.vimadaptor.commons.nsd.QosRequirements;
 import sonata.kernel.vimadaptor.commons.nsd.VirtualLink.ConnectivityType;
 
 import java.util.ArrayList;
@@ -36,20 +37,25 @@ import java.util.ArrayList;
 public class VnfVirtualLink {
 
 
-  private boolean access;
+  private Boolean access;
   @JsonProperty("connection_points_reference")
   private ArrayList<String> connectionPointsReference;
   @JsonProperty("connectivity_type")
   private ConnectivityType connectivityType;
-  private boolean dhcp;
+  private Boolean dhcp;
+  private String cidr;
   @JsonProperty("external_access")
-  private boolean externalAccess;
+  private Boolean externalAccess;
   private String id;
   @JsonProperty("leaf_requirement")
   private String leafRequirement;
   private String qos;
+  @JsonProperty("qos_requirements")
+  private QosRequirements qosRequirements;
   @JsonProperty("root_requirement")
   private String rootRequirement;
+  @JsonProperty("network_id")
+  private String networkId;
 
 
   public ArrayList<String> getConnectionPointsReference() {
@@ -58,6 +64,10 @@ public class VnfVirtualLink {
 
   public ConnectivityType getConnectivityType() {
     return connectivityType;
+  }
+
+  public String getCidr() {
+    return cidr;
   }
 
   public String getId() {
@@ -72,23 +82,31 @@ public class VnfVirtualLink {
     return qos;
   }
 
+  public QosRequirements getQosRequirements() {
+    return qosRequirements;
+  }
+
   public String getRootRequirement() {
     return rootRequirement;
   }
 
-  public boolean isAccess() {
+  public String getNetworkId() {
+        return networkId;
+    }
+
+  public Boolean isAccess() {
     return access;
   }
 
-  public boolean isDhcp() {
+  public Boolean isDhcp() {
     return dhcp;
   }
 
-  public boolean isExternalAccess() {
+  public Boolean isExternalAccess() {
     return externalAccess;
   }
 
-  public void setAccess(boolean access) {
+  public void setAccess(Boolean access) {
     this.access = access;
   }
 
@@ -100,12 +118,16 @@ public class VnfVirtualLink {
     this.connectivityType = connectivityType;
   }
 
-  public void setDhcp(boolean dhcp) {
+  public void setDhcp(Boolean dhcp) {
     this.dhcp = dhcp;
   }
 
-  public void setExternalAccess(boolean externalAccess) {
+  public void setExternalAccess(Boolean externalAccess) {
     this.externalAccess = externalAccess;
+  }
+
+  public void setCidr(String cidr) {
+    this.cidr = cidr;
   }
 
   public void setId(String id) {
@@ -120,7 +142,16 @@ public class VnfVirtualLink {
     this.qos = qos;
   }
 
+  public void setQosRequirements(QosRequirements qosRequirements) {
+    this.qosRequirements = qosRequirements;
+  }
+
   public void setRootRequirement(String rootRequirement) {
     this.rootRequirement = rootRequirement;
   }
+
+  public void setNetworkId(String networkId) {
+        this.networkId = networkId;
+    }
+
 }

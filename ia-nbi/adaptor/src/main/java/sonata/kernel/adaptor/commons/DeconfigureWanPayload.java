@@ -32,13 +32,22 @@ public class DeconfigureWanPayload {
 
   @JsonProperty("service_instance_id")
   private String serviceInstanceId;
+  @JsonProperty("wim_uuid")
+  private String wimUuid;
 
   public String getServiceInstanceId() {
     return serviceInstanceId;
   }
 
+  public String getWimUuid() {
+    return wimUuid;
+  }
+
   public void setServiceInstanceId(String serviceInstanceId) {
     this.serviceInstanceId = serviceInstanceId;
   }
-  
+
+  public void setWimUuid(String wimUuid) {
+    this.wimUuid = wimUuid;
+  }
 }

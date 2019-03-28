@@ -20,49 +20,27 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Dario Valocchi (Ph.D.)
+ * @author Thomas Soenen, imec
  * 
  */
 
-package sonata.kernel.vimadaptor.commons;
+package sonata.kernel.adaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import sonata.kernel.vimadaptor.commons.nsd.NetworkFunction;
-import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
 import java.util.ArrayList;
 
-public class VimPreDeploymentList {
 
-  @JsonProperty("vm_images")
-  private ArrayList<VnfImage> images;
-  @JsonProperty("uuid")
-  private String uuid;
-  @JsonProperty("virtual_links")
-  private ArrayList<VirtualLink> virtualLinks;
+public class VimResourcesList {
 
-  public ArrayList<VnfImage> getImages() {
-    return images;
+  private ArrayList<VimResources> resources;
+
+  public ArrayList<VimResources> getResources() {
+    return resources;
   }
 
-  public String getUuid() {
-    return uuid;
-  }
-
-  public ArrayList<VirtualLink> getVirtualLinks() {
-    return virtualLinks;
-  }
-
-  public void setImages(ArrayList<VnfImage> images) {
-    this.images = images;
-  }
-
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
-  public void setVirtualLinks(ArrayList<VirtualLink> virtualLinks) {
-    this.virtualLinks = virtualLinks;
+  public void setResources(ArrayList<VimResources> resources) {
+    this.resources = resources;
   }
 
 }

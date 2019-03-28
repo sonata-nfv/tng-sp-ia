@@ -24,45 +24,39 @@
  * 
  */
 
-package sonata.kernel.vimadaptor.commons;
+package sonata.kernel.adaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import sonata.kernel.vimadaptor.commons.nsd.NetworkFunction;
-import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
 import java.util.ArrayList;
 
-public class VimPreDeploymentList {
+public class ServiceNetworkCreatePayload {
 
-  @JsonProperty("vm_images")
-  private ArrayList<VnfImage> images;
-  @JsonProperty("uuid")
-  private String uuid;
-  @JsonProperty("virtual_links")
-  private ArrayList<VirtualLink> virtualLinks;
+  @JsonProperty("instance_id")
+  private String instanceId;
+  @JsonProperty("vim_list")
+  private ArrayList<VimPreDeploymentList> vimList;
 
-  public ArrayList<VnfImage> getImages() {
-    return images;
+  public String getInstanceId() {
+    return instanceId;
   }
 
-  public String getUuid() {
-    return uuid;
+
+  public ArrayList<VimPreDeploymentList> getVimList() {
+    return vimList;
   }
 
-  public ArrayList<VirtualLink> getVirtualLinks() {
-    return virtualLinks;
+
+
+  public void setInstanceId(String instanceId) {
+    this.instanceId = instanceId;
   }
 
-  public void setImages(ArrayList<VnfImage> images) {
-    this.images = images;
+
+
+  public void setVimList(ArrayList<VimPreDeploymentList> vimList) {
+    this.vimList = vimList;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
-  }
-
-  public void setVirtualLinks(ArrayList<VirtualLink> virtualLinks) {
-    this.virtualLinks = virtualLinks;
-  }
 
 }

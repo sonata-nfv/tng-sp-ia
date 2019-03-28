@@ -34,20 +34,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.slf4j.LoggerFactory;
 
-import sonata.kernel.vimadaptor.commons.FunctionDeployPayload;
-import sonata.kernel.vimadaptor.commons.FunctionDeployResponse;
-import sonata.kernel.vimadaptor.commons.FunctionRemovePayload;
-import sonata.kernel.vimadaptor.commons.FunctionRemoveResponse;
-import sonata.kernel.vimadaptor.commons.FunctionScalePayload;
-import sonata.kernel.vimadaptor.commons.ServiceDeployPayload;
-import sonata.kernel.vimadaptor.commons.Status;
-import sonata.kernel.vimadaptor.commons.VduRecord;
-import sonata.kernel.vimadaptor.commons.VnfImage;
-import sonata.kernel.vimadaptor.commons.VnfRecord;
-import sonata.kernel.vimadaptor.commons.VnfcInstance;
+import sonata.kernel.vimadaptor.commons.*;
 import sonata.kernel.vimadaptor.commons.nsd.ConnectionPoint;
 import sonata.kernel.vimadaptor.commons.nsd.ConnectionPointRecord;
 import sonata.kernel.vimadaptor.commons.nsd.InterfaceRecord;
+import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 import sonata.kernel.vimadaptor.commons.vnfd.VirtualDeploymentUnit;
 import sonata.kernel.vimadaptor.commons.vnfd.VnfDescriptor;
 import sonata.kernel.vimadaptor.wrapper.ComputeWrapper;
@@ -254,12 +245,40 @@ public class ComputeMockWrapper extends ComputeWrapper {
    * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#prepareService(java.lang.String)
    */
   @Override
-  public boolean prepareService(String instanceId) {
+  public boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) {
     double avgTime = 1356.52;
     double stdTime = 663.12;
     waitGaussianTime(avgTime, stdTime);
     WrapperBay.getInstance().getVimRepo().writeServiceInstanceEntry(instanceId, instanceId,
         instanceId, this.getConfig().getUuid());
+    return true;
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#networkCreate(java.lang.String,
+   * ArrayList<VirtualLink> virtualLinks)
+   */
+  @Override
+  public boolean networkCreate(String instanceId, ArrayList<VirtualLink> virtualLinks) {
+    double avgTime = 1356.52;
+    double stdTime = 663.12;
+    waitGaussianTime(avgTime, stdTime);
+    return true;
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#networkDelete(java.lang.String,
+   * ArrayList<VirtualLink> virtualLinks)
+   */
+  @Override
+  public boolean networkDelete(String instanceId, ArrayList<VirtualLink> virtualLinks) {
+    double avgTime = 1309;
+    double stdTime = 343;
+    waitGaussianTime(avgTime, stdTime);
     return true;
   }
 
@@ -277,8 +296,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
   }
 
   @Override
-  public boolean removeService(String instanceUuid, String callSid) {
-    boolean out = true;
+  public void removeService(ServiceRemovePayload data, String callSid) {
 
     double avgTime = 1309;
     double stdTime = 343;
@@ -289,10 +307,9 @@ public class ComputeMockWrapper extends ComputeWrapper {
         "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + this.getConfig().getUuid() + "\"}";
     WrapperStatusUpdate update = new WrapperStatusUpdate(callSid, "SUCCESS", body);
 
-    WrapperBay.getInstance().getVimRepo().removeServiceInstanceEntry(instanceUuid, this.getConfig().getUuid());
+    WrapperBay.getInstance().getVimRepo().removeServiceInstanceEntry(data.getServiceInstanceId(), this.getConfig().getUuid());
     this.notifyObservers(update);
 
-    return out;
   }
 
   @Override

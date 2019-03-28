@@ -26,29 +26,26 @@
 package sonata.kernel.vimadaptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.slf4j.LoggerFactory;
-
-import sonata.kernel.vimadaptor.commons.ServicePreparePayload;
+import sonata.kernel.vimadaptor.commons.ServiceNetworkDeletePayload;
 import sonata.kernel.vimadaptor.commons.SonataManifestMapper;
 import sonata.kernel.vimadaptor.commons.VimPreDeploymentList;
-import sonata.kernel.vimadaptor.commons.VnfImage;
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.vimadaptor.wrapper.ComputeWrapper;
 import sonata.kernel.vimadaptor.wrapper.WrapperBay;
 
 import java.util.Observable;
 
-public class PrepareServiceCallProcessor extends AbstractCallProcessor {
+public class NetworkDeleteServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
-      LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
+      LoggerFactory.getLogger(NetworkDeleteServiceCallProcessor.class);
 
   /**
    * @param message
    * @param sid
    * @param mux
    */
-  public PrepareServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
+  public NetworkDeleteServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
     super(message, sid, mux);
   }
 
@@ -65,7 +62,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
     Logger.info("Call received - sid: " + message.getSid());
     // parse the payload to get Wrapper UUID and NSD/VNFD from the request body
     Logger.info("Parsing payload...");
-    ServicePreparePayload payload = null;
+    ServiceNetworkDeletePayload payload = null;
     ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
     // ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     // SimpleModule module = new SimpleModule();
@@ -77,7 +74,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
     // mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     try {
-      payload = mapper.readValue(message.getBody(), ServicePreparePayload.class);
+      payload = mapper.readValue(message.getBody(), ServiceNetworkDeletePayload.class);
       Logger.info("payload parsed. Configuring VIMs");
 
       for (VimPreDeploymentList vim : payload.getVimList()) {
@@ -87,38 +84,29 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
         }
         Logger.info(message.getSid().substring(0, 10) + " - Wrapper retrieved");
 
-        for (VnfImage vnfImage : vim.getImages()) {
-          if (!wr.isImageStored(vnfImage, message.getSid())) {
-            Logger.info(
-                message.getSid().substring(0, 10) + " - Image not stored in VIM image repository.");
-            wr.uploadImage(vnfImage);
-          } else {
-            Logger.info(message.getSid().substring(0, 10)
-                + " - Image already stored in the VIM image repository");
-          }
-        }
-
         if (WrapperBay.getInstance().getVimRepo().getServiceInstanceVimUuid(payload.getInstanceId(),
             vim.getUuid()) == null) {
-          boolean success = wr.prepareService(payload.getInstanceId(), vim.getVirtualLinks());
-          if (!success) {
-            throw new Exception("Unable to prepare the environment for instance: "
-                + payload.getInstanceId() + " on Compute VIM " + vim.getUuid());
-          }
+
+          throw new Exception("Service needs to be prepared first for instance "
+                  + payload.getInstanceId() + " on Compute VIM " + vim.getUuid());
         } else {
-          Logger.info("Service already prepared in Compute VIM " + vim.getUuid());
+          boolean success = wr.networkDelete(payload.getInstanceId(), vim.getVirtualLinks());
+          if (!success) {
+            throw new Exception("Unable to delete the network for instance: "
+                    + payload.getInstanceId() + " on Compute VIM " + vim.getUuid());
+          }
         }
 
       }
       Logger.info(
-          message.getSid().substring(0, 10) + " - Preparation complete. Sending back response.");
+          message.getSid().substring(0, 10) + " - Network delete complete. Sending back response.");
       String responseJson = "{\"request_status\":\"COMPLETED\",\"message\":\"\"}";
       ServicePlatformMessage responseMessage = new ServicePlatformMessage(responseJson,
           "application/json", message.getReplyTo(), message.getSid(), this.getMessage().getTopic());
       this.sendToMux(responseMessage);
 
     } catch (Exception e) {
-      Logger.error("Error deploying the system: " + e.getMessage(), e);
+      Logger.error("Error in network delete: " + e.getMessage(), e);
       this.sendToMux(new ServicePlatformMessage(
           "{\"request_status\":\"ERROR\",\"message\":\""
               + e.getMessage().replace("\"", "''").replace("\n", "") + "\"}",

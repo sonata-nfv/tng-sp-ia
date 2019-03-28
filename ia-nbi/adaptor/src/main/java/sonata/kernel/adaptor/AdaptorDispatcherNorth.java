@@ -197,6 +197,12 @@ public class AdaptorDispatcherNorth implements Runnable {
     } else if (message.getTopic().endsWith("prepare")) {
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
       vimVendors = this.getVimVendors.GetVimVendors(message,"prepare");
+    } else if (message.getTopic().endsWith("network.create")) {
+      Logger.info("Received a \"service.network.create\" API call on topic: " + message.getTopic());
+      vimVendors = this.getVimVendors.GetVimVendors(message,"network.create");
+    } else if (message.getTopic().endsWith("network.delete")) {
+      Logger.info("Received a \"service.network.delete\" API call on topic: " + message.getTopic());
+      vimVendors = this.getVimVendors.GetVimVendors(message,"network.delete");
     } else if (message.getTopic().endsWith("chain.deconfigure")) {
       Logger.info("Received a \"Network\" API call on topic: " + message.getTopic());
       vimVendors = this.getVimVendors.GetVimVendors(message,"chain.deconfigure");
@@ -215,6 +221,10 @@ public class AdaptorDispatcherNorth implements Runnable {
         myThreadPool.execute(new RemoveServiceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
       } else if (message.getTopic().endsWith("prepare")) {
         myThreadPool.execute(new PrepareServiceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
+      } else if (message.getTopic().endsWith("network.create")) {
+        myThreadPool.execute(new NetworkCreateServiceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
+      } else if (message.getTopic().endsWith("network.delete")) {
+        myThreadPool.execute(new NetworkDeleteServiceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
       } else if (message.getTopic().endsWith("chain.deconfigure")) {
         myThreadPool.execute(new DeconfigureNetworkCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
       } else if (message.getTopic().endsWith("chain.configure")) {

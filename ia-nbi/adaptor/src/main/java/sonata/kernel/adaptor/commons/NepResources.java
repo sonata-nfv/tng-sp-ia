@@ -24,45 +24,40 @@
  * 
  */
 
-package sonata.kernel.vimadaptor.commons;
+package sonata.kernel.adaptor.commons;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import sonata.kernel.vimadaptor.commons.nsd.NetworkFunction;
-import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
-import java.util.ArrayList;
+public class NepResources {
 
-public class VimPreDeploymentList {
+  @JsonProperty("nep_name")
+  private String nepName;
+  @JsonProperty("nep_uuid")
+  private String nepUuid;
+  private String type;
 
-  @JsonProperty("vm_images")
-  private ArrayList<VnfImage> images;
-  @JsonProperty("uuid")
-  private String uuid;
-  @JsonProperty("virtual_links")
-  private ArrayList<VirtualLink> virtualLinks;
-
-  public ArrayList<VnfImage> getImages() {
-    return images;
+  public String getNepName() {
+    return nepName;
   }
 
-  public String getUuid() {
-    return uuid;
+  public String getNepUuid() {
+    return nepUuid;
   }
 
-  public ArrayList<VirtualLink> getVirtualLinks() {
-    return virtualLinks;
+  public String getType() {
+    return type;
   }
 
-  public void setImages(ArrayList<VnfImage> images) {
-    this.images = images;
+  public void setNepName(String nepName) {
+    this.nepName = nepName;
   }
 
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+  public void setNepUuid(String nepUuid) {
+    this.nepUuid = nepUuid;
   }
 
-  public void setVirtualLinks(ArrayList<VirtualLink> virtualLinks) {
-    this.virtualLinks = virtualLinks;
+  public void setType(String type) {
+    this.type = type;
   }
 
 }

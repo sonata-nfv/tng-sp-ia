@@ -20,7 +20,7 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Thomas Soenen, imec
+ * @author Dario Valocchi (Ph.D.)
  * 
  */
 
@@ -30,17 +30,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 
+public class ServiceNetworkDeletePayload {
 
-public class ManagementComputeListResponse {
+  @JsonProperty("instance_id")
+  private String instanceId;
+  @JsonProperty("vim_list")
+  private ArrayList<VimPreDeploymentList> vimList;
 
-  private ArrayList<VimResources> resources;
-
-  public ArrayList<VimResources> getResources() {
-    return resources;
+  public String getInstanceId() {
+    return instanceId;
   }
 
-  public void setResources(ArrayList<VimResources> resources) {
-    this.resources = resources;
+
+  public ArrayList<VimPreDeploymentList> getVimList() {
+    return vimList;
   }
+
+
+
+  public void setInstanceId(String instanceId) {
+    this.instanceId = instanceId;
+  }
+
+
+
+  public void setVimList(ArrayList<VimPreDeploymentList> vimList) {
+    this.vimList = vimList;
+  }
+
 
 }

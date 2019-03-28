@@ -44,9 +44,12 @@ public class ConnectionPoint {
   private QosRequirements qosRequirements;
   @JsonProperty("security_groups")
   private ArrayList<String> securityGroups;
-  @JsonProperty("virtua_link_reference")
+  @JsonProperty("virtual_link_reference")
   private String virtualLinkReference;
-
+  @JsonProperty("network_id")
+  private String networkId;
+  @JsonProperty("fip")
+  private Boolean fIp;
 
   public String getId() {
     return id;
@@ -80,6 +83,14 @@ public class ConnectionPoint {
     return virtualLinkReference;
   }
 
+  public String getNetworkId() {
+    return networkId;
+  }
+
+  public Boolean getFIp() {
+    return fIp;
+  }
+
   public void setId(String id) {
     this.id = id;
   }
@@ -110,5 +121,13 @@ public class ConnectionPoint {
 
   public void setVirtualLinkReference(String virtualLinkReference) {
     this.virtualLinkReference = virtualLinkReference;
+  }
+
+  public void setNetworkId(String networkId) {
+    this.networkId = networkId;
+  }
+
+  public void setFIp(Boolean fIp) {
+    this.fIp = fIp;
   }
 }

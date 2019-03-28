@@ -98,6 +98,16 @@ public class WrapperBay {
   }
 
   /**
+   * Return the list of the registered NEPs.
+   *
+   * @return an arraylist of String representing the UUIDs of the registered NEPs
+   */
+  public ArrayList<String> getNepList() {
+    return vimRepository.getNepVims();
+
+  }
+
+  /**
    * Return the VimRepo
    * 
    * @return the VimRepo object.

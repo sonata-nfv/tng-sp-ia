@@ -26,13 +26,11 @@
 
 package sonata.kernel.vimadaptor.wrapper;
 
-import sonata.kernel.vimadaptor.commons.FunctionDeployPayload;
-import sonata.kernel.vimadaptor.commons.FunctionScalePayload;
-import sonata.kernel.vimadaptor.commons.FunctionRemovePayload;
-import sonata.kernel.vimadaptor.commons.ServiceDeployPayload;
-import sonata.kernel.vimadaptor.commons.VnfImage;
+import sonata.kernel.vimadaptor.commons.*;
+import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper {
 
@@ -90,10 +88,33 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    * 
    * @param instanceId the ID of the instance used as reference for the prepared environment in the
    *        VIM
+   * @param virtualLinks the virtual links containing information for the network creation
    * 
    * @return true if the remove process has started correctly, false otherwise
    */
-  public abstract boolean prepareService(String instanceId) throws Exception;
+  public abstract boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
+
+  /**
+   * Network create for a service instance in this VIM for the given instance ID.
+   *
+   * @param instanceId the ID of the instance used as reference for the environment in the
+   *        VIM
+   * @param virtualLinks the virtual links containing information for the network creation
+   *
+   * @return true if the remove process has started correctly, false otherwise
+   */
+  public abstract boolean networkCreate(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
+
+  /**
+   * Network delete for a service instance in this VIM for the given instance ID.
+   *
+   * @param instanceId the ID of the instance used as reference for the environment in the
+   *        VIM
+   * @param virtualLinks the virtual links containing information for the network deletion
+   *
+   * @return true if the remove process has started correctly, false otherwise
+   */
+  public abstract boolean networkDelete(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
 
   /**
    * Remove the given image from this compute VIM image repository.
@@ -105,11 +126,11 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
   /**
    * Remove a service instance from this VIM.
    * 
-   * @param instanceUuid the identifier of the instance in the VIM scope
+   * @param data the payload of a service.Remove call
+   * @param sid the session ID for this Adaptor call
    * 
-   * @return true if the remove process has started correctly, false otherwise
    */
-  public abstract boolean removeService(String instanceUuid, String callSid);
+  public abstract void removeService(ServiceRemovePayload data, String sid);
 
   /**
    * Scale the VNF described in the payload in this compute VIM
@@ -132,7 +153,7 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
   /**
    * Upload the given image to this compute VIM image repository.
    * 
-   * @param imageUrl the URL from which the image can be downloded.
+   * @param image the VnfImage with URL from which the image can be downloaded.
    */
   public abstract void uploadImage(VnfImage image) throws IOException;
 }

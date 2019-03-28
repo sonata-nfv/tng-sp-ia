@@ -35,7 +35,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
-import sonata.kernel.adaptor.commons.WimRecord;
+import sonata.kernel.adaptor.commons.WimQos;
+import sonata.kernel.adaptor.commons.WimResources;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.WimWrapperConfiguration;
 import sonata.kernel.adaptor.wrapper.WrapperBay;
@@ -60,7 +61,8 @@ public class ListWimCallProcessor extends AbstractCallProcessor {
     Logger.info("Received a call on List WIM");
     // TODO
     // ArrayList<String> vimList = WrapperBay.getInstance().getComputeWrapperList();
-    ArrayList<WimRecord> wimList = new ArrayList<WimRecord>();
+    ArrayList<WimResources> wimList = new ArrayList<WimResources>();
+    ArrayList<String> nepsUuid = WrapperBay.getInstance().getNepList();
     ArrayList<String> wimsUuid = WrapperBay.getInstance().getWimList();
 
     Logger.debug(wimsUuid.toString());
@@ -72,12 +74,38 @@ public class ListWimCallProcessor extends AbstractCallProcessor {
         this.sendToMux(new ServicePlatformMessage("{\"request_status\":\"ERROR\"}", "application/json", message.getReplyTo(), message.getSid(), null));
         return false;
       }
-      WimRecord out = new WimRecord();
+      WimResources out = new WimResources();
       //Logger.debug(wr.toString());
       out.setUuid(config.getUuid());
       out.setName(config.getName());
-      ArrayList<String> attachedVims = WrapperBay.getInstance().getAttachedVims(wim);
+      ArrayList<String> attachedVimsAndEndpoints = WrapperBay.getInstance().getAttachedVims(wim);
+      ArrayList<String> attachedVims = new ArrayList<>();
+      ArrayList<String> attachedEndpoints = new ArrayList<>();
+      for(String vimOrNep : attachedVimsAndEndpoints){
+        if (nepsUuid.contains(vimOrNep)) {
+          attachedEndpoints.add(vimOrNep);
+        } else {
+          attachedVims.add(vimOrNep);
+        }
+      }
       out.setAttachedVims(attachedVims);
+      out.setAttachedEndpoints(attachedEndpoints);
+      ArrayList<WimQos> qosList = new ArrayList<>();
+      ArrayList<String> temp = new ArrayList<>(attachedVimsAndEndpoints);
+      for(String vimOrNep1 : attachedVimsAndEndpoints){
+        temp.remove(vimOrNep1);
+        for(String vimOrNep2 : temp){
+          WimQos qos = new WimQos();
+          qos.setNode1(vimOrNep1);
+          qos.setNode2(vimOrNep2);
+          qos.setLatency(10);
+          qos.setLatencyUnit("ms");
+          qos.setBandwidth(1000);
+          qos.setBandwidthUnit("Mbps");
+          qosList.add(qos);
+        }
+      }
+      out.setQos(qosList);
       wimList.add(out);
     }
 
@@ -86,7 +114,7 @@ public class ListWimCallProcessor extends AbstractCallProcessor {
     try {
       body = mapper.writeValueAsString(wimList);
 
-
+      //Logger.debug("Final Content: " + body);
       ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
           this.getMessage().getReplyTo(), this.getSid(), null);
 

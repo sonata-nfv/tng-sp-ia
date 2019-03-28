@@ -27,7 +27,7 @@
 package sonata.kernel.adaptor.wrapper;
 
 public enum WrapperType {
-  COMPUTE("compute"), NETWORK("network"), STORAGE("storage"), WIM("wim");
+  COMPUTE("compute"), NETWORK("network"), STORAGE("storage"), ENDPOINT("endpoint"), WIM("wim");
 
   public static WrapperType getByName(String name) {
     for (WrapperType vendor : values()) {

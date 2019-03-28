@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 SONATA-NFV, UCL, NOKIA, THALES, NCSR Demokritos ALL RIGHTS RESERVED.
+ * Copyright (c) 2015 SONATA-NFV, UCL, NOKIA, NCSR Demokritos ALL RIGHTS RESERVED.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,50 +20,39 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Dario Valocchi (Ph.D.), UCL
+ * @author Thomas Soenen, imec
  * 
  */
 
 package sonata.kernel.adaptor.commons;
 
-import java.util.ArrayList;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class WimRecord {
+import java.util.ArrayList;
 
-  private String uuid;
-  private String name;
-  @JsonProperty("attached_vims")
-  private ArrayList<String> attachedVims = new ArrayList<String>();
-  
-  public String getUuid() {
-    return uuid;
+
+public class ComputeListResponse {
+
+  @JsonProperty("vim_list")
+  private ArrayList<VimResources> vimList;
+
+  @JsonProperty("nep_list")
+  private ArrayList<NepResources> nepList;
+
+  public ArrayList<VimResources> getVimList() {
+    return vimList;
   }
-  public String getName() {
-    return name;
+
+  public ArrayList<NepResources> getNepList() {
+    return nepList;
   }
-  public ArrayList<String> getAttachedVims() {
-    return attachedVims;
+
+  public void setVimList(ArrayList<VimResources> vimList) {
+    this.vimList = vimList;
   }
-  public void setUuid(String uuid) {
-    this.uuid = uuid;
+
+  public void setNepList(ArrayList<NepResources> nepList) {
+    this.nepList = nepList;
   }
-  public void setName(String name) {
-    this.name = name;
-  }
-  public void setAttachedVims(ArrayList<String> attachedVims) {
-    this.attachedVims = attachedVims;
-  }
-  
-  @Override
-  public String toString(){
-    String out = "uuid: "+this.uuid+"\n"+
-        "name: "+this.name+"\n"+
-        "attachedVim: "+this.attachedVims.toString();
-        
-    return out;
-  }
-  
-  
 }
+

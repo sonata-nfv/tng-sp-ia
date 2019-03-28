@@ -433,6 +433,58 @@ public class VimRepo {
   }
 
   /**
+   * List the NEPs stored in the repository.
+   *
+   * @return an arraylist of String with the UUID of the registered NEPs, null if error occurs
+   */
+  public ArrayList<String> getNepVims() {
+    ArrayList<String> out = new ArrayList<String>();
+
+    Connection connection = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+          DriverManager.getConnection(
+              "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                  + prop.getProperty("repo_port") + "/" + "vimregistry",
+              prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      stmt = connection.createStatement();
+      rs = stmt.executeQuery("SELECT * FROM VIM WHERE TYPE='endpoint';");
+      while (rs.next()) {
+        String uuid = rs.getString("UUID");
+        out.add(uuid);
+      }
+
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = null;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = null;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (rs != null) {
+          rs.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+
+      }
+    }
+    return out;
+  }
+
+  /**
    * Get the UUID used by the VIM to identify the given service instance.
    * 
    * @param instanceUuid the instance UUID of the service to remove
