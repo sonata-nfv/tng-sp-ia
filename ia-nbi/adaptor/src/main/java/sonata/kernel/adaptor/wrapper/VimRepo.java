@@ -731,6 +731,9 @@ public class VimRepo {
         } else if (wrapperType.equals(WrapperType.NETWORK)) {
           VimVendor vendor = NetworkVimVendor.getByName(vendorString);
           config.setVimVendor(vendor);
+        } else if (wrapperType.equals(WrapperType.ENDPOINT)) {
+          VimVendor vendor = EndpointVimVendor.getByName(vendorString);
+          config.setVimVendor(vendor);
         }
         output = config;
 
