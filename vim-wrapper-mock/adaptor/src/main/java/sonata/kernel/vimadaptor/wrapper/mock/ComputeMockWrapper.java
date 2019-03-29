@@ -218,7 +218,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
     waitGaussianTime(avgTime, stdTime);
 
     ResourceUtilisation resources = new ResourceUtilisation();
-    resources.setTotCores(10);
+    resources.setTotCores(30);
     resources.setUsedCores(0);
     resources.setTotMemory(10000);
     resources.setUsedMemory(0);
