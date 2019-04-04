@@ -118,6 +118,7 @@ public class VimRepo {
       while (rs.next()) {
         String tablename = rs.getString("tablename");
         if (tablename.toLowerCase().equals("vim")
+            || tablename.toLowerCase().equals("slice_instances")
             || tablename.toLowerCase().equals("service_instances")
             || tablename.toLowerCase().equals("function_instances")
             || tablename.toLowerCase().equals("link_vim")) {
@@ -134,6 +135,10 @@ public class VimRepo {
             + " TYPE TEXT NOT NULL," + " VENDOR TEXT NOT NULL," + " ENDPOINT TEXT NOT NULL,"
             + " USERNAME TEXT NOT NULL," + " DOMAIN TEXT NOT NULL," + " CONFIGURATION TEXT NOT NULL," + " CITY TEXT,"
             + "COUNTRY TEXT," + " PASS TEXT," + " AUTHKEY TEXT" + ");";
+        stmt.executeUpdate(sql);
+        sql = "CREATE TABLE slice_instances " + "(" + "INSTANCE_UUID TEXT NOT NULL,"
+            + " VIM_INSTANCE_UUID TEXT NOT NULL," + " VIM_INSTANCE_NAME TEXT NOT NULL,"
+            + " VIM_UUID TEXT NOT NULL," + " PRIMARY KEY (INSTANCE_UUID, VIM_UUID)" + ");";
         stmt.executeUpdate(sql);
         sql = "CREATE TABLE service_instances " + "(" + "INSTANCE_UUID TEXT NOT NULL,"
             + " VIM_INSTANCE_UUID TEXT NOT NULL," + " VIM_INSTANCE_NAME TEXT NOT NULL,"
@@ -362,7 +367,7 @@ public class VimRepo {
   /**
    * Get the NetworkWrapper identified by the given UUID.
    * 
-   * @param computeUuid the uuid of the network VIM
+   * @param vimUuid the uuid of the network VIM
    * @return
    */
   public NetworkWrapper getNetworkVim(String vimUuid) {
@@ -585,7 +590,7 @@ public class VimRepo {
   }
 
   /**
-   * Get the UUID used by the VIM to identify the given service instance.
+   * Get the logical name used by the VIM to identify the given service instance.
    * 
    * @param instanceUuid the instance UUID of the service to remove
    * 
@@ -649,7 +654,7 @@ public class VimRepo {
   }
 
   /**
-   * Get the UUID used by the given VIM to identify the given service instance.
+   * Get the logical name used by the given VIM to identify the given service instance.
    * 
    * @param instanceUuid the instance UUID of the service to remove
    * @param vimUuid the UUID of the VIM
@@ -837,11 +842,15 @@ public class VimRepo {
   }
 
   /**
-   * @param instanceId
-   * @param vimUuid
-   * @return
+   * Get the UUID used by the given VIM to identify the given service instance.
+   *
+   * @param instanceUuid the instance UUID of the slice
+   * @param vimUuid the UUID of the VIM
+   *
+   * @return the UUID used by the VIM to identify the service instance
+   *
    */
-  public String getServiceInstanceVimUuid(String instanceId, String vimUuid) {
+  public String getServiceInstanceVimUuid(String instanceUuid, String vimUuid) {
     String output = null;
 
     Connection connection = null;
@@ -858,7 +867,7 @@ public class VimRepo {
 
       stmt = connection.prepareStatement(
           "SELECT VIM_INSTANCE_UUID FROM service_instances  WHERE INSTANCE_UUID=? AND VIM_UUID=?;");
-      stmt.setString(1, instanceId);
+      stmt.setString(1, instanceUuid);
       stmt.setString(2, vimUuid);
       rs = stmt.executeQuery();
 
@@ -1049,7 +1058,7 @@ public class VimRepo {
   }
 
   /**
-   * @param uuid
+   * @param networkingUuid
    */
   public boolean removeNetworkVimLink(String networkingUuid) {
     boolean out = true;
@@ -1567,6 +1576,248 @@ public class VimRepo {
     return out;
   }
 
+  /**
+   * Get the logical name used by the given VIM to identify the given slice instance.
+   *
+   * @param instanceUuid the instance UUID of the slice
+   * @param vimUuid the UUID of the VIM
+   *
+   * @return the logical name used by the VIM to identify the slice instance
+   *
+   */
+  public String getSliceInstanceVimName(String instanceUuid, String vimUuid) {
+
+    String output = null;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+          DriverManager.getConnection(
+              "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                  + prop.getProperty("repo_port") + "/" + "vimregistry",
+              prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      stmt = connection.prepareStatement(
+          "SELECT VIM_INSTANCE_NAME FROM slice_instances  WHERE INSTANCE_UUID=? AND VIM_UUID=?;");
+      stmt.setString(1, instanceUuid);
+      stmt.setString(2, vimUuid);
+      rs = stmt.executeQuery();
+
+      if (rs.next()) {
+
+        output = rs.getString("VIM_INSTANCE_NAME");
+
+      } else {
+        output = null;
+      }
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      output = null;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      output = null;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (rs != null) {
+          rs.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        output = null;
+
+      }
+    }
+
+    return output;
+
+  }
+
+  /**
+   * Get the UUID used by the given VIM to identify the given slice instance.
+   *
+   * @param instanceUuid the instance UUID of the slice
+   * @param vimUuid the UUID of the VIM
+   *
+   * @return the UUID used by the VIM to identify the slice instance
+   *
+   */
+  public String getSliceInstanceVimUuid(String instanceUuid, String vimUuid) {
+    String output = null;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    ResultSet rs = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+          DriverManager.getConnection(
+              "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                  + prop.getProperty("repo_port") + "/" + "vimregistry",
+              prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      stmt = connection.prepareStatement(
+          "SELECT VIM_INSTANCE_UUID FROM slice_instances  WHERE INSTANCE_UUID=? AND VIM_UUID=?;");
+      stmt.setString(1, instanceUuid);
+      stmt.setString(2, vimUuid);
+      rs = stmt.executeQuery();
+
+      if (rs.next()) {
+
+        output = rs.getString("VIM_INSTANCE_UUID");
+
+      } else {
+        output = null;
+      }
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      output = null;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      output = null;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (rs != null) {
+          rs.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        output = null;
+
+      }
+    }
+    return output;
+  }
+
+  /**
+   * Write the instance record into the repository.
+   *
+   * @param instanceUuid the uuid of the slice instance
+   * @param vimInstanceUuid the uuid used by the VIM to identify the stack
+   * @param vimInstanceName the name used by the VIM to identify the stack
+   * @param vimUuid the uuid of the compute VIM where the instance is deployed
+   *
+   * @return true for process success
+   */
+  public boolean writeSliceInstanceEntry(String instanceUuid, String vimInstanceUuid,
+                                         String vimInstanceName, String vimUuid) {
+    boolean out = true;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+          DriverManager.getConnection(
+              "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                  + prop.getProperty("repo_port") + "/" + "vimregistry",
+              prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      String sql =
+          "INSERT INTO slice_instances  (INSTANCE_UUID, VIM_INSTANCE_UUID, VIM_INSTANCE_NAME,VIM_UUID) "
+              + "VALUES (?, ?, ?, ?);";
+      stmt = connection.prepareStatement(sql);
+      stmt.setString(1, instanceUuid);
+      stmt.setString(2, vimInstanceUuid);
+      stmt.setString(3, vimInstanceName);
+      stmt.setString(4, vimUuid);
+      stmt.executeUpdate();
+      connection.commit();
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = false;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = false;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = false;
+      }
+    }
+    if (!out) {
+      Logger.info("Slice instance written successfully");
+    }
+
+    return out;
+  }
+
+  /**
+   * delete the slice instance record into the repository.
+   *
+   * @param instanceUuid the uuid of the slice instance
+   *
+   * @return true for process success
+   */
+  public boolean removeSliceInstanceEntry(String instanceUuid, String vimUuid) {
+    boolean out = true;
+
+    Connection connection = null;
+    PreparedStatement stmt = null;
+    try {
+      Class.forName("org.postgresql.Driver");
+      connection =
+          DriverManager.getConnection(
+              "jdbc:postgresql://" + prop.getProperty("repo_host") + ":"
+                  + prop.getProperty("repo_port") + "/" + "vimregistry",
+              prop.getProperty("user"), prop.getProperty("pass"));
+      connection.setAutoCommit(false);
+
+      String sql = "DELETE FROM slice_instances WHERE INSTANCE_UUID=? AND VIM_UUID=?;";
+      stmt = connection.prepareStatement(sql);
+      stmt.setString(1, instanceUuid);
+      stmt.setString(2, vimUuid);
+      stmt.executeUpdate();
+      connection.commit();
+    } catch (SQLException e) {
+      Logger.error(e.getMessage());
+      out = false;
+    } catch (ClassNotFoundException e) {
+      Logger.error(e.getMessage(), e);
+      out = false;
+    } finally {
+      try {
+        if (stmt != null) {
+          stmt.close();
+        }
+        if (connection != null) {
+          connection.close();
+        }
+      } catch (SQLException e) {
+        Logger.error(e.getMessage());
+        out = false;
+      }
+    }
+    if (!out) {
+      Logger.info("Slice instance removed successfully");
+    }
+
+    return out;
+  }
 
   private Properties parseConfigFile() {
     Properties prop = new Properties();
