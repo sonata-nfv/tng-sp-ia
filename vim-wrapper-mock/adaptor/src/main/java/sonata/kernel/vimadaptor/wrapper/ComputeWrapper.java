@@ -156,4 +156,24 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    * @param image the VnfImage with URL from which the image can be downloaded.
    */
   public abstract void uploadImage(VnfImage image) throws IOException;
+
+  /**
+   * Prepare a slice instance in this VIM for the given instance ID.
+   *
+   * @param instanceId the ID of the instance used as reference for the prepared environment in the
+   *        VIM
+   * @param virtualLinks the virtual links containing information for the network creation
+   *
+   * @return true if the remove process has started correctly, false otherwise
+   */
+  public abstract boolean prepareSlice(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
+
+  /**
+   * Remove a slice instance from this VIM.
+   *
+   * @param data the payload of a slice.Remove call
+   * @param sid the session ID for this Adaptor call
+   *
+   */
+  public abstract void removeSlice(SliceRemovePayload data, String sid);
 }

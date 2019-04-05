@@ -91,6 +91,8 @@ public class AdaptorDispatcherNorth implements Runnable {
           handleWanMessage(message);
         } else if (isManagementMsg(message)) {
           handleManagementMessage(message);
+        } else if (isSliceMsg(message)) {
+          this.handleSliceMsg(message);
         } else if (isServiceMsg(message)) {
           this.handleServiceMsg(message);
         } else if (isFunctionMessage(message)) {
@@ -196,7 +198,7 @@ public class AdaptorDispatcherNorth implements Runnable {
       vimVendors = this.getVimVendors.GetVimVendors(message,"service.remove");
     } else if (message.getTopic().endsWith("prepare")) {
       Logger.info("Received a \"service.prepare\" API call on topic: " + message.getTopic());
-      vimVendors = this.getVimVendors.GetVimVendors(message,"prepare");
+      vimVendors = this.getVimVendors.GetVimVendors(message,"service.prepare");
     } else if (message.getTopic().endsWith("network.create")) {
       Logger.info("Received a \"service.network.create\" API call on topic: " + message.getTopic());
       vimVendors = this.getVimVendors.GetVimVendors(message,"network.create");
@@ -272,6 +274,33 @@ public class AdaptorDispatcherNorth implements Runnable {
 
   }
 
+  private void handleSliceMsg(ServicePlatformMessage message) {
+    ArrayList<String> vimVendors = null;
+    // Redirect VIM
+    if (message.getTopic().endsWith("remove")) {
+      Logger.info("Received a \"slice.remove\" API call on topic: " + message.getTopic());
+      vimVendors = this.getVimVendors.GetVimVendors(message,"slice.remove");
+    } else if (message.getTopic().endsWith("prepare")) {
+      Logger.info("Received a \"slice.prepare\" API call on topic: " + message.getTopic());
+      vimVendors = this.getVimVendors.GetVimVendors(message,"slice.prepare");
+    }
+
+    if (vimVendors == null) {
+      this.northMux.enqueue(new ServicePlatformMessage(
+          "{\"request_status\":\"ERROR\",\"message\":\""
+              + "Error retrieving the Vims Type" + "\"}",
+          "application/json", message.getReplyTo(), message.getSid(), null));
+    } else {
+      if (message.getTopic().endsWith("remove")) {
+        myThreadPool.execute(new RemoveSliceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
+      } else if (message.getTopic().endsWith("prepare")) {
+        myThreadPool.execute(new PrepareSliceCallProcessor(message, message.getSid(), northMux, vimVendors.size()));
+      }
+      myThreadPool.execute(new RedirectVimWimCallProcessor(message, message.getSid(), southMux, vimVendors));
+    }
+
+  }
+
   private boolean isDeregistrationResponse(ServicePlatformMessage message) {
     return message.getTopic().equals("platform.management.plugin.deregister")
         && message.getSid().equals(core.getRegistrationSid());
@@ -300,5 +329,9 @@ public class AdaptorDispatcherNorth implements Runnable {
 
   private boolean isWanMessage(ServicePlatformMessage message) {
     return message.getTopic().contains(".wan.");
+  }
+
+  private boolean isSliceMsg(ServicePlatformMessage message) {
+    return message.getTopic().contains("infrastructure.slice");
   }
 }

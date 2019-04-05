@@ -75,7 +75,7 @@ public class AdaptorDispatcherSouth implements Runnable {
 
         if (message.getTopic().endsWith("compute.list")) {
           myThreadPool.execute(new FwListComputeVimCallProcessor(message, message.getSid(), northMux));
-        } else if (message.getTopic().endsWith("prepare")) {
+        } else if (message.getTopic().endsWith("service.prepare")) {
           myThreadPool.execute(new FwPrepareServiceCallProcessor(message, message.getSid(), northMux));
         } else if (message.getTopic().endsWith("network.create")) {
           myThreadPool.execute(new FwNetworkCreateServiceCallProcessor(message, message.getSid(), northMux));
@@ -87,6 +87,10 @@ public class AdaptorDispatcherSouth implements Runnable {
           myThreadPool.execute(new FwDeconfigureNetworkCallProcessor(message, message.getSid(), northMux));
         } else if (message.getTopic().endsWith("chain.configure")) {
           myThreadPool.execute(new FwConfigureNetworkCallProcessor(message, message.getSid(), northMux));
+        } else if (message.getTopic().endsWith("slice.prepare")) {
+          myThreadPool.execute(new FwPrepareSliceCallProcessor(message, message.getSid(), northMux));
+        } else if (message.getTopic().endsWith("slice.remove")) {
+          myThreadPool.execute(new FwRemoveSliceCallProcessor(message, message.getSid(), northMux));
         } else {
           // Processor for fw packets from Southbound interface to Northbound interface
           myThreadPool.execute(new FwVimWimCallProcessor(message, message.getSid(), northMux));

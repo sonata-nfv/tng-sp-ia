@@ -317,11 +317,6 @@ public class ComputeMockWrapper extends ComputeWrapper {
     // TODO - smendel - add implementation and comments on function
   }
 
-  @Override
-  public String toString() {
-    return "MockWrapper-" + this.getConfig().getUuid();
-  }
-
   /*
    * (non-Javadoc)
    * 
@@ -337,6 +332,43 @@ public class ComputeMockWrapper extends ComputeWrapper {
     waitGaussianTime(avgTime, stdTime);
 
     return;
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#prepareSlice(java.lang.String)
+   */
+  @Override
+  public boolean prepareSlice(String instanceId, ArrayList<VirtualLink> virtualLinks) {
+    double avgTime = 1356.52;
+    double stdTime = 663.12;
+    waitGaussianTime(avgTime, stdTime);
+    WrapperBay.getInstance().getVimRepo().writeSliceInstanceEntry(instanceId, instanceId,
+        instanceId, this.getConfig().getUuid());
+    return true;
+  }
+
+  @Override
+  public void removeSlice(SliceRemovePayload data, String callSid) {
+
+    double avgTime = 1309;
+    double stdTime = 343;
+    waitGaussianTime(avgTime, stdTime);
+
+    this.setChanged();
+    String body =
+        "{\"status\":\"COMPLETED\",\"wrapper_uuid\":\"" + this.getConfig().getUuid() + "\"}";
+    WrapperStatusUpdate update = new WrapperStatusUpdate(callSid, "SUCCESS", body);
+
+    WrapperBay.getInstance().getVimRepo().removeSliceInstanceEntry(data.getSliceInstanceId(), this.getConfig().getUuid());
+    this.notifyObservers(update);
+
+  }
+
+  @Override
+  public String toString() {
+    return "MockWrapper-" + this.getConfig().getUuid();
   }
 
   private void waitGaussianTime(double avgTime, double stdTime) {

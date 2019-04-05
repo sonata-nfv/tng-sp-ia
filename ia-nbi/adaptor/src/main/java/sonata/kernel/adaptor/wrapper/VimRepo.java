@@ -118,6 +118,7 @@ public class VimRepo {
       while (rs.next()) {
         String tablename = rs.getString("tablename");
         if (tablename.toLowerCase().equals("vim")
+            || tablename.toLowerCase().equals("slice_instances")
             || tablename.toLowerCase().equals("service_instances")
             || tablename.toLowerCase().equals("function_instances")
             || tablename.toLowerCase().equals("link_vim")) {
@@ -134,6 +135,10 @@ public class VimRepo {
             + " TYPE TEXT NOT NULL," + " VENDOR TEXT NOT NULL," + " ENDPOINT TEXT NOT NULL,"
             + " USERNAME TEXT," + " DOMAIN TEXT," + " CONFIGURATION JSONB," + " CITY TEXT,"
             + "COUNTRY TEXT," + " PASS TEXT," + " AUTHKEY TEXT" + ");";
+        stmt.executeUpdate(sql);
+        sql = "CREATE TABLE slice_instances " + "(" + "INSTANCE_UUID TEXT NOT NULL,"
+            + " VIM_INSTANCE_UUID TEXT NOT NULL," + " VIM_INSTANCE_NAME TEXT NOT NULL,"
+            + " VIM_UUID TEXT NOT NULL," + " PRIMARY KEY (INSTANCE_UUID, VIM_UUID)" + ");";
         stmt.executeUpdate(sql);
         sql = "CREATE TABLE service_instances " + "(" + "INSTANCE_UUID TEXT NOT NULL,"
             + " VIM_INSTANCE_UUID TEXT NOT NULL," + " VIM_INSTANCE_NAME TEXT NOT NULL,"
