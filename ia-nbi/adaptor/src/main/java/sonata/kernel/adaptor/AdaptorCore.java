@@ -124,7 +124,7 @@ public class AdaptorCore {
   private AdaptorDispatcherSouth southDispatcher;
   private HeartBeat heartbeat;
   private AdaptorMux northMux;
-  private AdaptorMux southMux;
+  public AdaptorMux southMux;
   private MsgBusConsumer northConsumer;
   private MsgBusProducer northProducer;
   private MsgBusConsumer southConsumer;

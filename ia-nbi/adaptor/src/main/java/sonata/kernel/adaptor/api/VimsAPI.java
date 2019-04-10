@@ -7,7 +7,9 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
+import sonata.kernel.adaptor.AdaptorCore;
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
+import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.*;
 
 import javax.ws.rs.*;
@@ -124,6 +126,93 @@ public class VimsAPI {
     } catch (Exception e) {
       Logger.error("Error getting the vim: " + e.getMessage(), e);
       String body = "{\"status\":\"ERROR\",\"message\":\"Not Found VIM\"}";
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(404).build();
+    }
+
+  }
+
+
+  /**
+   * api call in order to get the external networks list for a specific VIM
+   */
+  @GET
+  @Path("/heat/networks")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNetworks(String vimConfig) {
+
+    Response.ResponseBuilder apiResponse = null;
+    try {
+      Logger.info("Retrieving Routers List");
+      ArrayList<String> routers = new ArrayList<String>();
+
+      ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
+      VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
+
+      String request;
+      request = mapper.writeValueAsString(vimApiReq);
+      String sid=UUID.randomUUID().toString();
+      ServicePlatformMessage message = new ServicePlatformMessage(request, "application/json",
+          "infrastructure.heat.management.networks", sid, "nbi.infrastructure.heat.management.networks");
+      AdaptorCore.getInstance().southMux.enqueue(message);
+      //TODO
+
+
+
+
+      String body = mapper.writeValueAsString(routers);
+
+      Logger.info("Get Routers list call completed.");
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(200).build();
+
+    } catch (Exception e) {
+      Logger.error("Error getting the networks list from VIM: " + e.getMessage(), e);
+      String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the networks list from VIM\"}";
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(404).build();
+    }
+
+  }
+
+  /**
+   * api call in order to get the external routers list for a specific VIM
+   */
+  @GET
+  @Path("/heat/routers/{networkID}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getRouters(@PathParam("networkID") String networkID, String vimConfig) {
+
+    Response.ResponseBuilder apiResponse = null;
+    try {
+      Logger.info("Retrieving Routers List");
+      ArrayList<String> routers = new ArrayList<String>();
+
+      ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
+      VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
+      vimApiReq.setExternalNetworkId(networkID);
+
+      String request;
+      request = mapper.writeValueAsString(vimApiReq);
+      String sid=UUID.randomUUID().toString();
+      ServicePlatformMessage message = new ServicePlatformMessage(request, "application/json",
+          "infrastructure.heat.management.routers", sid, "nbi.infrastructure.heat.management.routers");
+      AdaptorCore.getInstance().southMux.enqueue(message);
+      //TODO
+
+      String body = mapper.writeValueAsString(routers);
+
+      Logger.info("Get Routers list call completed.");
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(200).build();
+
+    } catch (Exception e) {
+      Logger.error("Error getting the routers list from VIM: " + e.getMessage(), e);
+      String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the routers list from VIM\"}";
       apiResponse = Response.ok((String) body);
       apiResponse.header("Content-Length", body.length());
       return apiResponse.status(404).build();
