@@ -93,7 +93,7 @@ public class GetNetworksVimCallProcessor extends AbstractCallProcessor {
     // Create the response
 
     // Need a new mapper different from SonataManifestMapper for allow feature WRITE_EMPTY_JSON_ARRAYS
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    ObjectMapper mapper = new ObjectMapper();
     mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
     mapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     mapper.setSerializationInclusion(Include.NON_NULL);
