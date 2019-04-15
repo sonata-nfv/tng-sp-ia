@@ -1380,6 +1380,76 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
   }
 
 
+  @Override
+  public ArrayList<ExtNetwork> getNetworks() {
+
+    long start = System.currentTimeMillis();
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
+    // user management is in place.
+    JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
+    JSONObject object = (JSONObject) tokener.nextValue();
+    String tenant = object.getString("tenant");
+    String identityPort = null;
+    if (object.has("identity_port")) {
+      identityPort = object.getString("identity_port");
+    }
+    // String tenantExtNet = object.getString("tenant_ext_net");
+    // String tenantExtRouter = object.getString("tenant_ext_router");
+    // END COMMENT
+
+    ArrayList<ExtNetwork> output = null;
+    Logger.info("OpenStack wrapper - Getting networks ...");
+    try {
+      OpenStackNeutronClient neutronClient = new OpenStackNeutronClient(getConfig().getVimEndpoint().toString(),
+          getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+
+      output = neutronClient.getNetworks();
+
+      Logger.info("OpenStack wrapper - Networks retrieved.");
+    } catch (IOException e) {
+      Logger.error("OpenStack wrapper - Unable to connect to PoP.");;
+      output = null;
+    }
+    long stop = System.currentTimeMillis();
+    Logger.info("[OpenStackWrapper]getNetworks-time: " + (stop - start) + " ms");
+    return output;
+  }
+
+  @Override
+  public ArrayList<Router> getRouters() {
+
+    long start = System.currentTimeMillis();
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
+    // user management is in place.
+    JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
+    JSONObject object = (JSONObject) tokener.nextValue();
+    String tenant = object.getString("tenant");
+    String identityPort = null;
+    if (object.has("identity_port")) {
+      identityPort = object.getString("identity_port");
+    }
+    String tenantExtNet = object.getString("tenant_ext_net");
+    // String tenantExtRouter = object.getString("tenant_ext_router");
+    // END COMMENT
+
+    ArrayList<Router> output = null;
+    Logger.info("OpenStack wrapper - Getting routers ...");
+    try {
+      OpenStackNeutronClient neutronClient = new OpenStackNeutronClient(getConfig().getVimEndpoint().toString(),
+          getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+
+      output = neutronClient.getRouters(tenantExtNet);
+
+      Logger.info("OpenStack wrapper - Routers retrieved.");
+    } catch (IOException e) {
+      Logger.error("OpenStack wrapper - Unable to connect to PoP.");;
+      output = null;
+    }
+    long stop = System.currentTimeMillis();
+    Logger.info("[OpenStackWrapper]getRouters-time: " + (stop - start) + " ms");
+    return output;
+  }
+
   private HeatTemplate createInitStackTemplate(String instanceId, ArrayList<VirtualLink> virtualLinks, ArrayList<QosPolicy> policies) throws Exception {
 
     // TODO This values should be per User, now they are per VIM. This should be re-designed once

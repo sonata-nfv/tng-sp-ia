@@ -149,12 +149,14 @@ public class VimsAPI {
 
       ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
       VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
+      if (vimApiReq.getUuid() == null) {
+        vimApiReq.setUuid(UUID.randomUUID().toString());
+      }
 
       String request;
       request = mapper.writeValueAsString(vimApiReq);
-      String sid=UUID.randomUUID().toString();
       ServicePlatformMessage message = new ServicePlatformMessage(request, "application/json",
-          "infrastructure.heat.management.networks", sid, "nbi.infrastructure.heat.management.networks");
+          "infrastructure.heat.management.networks", vimApiReq.getUuid(), "nbi.infrastructure.heat.management.networks");
       AdaptorCore.getInstance().southMux.enqueue(message);
       //TODO
 
@@ -194,12 +196,15 @@ public class VimsAPI {
       ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
       VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
       vimApiReq.setExternalNetworkId(networkID);
+      if (vimApiReq.getUuid() == null) {
+        vimApiReq.setUuid(UUID.randomUUID().toString());
+      }
 
       String request;
       request = mapper.writeValueAsString(vimApiReq);
-      String sid=UUID.randomUUID().toString();
+
       ServicePlatformMessage message = new ServicePlatformMessage(request, "application/json",
-          "infrastructure.heat.management.routers", sid, "nbi.infrastructure.heat.management.routers");
+          "infrastructure.heat.management.routers", vimApiReq.getUuid(), "nbi.infrastructure.heat.management.routers");
       AdaptorCore.getInstance().southMux.enqueue(message);
       //TODO
 
