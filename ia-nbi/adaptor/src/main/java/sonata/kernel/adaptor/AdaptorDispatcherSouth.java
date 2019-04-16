@@ -91,6 +91,10 @@ public class AdaptorDispatcherSouth implements Runnable {
           myThreadPool.execute(new FwPrepareSliceCallProcessor(message, message.getSid(), northMux));
         } else if (message.getTopic().endsWith("slice.remove")) {
           myThreadPool.execute(new FwRemoveSliceCallProcessor(message, message.getSid(), northMux));
+        } else if (message.getTopic().endsWith("management.networks")) {
+          myThreadPool.execute(new StoreNetworksVimCallProcessor(message, message.getSid(), northMux));
+        } else if (message.getTopic().endsWith("management.routers")) {
+          myThreadPool.execute(new StoreRoutersVimCallProcessor(message, message.getSid(), northMux));
         } else {
           // Processor for fw packets from Southbound interface to Northbound interface
           myThreadPool.execute(new FwVimWimCallProcessor(message, message.getSid(), northMux));

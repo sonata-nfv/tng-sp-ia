@@ -28,6 +28,8 @@ package sonata.kernel.vimadaptor.wrapper;
 
 import sonata.kernel.vimadaptor.commons.*;
 import sonata.kernel.vimadaptor.commons.nsd.VirtualLink;
+import sonata.kernel.vimadaptor.wrapper.openstack.ExtNetwork;
+import sonata.kernel.vimadaptor.wrapper.openstack.Router;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -177,4 +179,18 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    *
    */
   public abstract void removeSlice(SliceRemovePayload data, String sid);
+
+  /**
+   * Get the external networks list for this compute VIM.
+   *
+   * @return the List of the external networks
+   */
+  public abstract ArrayList<ExtNetwork> getNetworks();
+
+  /**
+   * Get the external routers list for this compute VIM.
+   *
+   * @return the List of the external routers
+   */
+  public abstract ArrayList<Router> getRouters();
 }

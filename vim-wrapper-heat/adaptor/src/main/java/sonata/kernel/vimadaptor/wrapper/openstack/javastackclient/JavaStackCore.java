@@ -1085,4 +1085,80 @@ public class JavaStackCore {
     return response;
   }
 
+  /**
+   * NEUTRON method to list external networks
+   *
+   * @return
+   * @throws IOException
+   */
+  public synchronized HttpResponse listNetworks() throws IOException {
+    HttpGet getNetworks= null;
+    HttpResponse response = null;
+
+    HttpClient httpClient = HttpClientBuilder.create().build();
+    HttpResponseFactory factory = new DefaultHttpResponseFactory();
+
+    if (isAuthenticated) {
+      StringBuilder buildUrl = new StringBuilder();
+      buildUrl.append("http://");
+      buildUrl.append(endpoint);
+      buildUrl.append(":");
+      buildUrl.append(Network.getPORT());
+      buildUrl.append(String.format("/%s/networks?router:external=true", Network.getVERSION()));
+
+      // Logger.debug("[JavaStack] Authenticating client...");
+      getNetworks = new HttpGet(buildUrl.toString());
+      getNetworks.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);
+      Logger.debug("[JavaStack] " + getNetworks.toString());
+
+      response = httpClient.execute(getNetworks);
+      Logger.debug("[JavaStack] GET Networks response:");
+      Logger.debug(response.toString());
+      int status_code = response.getStatusLine().getStatusCode();
+      return (status_code == 200)
+          ? response
+          : factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, status_code,
+          "List Networks  Failed with Status: " + status_code), null);
+    }
+    return response;
+  }
+
+  /**
+   * NEUTRON method to list routers
+   *
+   * @return
+   * @throws IOException
+   */
+  public synchronized HttpResponse listRouters() throws IOException {
+    HttpGet getRouters= null;
+    HttpResponse response = null;
+
+    HttpClient httpClient = HttpClientBuilder.create().build();
+    HttpResponseFactory factory = new DefaultHttpResponseFactory();
+
+    if (isAuthenticated) {
+      StringBuilder buildUrl = new StringBuilder();
+      buildUrl.append("http://");
+      buildUrl.append(endpoint);
+      buildUrl.append(":");
+      buildUrl.append(Network.getPORT());
+      buildUrl.append(String.format("/%s/routers", Network.getVERSION()));
+
+      // Logger.debug("[JavaStack] Authenticating client...");
+      getRouters = new HttpGet(buildUrl.toString());
+      getRouters.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);
+      Logger.debug("[JavaStack] " + getRouters.toString());
+
+      response = httpClient.execute(getRouters);
+      Logger.debug("[JavaStack] GET Routers response:");
+      Logger.debug(response.toString());
+      int status_code = response.getStatusLine().getStatusCode();
+      return (status_code == 200)
+          ? response
+          : factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, status_code,
+          "List Routers  Failed with Status: " + status_code), null);
+    }
+    return response;
+  }
+
 }

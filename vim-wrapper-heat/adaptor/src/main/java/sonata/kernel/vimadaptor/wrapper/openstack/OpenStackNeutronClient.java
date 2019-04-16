@@ -25,9 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.LoggerFactory;
 import sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.JavaStackCore;
 import sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.JavaStackUtils;
-import sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.models.network.PoliciesData;
-import sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.models.network.PolicyProperties;
-import sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.models.network.RulesProperties;
+import sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.models.network.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -112,6 +110,80 @@ public class OpenStackNeutronClient {
     }
 
     return output_policies;
+
+  }
+
+  /**
+   * Get the External Networks.
+   *
+   * @return the External Networks
+   */
+  public ArrayList<ExtNetwork> getNetworks() {
+
+    ExtNetwork output_network = null;
+
+    ArrayList<ExtNetwork> output_networks = new ArrayList<>();
+    Logger.info("Getting external networks");
+    try {
+      mapper = new ObjectMapper();
+      String listNetworks =
+          JavaStackUtils.convertHttpResponseToString(javaStack.listNetworks());
+      Logger.info(listNetworks);
+      NetworksData inputNetworks = mapper.readValue(listNetworks, NetworksData.class);
+      Logger.info(inputNetworks.getNetworks().toString());
+      for (NetworksProperties input_network : inputNetworks.getNetworks()) {
+        Logger.info(input_network.getId() + ": " + input_network.getName());
+
+        output_network = new ExtNetwork(input_network.getName(), input_network.getId());
+        output_networks.add(output_network);
+      }
+
+    } catch (Exception e) {
+      Logger.error("Runtime error getting openstack external networks" + " error message: " + e.getMessage());
+    }
+
+    return output_networks;
+
+  }
+
+  /**
+   * Get the Routers for a specific External Network.
+   *
+   * @return the Routers
+   */
+  public ArrayList<Router> getRouters(String network) {
+
+    Router output_router = null;
+
+    ArrayList<Router> output_routers = new ArrayList<>();
+    Logger.info("Getting routers");
+    try {
+      mapper = new ObjectMapper();
+      String listRouters =
+          JavaStackUtils.convertHttpResponseToString(javaStack.listRouters());
+      Logger.info(listRouters);
+      RoutersData inputRouters = mapper.readValue(listRouters, RoutersData.class);
+      Logger.info(inputRouters.getRouters().toString());
+      for (RoutersProperties input_router : inputRouters.getRouters()) {
+        if (input_router.getExternalGatewayInfo() != null) {
+          Logger.info(input_router.getId() + ": " + input_router.getName() + ": " + input_router.getExternalGatewayInfo().getNetworkId());
+
+          if (input_router.getExternalGatewayInfo().getNetworkId().equals(network)) {
+            output_router = new Router(input_router.getName(), input_router.getId());
+            output_routers.add(output_router);
+          }
+        }
+      }
+
+    } catch (Exception e) {
+      Logger.error("Runtime error getting openstack routers" + " error message: " + e.getMessage());
+    }
+
+    if (output_routers.isEmpty()) {
+      return null;
+    } else {
+      return output_routers;
+    }
 
   }
 

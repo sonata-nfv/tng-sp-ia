@@ -1,13 +1,16 @@
 package sonata.kernel.adaptor.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.LoggerFactory;
-import sonata.kernel.adaptor.commons.SonataManifestMapper;
+import sonata.kernel.adaptor.AdaptorCore;
+import sonata.kernel.adaptor.commons.*;
+import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.adaptor.wrapper.*;
 
 import javax.ws.rs.*;
@@ -129,6 +132,218 @@ public class VimsAPI {
       return apiResponse.status(404).build();
     }
 
+  }
+
+
+  /**
+   * api call in order to get the external networks list for a specific VIM
+   */
+  @GET
+  @Path("/heat/networks")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getNetworks(String vimConfig) {
+
+    Response.ResponseBuilder apiResponse = null;
+    try {
+      Logger.info("Retrieving Routers List");
+
+      ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
+      VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
+      if (vimApiReq.getUuid() == null) {
+        vimApiReq.setUuid(UUID.randomUUID().toString());
+      }
+
+      String request;
+      request = mapper.writeValueAsString(vimApiReq);
+      ServicePlatformMessage message = new ServicePlatformMessage(request, "application/json",
+          "infrastructure.heat.management.networks", vimApiReq.getUuid(), "nbi.infrastructure.heat.management.networks");
+      AdaptorCore.getInstance().southMux.enqueue(message);
+
+      ResourceRepo resourceRepo =  ResourceRepo.getInstance();
+      synchronized (resourceRepo) {
+        resourceRepo.putResourcesForRequestId(vimApiReq.getUuid(),1);
+      }
+
+      int counter = 0;
+      int wait = 500;
+      int maxCounter = 10;
+      int maxWait = 2000;
+
+      while (counter < maxCounter) {
+        synchronized (resourceRepo) {
+          if (resourceRepo.getStoredVendorsNumberForRequestId(vimApiReq.getUuid())==1) {
+            break;
+          }
+        }
+
+        try {
+          Thread.sleep(wait);
+        } catch (InterruptedException e) {
+          Logger.error(e.getMessage(), e);
+        }
+        counter++;
+        wait = Math.min(wait * 2, maxWait);
+      }
+
+      boolean status = false;
+      synchronized (resourceRepo) {
+
+        if (resourceRepo.getStoredVendorsNumberForRequestId(vimApiReq.getUuid())==1) {
+          try {
+            ArrayList<String> content= resourceRepo.getResourcesFromRequestId(vimApiReq.getUuid());
+
+            ArrayList<ExtNetwork> networksList = mapper.readValue(content.get(0), ArrayList.class);
+            Networks networks = new Networks();
+            networks.setNetworks(networksList);
+
+            String body = mapper.writeValueAsString(networks);
+            resourceRepo.removeResourcesFromRequestId(vimApiReq.getUuid());
+
+            Logger.info("Get Networks list call completed.");
+            apiResponse = Response.ok((String) body);
+            apiResponse.header("Content-Length", body.length());
+            return apiResponse.status(200).build();
+
+
+          } catch (Exception e) {
+            Logger.error("Error getting the info from wrapper: " + e.getMessage(), e);
+            resourceRepo.removeResourcesFromRequestId(vimApiReq.getUuid());
+            status = true;
+          }
+        } else {
+          resourceRepo.removeResourcesFromRequestId(vimApiReq.getUuid());
+          status = true;
+        }
+
+      }
+
+      if (status) {
+        Logger.error("Timeout Error getting the networks list from VIM");
+        String body = "{\"status\":\"ERROR\",\"message\":\"Timeout Error getting the networks list from VIM\"}";
+        apiResponse = Response.ok((String) body);
+        apiResponse.header("Content-Length", body.length());
+        return apiResponse.status(404).build();
+      }
+
+
+    } catch (Exception e) {
+      Logger.error("Error getting the networks list from VIM: " + e.getMessage(), e);
+      String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the networks list from VIM\"}";
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(404).build();
+    }
+
+    String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the networks list from VIM\"}";
+    apiResponse = Response.ok((String) body);
+    apiResponse.header("Content-Length", body.length());
+    return apiResponse.status(404).build();
+  }
+
+  /**
+   * api call in order to get the external routers list for a specific VIM
+   */
+  @GET
+  @Path("/heat/routers/{networkID}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getRouters(@PathParam("networkID") String networkID, String vimConfig) {
+
+    Response.ResponseBuilder apiResponse = null;
+    try {
+      Logger.info("Retrieving Routers List");
+
+      ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
+      VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
+      vimApiReq.setExternalNetworkId(networkID);
+      if (vimApiReq.getUuid() == null) {
+        vimApiReq.setUuid(UUID.randomUUID().toString());
+      }
+
+      String request;
+      request = mapper.writeValueAsString(vimApiReq);
+
+      ServicePlatformMessage message = new ServicePlatformMessage(request, "application/json",
+          "infrastructure.heat.management.routers", vimApiReq.getUuid(), "nbi.infrastructure.heat.management.routers");
+      AdaptorCore.getInstance().southMux.enqueue(message);
+
+      ResourceRepo resourceRepo =  ResourceRepo.getInstance();
+      synchronized (resourceRepo) {
+        resourceRepo.putResourcesForRequestId(vimApiReq.getUuid(),1);
+      }
+
+      int counter = 0;
+      int wait = 500;
+      int maxCounter = 10;
+      int maxWait = 2000;
+
+      while (counter < maxCounter) {
+        synchronized (resourceRepo) {
+          if (resourceRepo.getStoredVendorsNumberForRequestId(vimApiReq.getUuid())==1) {
+            break;
+          }
+        }
+
+        try {
+          Thread.sleep(wait);
+        } catch (InterruptedException e) {
+          Logger.error(e.getMessage(), e);
+        }
+        counter++;
+        wait = Math.min(wait * 2, maxWait);
+      }
+
+      boolean status = false;
+      synchronized (resourceRepo) {
+
+        if (resourceRepo.getStoredVendorsNumberForRequestId(vimApiReq.getUuid())==1) {
+          try {
+            ArrayList<String> content= resourceRepo.getResourcesFromRequestId(vimApiReq.getUuid());
+
+            ArrayList<Router> routersList = mapper.readValue(content.get(0), ArrayList.class);
+            Routers routers = new Routers();
+            routers.setRouters(routersList);
+
+            String body = mapper.writeValueAsString(routers);
+            resourceRepo.removeResourcesFromRequestId(vimApiReq.getUuid());
+
+            Logger.info("Get Routers list call completed.");
+            apiResponse = Response.ok((String) body);
+            apiResponse.header("Content-Length", body.length());
+            return apiResponse.status(200).build();
+
+
+          } catch (Exception e) {
+            Logger.error("Error getting the info from wrapper: " + e.getMessage(), e);
+            resourceRepo.removeResourcesFromRequestId(vimApiReq.getUuid());
+            status = true;
+          }
+        } else {
+          resourceRepo.removeResourcesFromRequestId(vimApiReq.getUuid());
+          status = true;
+        }
+
+      }
+
+      if (status) {
+        Logger.error("Timeout Error getting the routers list from VIM");
+        String body = "{\"status\":\"ERROR\",\"message\":\"Timeout Error getting the routers list from VIM\"}";
+        apiResponse = Response.ok((String) body);
+        apiResponse.header("Content-Length", body.length());
+        return apiResponse.status(404).build();
+      }
+
+    } catch (Exception e) {
+      Logger.error("Error getting the routers list from VIM: " + e.getMessage(), e);
+      String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the routers list from VIM\"}";
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(404).build();
+    }
+
+    String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the routers list from VIM\"}";
+    apiResponse = Response.ok((String) body);
+    apiResponse.header("Content-Length", body.length());
+    return apiResponse.status(404).build();
   }
 
   /**
