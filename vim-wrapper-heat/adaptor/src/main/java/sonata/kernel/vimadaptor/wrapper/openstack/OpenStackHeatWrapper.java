@@ -65,11 +65,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Hashtable;
 
 public class OpenStackHeatWrapper extends ComputeWrapper {
 
@@ -331,23 +328,23 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     mapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     mapper.setSerializationInclusion(Include.NON_NULL);
 
-    try {
-      stackAddition =
-          translate(data.getVnfd(), vimFlavors, vimPolicies, data.getServiceInstanceId(), data.getPublicKey());
-    } catch (Exception e) {
-      Logger.error("Error: " + e.getMessage());
-      e.printStackTrace();
-      WrapperStatusUpdate update =
-          new WrapperStatusUpdate(sid, "ERROR", "Exception during VNFD translation.");
-      this.markAsChanged();
-      this.notifyObservers(update);
-      return;
-    }
     HeatTemplate template = client.getStackTemplate(stackName, stackUuid);
     if (template == null) {
       Logger.error("Error retrieving the stack template.");
       WrapperStatusUpdate update =
           new WrapperStatusUpdate(sid, "ERROR", "Cannot retrieve service stack from VIM.");
+      this.markAsChanged();
+      this.notifyObservers(update);
+      return;
+    }
+    try {
+      stackAddition =
+          translate(data.getVnfd(), vimFlavors, vimPolicies, template.getResources().keySet(), data.getServiceInstanceId(), data.getPublicKey());
+    } catch (Exception e) {
+      Logger.error("Error: " + e.getMessage());
+      e.printStackTrace();
+      WrapperStatusUpdate update =
+          new WrapperStatusUpdate(sid, "ERROR", "Exception during VNFD translation.");
       this.markAsChanged();
       this.notifyObservers(update);
       return;
@@ -2039,8 +2036,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     return model;
   }
 
-  private HeatModel translate(VnfDescriptor vnfd, ArrayList<Flavor> flavors, ArrayList<QosPolicy> policies, String serviceInstanceUuid,
-      String publicKey) throws Exception {
+  private HeatModel translate(VnfDescriptor vnfd, ArrayList<Flavor> flavors, ArrayList<QosPolicy> policies, Set<String> resources, String serviceInstanceUuid,
+                              String publicKey) throws Exception {
     // TODO This values should be per User, now they are per VIM. This should be re-designed once
     // user management is in place.
     JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
@@ -2346,7 +2343,12 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
 
         }
         if (netId != null) {
-          port.putProperty("network", netId);
+          if (resources.contains(netId)) {
+            netMap.put("get_resource", netId);
+            port.putProperty("network", netMap);
+          } else {
+            port.putProperty("network", netId);
+          }
           if (netId.equals(tenantExtNet)) {
               publicPortNames.remove(cpQualifiedName);
           }
