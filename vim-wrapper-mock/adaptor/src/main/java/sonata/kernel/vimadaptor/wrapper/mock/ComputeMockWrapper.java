@@ -244,6 +244,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
    * 
    * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#prepareService(java.lang.String)
    */
+  @Deprecated
   @Override
   public boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) {
     double avgTime = 1356.52;
@@ -265,6 +266,10 @@ public class ComputeMockWrapper extends ComputeWrapper {
     double avgTime = 1356.52;
     double stdTime = 663.12;
     waitGaussianTime(avgTime, stdTime);
+    if (WrapperBay.getInstance().getVimRepo().getServiceInstanceVimUuid(instanceId) == null){
+      WrapperBay.getInstance().getVimRepo().writeServiceInstanceEntry(instanceId, instanceId,
+          instanceId, this.getConfig().getUuid());
+    }
     return true;
   }
 
@@ -339,6 +344,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
    *
    * @see sonata.kernel.vimadaptor.wrapper.ComputeWrapper#prepareSlice(java.lang.String)
    */
+  @Deprecated
   @Override
   public boolean prepareSlice(String instanceId, ArrayList<VirtualLink> virtualLinks) {
     double avgTime = 1356.52;
@@ -349,6 +355,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
     return true;
   }
 
+  @Deprecated
   @Override
   public void removeSlice(SliceRemovePayload data, String callSid) {
 

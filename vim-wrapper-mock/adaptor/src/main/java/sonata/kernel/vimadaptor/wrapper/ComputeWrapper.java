@@ -92,6 +92,7 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    * 
    * @return true if the remove process has started correctly, false otherwise
    */
+  @Deprecated
   public abstract boolean prepareService(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
 
   /**
@@ -166,6 +167,7 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    *
    * @return true if the remove process has started correctly, false otherwise
    */
+  @Deprecated
   public abstract boolean prepareSlice(String instanceId, ArrayList<VirtualLink> virtualLinks) throws Exception;
 
   /**
@@ -175,5 +177,6 @@ public abstract class ComputeWrapper extends AbstractWrapper implements Wrapper 
    * @param sid the session ID for this Adaptor call
    *
    */
+  @Deprecated
   public abstract void removeSlice(SliceRemovePayload data, String sid);
 }

@@ -82,17 +82,10 @@ public class NetworkCreateServiceCallProcessor extends AbstractCallProcessor {
         }
         Logger.info(message.getSid().substring(0, 10) + " - Wrapper retrieved");
 
-        if (WrapperBay.getInstance().getVimRepo().getServiceInstanceVimUuid(payload.getInstanceId(),
-            vim.getUuid()) == null) {
-
-          throw new Exception("Service needs to be prepared first for instance "
+        boolean success = wr.networkCreate(payload.getInstanceId(), vim.getVirtualLinks());
+        if (!success) {
+          throw new Exception("Unable to create the network for instance: "
                   + payload.getInstanceId() + " on Compute VIM " + vim.getUuid());
-        } else {
-          boolean success = wr.networkCreate(payload.getInstanceId(), vim.getVirtualLinks());
-          if (!success) {
-            throw new Exception("Unable to create the network for instance: "
-                    + payload.getInstanceId() + " on Compute VIM " + vim.getUuid());
-          }
         }
 
       }

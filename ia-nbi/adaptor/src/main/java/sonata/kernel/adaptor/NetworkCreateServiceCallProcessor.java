@@ -63,7 +63,7 @@ public class NetworkCreateServiceCallProcessor extends AbstractCallProcessor {
       resourceRepo.putResourcesForRequestId(message.getSid(),vendorSize);
     }
 
-    int wait = 120000;
+    int wait = 60000;
     try {
       Thread.sleep(wait);
     } catch (InterruptedException e) {
