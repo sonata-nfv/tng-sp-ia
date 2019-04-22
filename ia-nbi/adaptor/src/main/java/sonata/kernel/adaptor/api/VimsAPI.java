@@ -145,7 +145,7 @@ public class VimsAPI {
 
     Response.ResponseBuilder apiResponse = null;
     try {
-      Logger.info("Retrieving Routers List");
+      Logger.info("Retrieving Networks List");
 
       ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
       VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
