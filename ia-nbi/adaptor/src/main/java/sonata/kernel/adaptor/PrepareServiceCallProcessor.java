@@ -33,7 +33,7 @@ import sonata.kernel.adaptor.wrapper.ResourceRepo;
 
 import java.util.ArrayList;
 import java.util.Observable;
-
+@Deprecated
 public class PrepareServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
       LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
@@ -45,6 +45,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
+  @Deprecated
   public PrepareServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux, int vendorSize) {
     super(message, sid, mux);
     this.vendorSize = vendorSize;

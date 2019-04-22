@@ -35,7 +35,7 @@ import sonata.kernel.adaptor.wrapper.VimVendor;
 
 import java.util.ArrayList;
 import java.util.Observable;
-
+@Deprecated
 public class FwPrepareServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
       LoggerFactory.getLogger(FwPrepareServiceCallProcessor.class);
@@ -47,6 +47,7 @@ public class FwPrepareServiceCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
+  @Deprecated
   public FwPrepareServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
     super(message, sid, mux);
   }

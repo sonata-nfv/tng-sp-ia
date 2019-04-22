@@ -87,10 +87,6 @@ public class AdaptorDispatcherSouth implements Runnable {
           myThreadPool.execute(new FwDeconfigureNetworkCallProcessor(message, message.getSid(), northMux));
         } else if (message.getTopic().endsWith("chain.configure")) {
           myThreadPool.execute(new FwConfigureNetworkCallProcessor(message, message.getSid(), northMux));
-        } else if (message.getTopic().endsWith("slice.prepare")) {
-          myThreadPool.execute(new FwPrepareSliceCallProcessor(message, message.getSid(), northMux));
-        } else if (message.getTopic().endsWith("slice.remove")) {
-          myThreadPool.execute(new FwRemoveSliceCallProcessor(message, message.getSid(), northMux));
         } else if (message.getTopic().endsWith("management.networks")) {
           myThreadPool.execute(new StoreNetworksVimCallProcessor(message, message.getSid(), northMux));
         } else if (message.getTopic().endsWith("management.routers")) {
