@@ -165,9 +165,9 @@ public class VimsAPI {
       }
 
       int counter = 0;
-      int wait = 500;
+      int wait = 350;
       int maxCounter = 10;
-      int maxWait = 2000;
+      int maxWait = 1000;
 
       while (counter < maxCounter) {
         synchronized (resourceRepo) {
@@ -272,9 +272,9 @@ public class VimsAPI {
       }
 
       int counter = 0;
-      int wait = 500;
+      int wait = 350;
       int maxCounter = 10;
-      int maxWait = 2000;
+      int maxWait = 1000;
 
       while (counter < maxCounter) {
         synchronized (resourceRepo) {
