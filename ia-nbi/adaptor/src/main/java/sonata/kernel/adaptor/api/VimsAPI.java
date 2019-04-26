@@ -141,18 +141,62 @@ public class VimsAPI {
   @GET
   @Path("/heat/networks")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getNetworks(String vimConfig) {
+  public Response getNetworks(@QueryParam("uuid") String uuid, @QueryParam("endpoint") String endpoint,
+      @QueryParam("username") String userName, @QueryParam("password") String password,
+      @QueryParam("tenant") String tenant, @QueryParam("domain") String domain) {
 
     Response.ResponseBuilder apiResponse = null;
+    VimApiHeatRequest vimApiReq = new VimApiHeatRequest();
+    try {
+      Logger.info("Read VIM configurations from query params");
+
+      if (uuid == null) {
+        vimApiReq.setUuid(UUID.randomUUID().toString());
+      } else {
+        vimApiReq.setUuid(uuid);
+      }
+      if(endpoint == null) {
+        Logger.error("Error endpoint is null");
+        throw new RuntimeException("endpoint is null");
+      } else {
+        vimApiReq.setEndpoint(endpoint);
+      }
+      if(userName == null) {
+        Logger.error("Error username is null");
+        throw new RuntimeException("username is null");
+      } else {
+        vimApiReq.setUserName(userName);
+      }
+      if(password == null) {
+        Logger.error("Error password is null");
+        throw new RuntimeException("password is null");
+      } else {
+        vimApiReq.setPassword(password);
+      }
+      if(tenant == null) {
+        Logger.error("Error tenant is null");
+        throw new RuntimeException("tenant is null");
+      } else {
+        vimApiReq.setTenant(tenant);
+      }
+      if (domain == null) {
+        vimApiReq.setDomain("Default");
+      } else {
+        vimApiReq.setDomain(domain);
+      }
+
+    } catch (Exception e) {
+      Logger.error("Error getting the VIM configurations from query params");
+      String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the VIM configurations from query params\"}";
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(400).build();
+    }
+
     try {
       Logger.info("Retrieving Networks List");
 
       ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
-      VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
-      if (vimApiReq.getUuid() == null) {
-        vimApiReq.setUuid(UUID.randomUUID().toString());
-      }
-
       String request;
       request = mapper.writeValueAsString(vimApiReq);
       ServicePlatformMessage message = new ServicePlatformMessage(request, "application/json",
@@ -246,19 +290,65 @@ public class VimsAPI {
   @GET
   @Path("/heat/routers/{networkID}")
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getRouters(@PathParam("networkID") String networkID, String vimConfig) {
+  public Response getRouters(@PathParam("networkID") String networkID, @QueryParam("uuid") String uuid,
+      @QueryParam("endpoint") String endpoint, @QueryParam("username") String userName,
+      @QueryParam("password") String password, @QueryParam("tenant") String tenant,
+      @QueryParam("domain") String domain) {
 
     Response.ResponseBuilder apiResponse = null;
+    VimApiHeatRequest vimApiReq = new VimApiHeatRequest();
+    try {
+      Logger.info("Read VIM configurations from query params");
+
+      if (uuid == null) {
+        vimApiReq.setUuid(UUID.randomUUID().toString());
+      } else {
+        vimApiReq.setUuid(uuid);
+      }
+      if(endpoint == null) {
+        Logger.error("Error endpoint is null");
+        throw new RuntimeException("endpoint is null");
+      } else {
+        vimApiReq.setEndpoint(endpoint);
+      }
+      if(userName == null) {
+        Logger.error("Error username is null");
+        throw new RuntimeException("username is null");
+      } else {
+        vimApiReq.setUserName(userName);
+      }
+      if(password == null) {
+        Logger.error("Error password is null");
+        throw new RuntimeException("password is null");
+      } else {
+        vimApiReq.setPassword(password);
+      }
+      if(tenant == null) {
+        Logger.error("Error tenant is null");
+        throw new RuntimeException("tenant is null");
+      } else {
+        vimApiReq.setTenant(tenant);
+      }
+      if (domain == null) {
+        vimApiReq.setDomain("Default");
+      } else {
+        vimApiReq.setDomain(domain);
+      }
+
+    } catch (Exception e) {
+      Logger.error("Error getting the VIM configurations from query params");
+      String body = "{\"status\":\"ERROR\",\"message\":\"Error getting the VIM configurations from query params\"}";
+      apiResponse = Response.ok((String) body);
+      apiResponse.header("Content-Length", body.length());
+      return apiResponse.status(400).build();
+    }
+
     try {
       Logger.info("Retrieving Routers List");
 
-      ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
-      VimApiHeatRequest vimApiReq = mapper.readValue(vimConfig, VimApiHeatRequest.class);
       vimApiReq.setExternalNetworkId(networkID);
-      if (vimApiReq.getUuid() == null) {
-        vimApiReq.setUuid(UUID.randomUUID().toString());
-      }
 
+      ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
       String request;
       request = mapper.writeValueAsString(vimApiReq);
 
