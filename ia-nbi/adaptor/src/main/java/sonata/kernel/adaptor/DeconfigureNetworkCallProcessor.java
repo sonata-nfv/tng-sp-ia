@@ -63,7 +63,7 @@ public class DeconfigureNetworkCallProcessor extends AbstractCallProcessor {
       resourceRepo.putResourcesForRequestId(message.getSid(),vendorSize);
     }
 
-    int wait = 15000;
+    int wait = 60000;
     try {
       Thread.sleep(wait);
     } catch (InterruptedException e) {
