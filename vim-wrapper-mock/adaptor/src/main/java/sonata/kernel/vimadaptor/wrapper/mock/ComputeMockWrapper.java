@@ -266,7 +266,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
     double avgTime = 1356.52;
     double stdTime = 663.12;
     waitGaussianTime(avgTime, stdTime);
-    if (WrapperBay.getInstance().getVimRepo().getServiceInstanceVimUuid(instanceId) == null){
+    if (WrapperBay.getInstance().getVimRepo().getServiceInstanceVimUuid(instanceId, this.getConfig().getUuid()) == null){
       WrapperBay.getInstance().getVimRepo().writeServiceInstanceEntry(instanceId, instanceId,
           instanceId, this.getConfig().getUuid());
     }
