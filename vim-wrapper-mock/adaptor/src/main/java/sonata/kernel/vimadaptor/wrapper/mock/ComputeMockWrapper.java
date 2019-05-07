@@ -220,7 +220,7 @@ public class ComputeMockWrapper extends ComputeWrapper {
     ResourceUtilisation resources = new ResourceUtilisation();
     resources.setTotCores(30);
     resources.setUsedCores(0);
-    resources.setTotMemory(10000);
+    resources.setTotMemory(100000);
     resources.setUsedMemory(0);
 
     return resources;
