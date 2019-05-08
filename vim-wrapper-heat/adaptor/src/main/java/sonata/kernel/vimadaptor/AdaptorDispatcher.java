@@ -78,8 +78,6 @@ public class AdaptorDispatcher implements Runnable {
           this.core.handleDeregistrationResponse(message);
         } else if (isManagementMsg(message)) {
           handleManagementMessage(message);
-        } else if (isSliceMsg(message)) {
-          this.handleSliceMsg(message);
         } else if (isServiceMsg(message)) {
           this.handleServiceMsg(message);
         } else if (isFunctionMessage(message)) {
@@ -181,16 +179,6 @@ public class AdaptorDispatcher implements Runnable {
     }
   }
 
-  private void handleSliceMsg(ServicePlatformMessage message) {
-    if (message.getTopic().endsWith("remove")) {
-      Logger.info("Received a \"slice.remove\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new RemoveSliceCallProcessor(message, message.getSid(), mux));
-    } else if (message.getTopic().endsWith("prepare")) {
-      Logger.info("Received a \"slice.prepare\" API call on topic: " + message.getTopic());
-      myThreadPool.execute(new PrepareSliceCallProcessor(message, message.getSid(), mux));
-    }
-  }
-
   private boolean isDeregistrationResponse(ServicePlatformMessage message) {
     return message.getTopic().equals("platform.management.plugin.deregister")
         && message.getSid().equals(core.getRegistrationSid());
@@ -215,9 +203,5 @@ public class AdaptorDispatcher implements Runnable {
 
   private boolean isServiceMsg(ServicePlatformMessage message) {
     return message.getTopic().contains("infrastructure.heat.service");
-  }
-
-  private boolean isSliceMsg(ServicePlatformMessage message) {
-    return message.getTopic().contains("infrastructure.heat.slice");
   }
 }

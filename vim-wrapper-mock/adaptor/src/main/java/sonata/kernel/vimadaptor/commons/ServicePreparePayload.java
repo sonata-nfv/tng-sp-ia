@@ -29,7 +29,7 @@ package sonata.kernel.vimadaptor.commons;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
-
+@Deprecated
 public class ServicePreparePayload {
 
   @JsonProperty("instance_id")

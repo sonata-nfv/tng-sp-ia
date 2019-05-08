@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import sonata.kernel.vimadaptor.commons.FunctionDeployPayload;
 import sonata.kernel.vimadaptor.commons.SonataManifestMapper;
+import sonata.kernel.vimadaptor.commons.VnfImage;
+import sonata.kernel.vimadaptor.commons.vnfd.VirtualDeploymentUnit;
 import sonata.kernel.vimadaptor.messaging.ServicePlatformMessage;
 import sonata.kernel.vimadaptor.wrapper.ComputeWrapper;
 import sonata.kernel.vimadaptor.wrapper.WrapperBay;
@@ -93,6 +95,20 @@ public class DeployFunctionCallProcessor extends AbstractCallProcessor {
             message.getReplyTo(), message.getSid(), null));
         out = false;
       } else {
+
+        for (VirtualDeploymentUnit vdu : data.getVnfd().getVirtualDeploymentUnits()) {
+          String image_uuid = data.getVnfd().getVendor() + "_" + data.getVnfd().getName() + "_" + data.getVnfd().getVersion() + "_" + vdu.getId();
+          VnfImage vnfImage = new VnfImage(image_uuid, vdu.getVmImage(), vdu.getVmImageMd5()) ;
+          if (!wr.isImageStored(vnfImage, message.getSid())) {
+            Logger.info(
+                message.getSid().substring(0, 10) + " - Image not stored in VIM image repository.");
+            wr.uploadImage(vnfImage);
+          } else {
+            Logger.info(message.getSid().substring(0, 10)
+                + " - Image already stored in the VIM image repository");
+          }
+        }
+
         // use wrapper interface to send the NSD/VNFD, along with meta-data
         // to the wrapper, triggering the service instantiation.
         Logger.info(

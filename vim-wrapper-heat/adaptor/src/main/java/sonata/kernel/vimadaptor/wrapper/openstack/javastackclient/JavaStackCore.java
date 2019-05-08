@@ -430,7 +430,7 @@ public class JavaStackCore {
       createImage = new HttpPost(buildUrl.toString());
       String requestBody =
           String.format("{ \"container_format\": \"bare\"," + "\"disk_format\": \"raw\","
-              + " \"name\": \"%s\"" + ",\"visibility\":\"public\"" + "}", name);
+              + " \"name\": \"%s\"" + ",\"visibility\":\"private\"" + "}", name);
 
       createImage.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
       createImage.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);

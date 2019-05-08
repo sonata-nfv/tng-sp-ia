@@ -79,11 +79,14 @@ public class FwVimWimCallProcessor extends AbstractCallProcessor {
       wimVendor = WimVendor.VTN;
     } else if (message.getTopic().contains(".mock.") && message.getTopic().contains(".wan.")) {
       wimVendor = WimVendor.MOCK;
+    } else if (message.getTopic().contains(".tapi.")) {
+      wimVendor = WimVendor.TAPI;
     }
 
 
     String vendor;
     if ((vimVendor == null) && (wimVendor == null)) {
+      Logger.error("VIM/WIM Vendor Type not found");
       return false;
     } else {
       if (vimVendor != null) {

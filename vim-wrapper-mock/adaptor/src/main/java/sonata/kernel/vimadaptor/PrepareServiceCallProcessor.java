@@ -38,7 +38,7 @@ import sonata.kernel.vimadaptor.wrapper.ComputeWrapper;
 import sonata.kernel.vimadaptor.wrapper.WrapperBay;
 
 import java.util.Observable;
-
+@Deprecated
 public class PrepareServiceCallProcessor extends AbstractCallProcessor {
   private static final org.slf4j.Logger Logger =
       LoggerFactory.getLogger(PrepareServiceCallProcessor.class);
@@ -48,6 +48,7 @@ public class PrepareServiceCallProcessor extends AbstractCallProcessor {
    * @param sid
    * @param mux
    */
+  @Deprecated
   public PrepareServiceCallProcessor(ServicePlatformMessage message, String sid, AdaptorMux mux) {
     super(message, sid, mux);
   }
