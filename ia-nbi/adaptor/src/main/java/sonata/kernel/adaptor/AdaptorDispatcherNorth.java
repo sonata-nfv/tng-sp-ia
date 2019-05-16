@@ -129,6 +129,7 @@ public class AdaptorDispatcherNorth implements Runnable {
       vimVendors = this.getVimVendors.GetVimVendors(message, "function.remove");
     }
     if (vimVendors == null) {
+      Logger.warn("Error retrieving the Vims Type for message: " + message.toString());
       this.northMux.enqueue(new ServicePlatformMessage(
               "{\"request_status\":\"ERROR\",\"message\":\""
                       + "Error retrieving the Vims Type" + "\"}",
@@ -152,6 +153,7 @@ public class AdaptorDispatcherNorth implements Runnable {
         Logger.info("Received a \"List VIMs\" API call on topic: " + message.getTopic());
         ArrayList<String> vimVendors = this.getVimVendors.GetVimVendors(message, "compute.list");
         if (vimVendors == null) {
+          Logger.warn("Error retrieving the Vims Type for message: " + message.toString());
           this.northMux.enqueue(new ServicePlatformMessage(
                   "{\"request_status\":\"ERROR\",\"message\":\""
                           + "Error retrieving the Vims Type" + "\"}",
@@ -212,6 +214,7 @@ public class AdaptorDispatcherNorth implements Runnable {
     }
 
     if (vimVendors == null) {
+      Logger.warn("Error retrieving the Vims Type for message: " + message.toString());
       this.northMux.enqueue(new ServicePlatformMessage(
               "{\"request_status\":\"ERROR\",\"message\":\""
                       + "Error retrieving the Vims Type" + "\"}",
