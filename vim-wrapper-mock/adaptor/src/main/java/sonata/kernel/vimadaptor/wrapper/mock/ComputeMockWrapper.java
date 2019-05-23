@@ -213,9 +213,9 @@ public class ComputeMockWrapper extends ComputeWrapper {
   @Override
   public ResourceUtilisation getResourceUtilisation() {
 
-    double avgTime = 1769.39;
-    double stdTime = 1096.48;
-    waitGaussianTime(avgTime, stdTime);
+    //double avgTime = 1769.39;
+    //double stdTime = 1096.48;
+    //waitGaussianTime(avgTime, stdTime);
 
     ResourceUtilisation resources = new ResourceUtilisation();
     resources.setTotCores(30);
