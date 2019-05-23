@@ -44,8 +44,8 @@
 		<junit.version>4.12</junit.version>
 		<json.version>20180813</json.version>
 		<amqp.client.version>5.5.3</amqp.client.version>
-		<jackson.databind.version>2.9.8</jackson.databind.version>
-		<jackson.dataformat.version>2.9.8</jackson.dataformat.version>
+		<jackson.databind.version>2.9.9</jackson.databind.version>
+		<jackson.dataformat.version>2.9.9</jackson.dataformat.version>
 		<commons.io.version>1.3.2</commons.io.version>
 		<logback.classic.version>1.2.3</logback.classic.version>
 		<httpcomponents.httpclient.version>4.5.6</httpcomponents.httpclient.version>
