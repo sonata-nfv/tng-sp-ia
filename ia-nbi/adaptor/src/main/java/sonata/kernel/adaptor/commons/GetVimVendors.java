@@ -581,7 +581,7 @@ public class GetVimVendors {
           break;
         }
       }
-      if (vimVendors.isEmpty()) {
+      if ((vimVendors != null) && vimVendors.isEmpty()) {
         Logger.error("Error retrieving the Vims Vendor");
         vimVendors = null;
       }

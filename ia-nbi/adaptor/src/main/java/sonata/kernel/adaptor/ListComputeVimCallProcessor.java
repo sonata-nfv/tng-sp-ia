@@ -60,7 +60,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
       resourceRepo.putResourcesForRequestId(message.getSid(),vendorSize);
     }
 
-    int wait = 60000;
+    int wait = 5000;
     try {
       Thread.sleep(wait);
     } catch (InterruptedException e) {
