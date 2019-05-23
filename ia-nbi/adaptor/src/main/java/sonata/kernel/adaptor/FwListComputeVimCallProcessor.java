@@ -25,7 +25,10 @@
  */
 package sonata.kernel.adaptor;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import sonata.kernel.adaptor.commons.*;
 import org.slf4j.LoggerFactory;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
@@ -153,8 +156,13 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
             computeListResponse.setVimList(vimList);
             computeListResponse.setNepList(nepList);
 
+            // Need a new mapper different from SonataManifestMapper for allow feature WRITE_EMPTY_JSON_ARRAYS
+            ObjectMapper mapperW = new ObjectMapper(new YAMLFactory());
+            mapperW.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+            mapperW.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+            mapperW.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             String finalBody;
-            finalBody = mapper.writeValueAsString(computeListResponse);
+            finalBody = mapperW.writeValueAsString(computeListResponse);
 
             //Logger.debug("Final Content: " + finalBody);
             ServicePlatformMessage response = new ServicePlatformMessage(finalBody, "application/json",
