@@ -1128,6 +1128,32 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         String output = client.deleteStack(stackName, stackUuid);
 
         if (output.equals("DELETED")) {
+          int counter = 0;
+          int wait = 1000;
+          int maxCounter = 20;
+          int maxWait = 5000;
+          String status = null;
+          while (counter < maxCounter) {
+            status = client.getStackStatus(stackName, stackUuid);
+            Logger.info("Status of stack " + stackUuid + ": " + status);
+            if (status == null || (status.equals("DELETE_COMPLETE") || status.equals("DELETE_FAILED"))) {
+              break;
+            }
+            try {
+              Thread.sleep(wait);
+            } catch (InterruptedException e) {
+              Logger.error(e.getMessage(), e);
+            }
+            counter++;
+            wait = Math.min(wait * 2, maxWait);
+
+          }
+
+          if (status != null && status.equals("DELETE_FAILED")) {
+            Logger.error("Heat Stack delete process failed on the VIM side.");
+            return false;
+          }
+
           ArrayList<String> functionInstanceUUids = WrapperBay.getInstance().getVimRepo().getFunctionUuidByServiceInstanceIdAndVimUuid(instanceId, this.getConfig().getUuid());
           for (String  functionInstanceUUid : functionInstanceUUids) {
             try {
@@ -1211,6 +1237,36 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       String output = client.deleteStack(stackName, stackUuid);
 
       if (output.equals("DELETED")) {
+        int counter = 0;
+        int wait = 1000;
+        int maxCounter = 20;
+        int maxWait = 5000;
+        String status = null;
+        while (counter < maxCounter) {
+          status = client.getStackStatus(stackName, stackUuid);
+          Logger.info("Status of stack " + stackUuid + ": " + status);
+          if (status == null || (status.equals("DELETE_COMPLETE") || status.equals("DELETE_FAILED"))) {
+            break;
+          }
+          try {
+            Thread.sleep(wait);
+          } catch (InterruptedException e) {
+            Logger.error(e.getMessage(), e);
+          }
+          counter++;
+          wait = Math.min(wait * 2, maxWait);
+
+        }
+
+        if (status != null && status.equals("DELETE_FAILED")) {
+          Logger.error("Heat Stack delete process failed on the VIM side.");
+          WrapperStatusUpdate errorUpdate = new WrapperStatusUpdate(callSid, "ERROR",
+              "Remove service process failed on the VIM side.");
+          this.setChanged();
+          this.notifyObservers(errorUpdate);
+          return;
+        }
+
         ArrayList<String> functionInstanceUUids = repo.getFunctionUuidByServiceInstanceIdAndVimUuid(data.getServiceInstanceId(), this.getConfig().getUuid());
         for (String  functionInstanceUUid : functionInstanceUUids) {
           try {
