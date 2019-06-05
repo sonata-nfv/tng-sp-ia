@@ -64,7 +64,7 @@ public class ListComputeVimCallProcessor extends AbstractCallProcessor {
     Logger.info("Retrieving VIM(s) resource utilisation");
     ArrayList<VimResources> resList = new ArrayList<VimResources>();
     for (String vimUuid : vimList) {
-      ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapper(vimUuid);
+      ComputeWrapper wr = WrapperBay.getInstance().getComputeWrapperFromDB(vimUuid);
       if (wr == null) {
         continue;
       }
