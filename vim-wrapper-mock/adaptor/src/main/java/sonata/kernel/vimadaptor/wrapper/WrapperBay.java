@@ -98,6 +98,24 @@ public class WrapperBay {
   }
 
   /**
+   * Return the wrapper of the compute VIM identified by the given UUID from DB and update cache.
+   *
+   * @param vimUuid the UUID of the compute VIM
+   *
+   * @return the wrapper of the requested VIM or null if the UUID does not correspond to a
+   *         registered VIM
+   */
+  public ComputeWrapper getComputeWrapperFromDB(String vimUuid) {
+    ComputeWrapper vimEntry = (ComputeWrapper) this.repository.readVimEntry(vimUuid);
+    if (vimEntry == null) {
+      return null;
+    } else {
+      computeWrapperCache.put(vimUuid, vimEntry);
+      return vimEntry;
+    }
+  }
+
+  /**
    * Return the list of the registered compute VIMs.
    * 
    * @return an arraylist of String representing the UUIDs of the registered VIMs
