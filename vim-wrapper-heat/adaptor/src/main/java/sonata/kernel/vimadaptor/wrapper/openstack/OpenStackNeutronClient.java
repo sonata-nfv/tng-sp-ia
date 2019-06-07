@@ -106,7 +106,7 @@ public class OpenStackNeutronClient {
       }
 
     } catch (Exception e) {
-      Logger.error("Runtime error getting openstack qos policies" + " error message: " + e.getMessage());
+      Logger.warn("Warning: Runtime error getting openstack qos policies" + " error message: " + e.getMessage());
     }
 
     return output_policies;

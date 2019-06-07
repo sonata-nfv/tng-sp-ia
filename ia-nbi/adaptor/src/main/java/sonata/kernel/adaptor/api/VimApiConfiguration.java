@@ -56,6 +56,10 @@ public class VimApiConfiguration {
   private String externalNetworkId;
   @JsonProperty("external_router_id")
   private String externalRouterId;
+  @JsonProperty("external_router_ip")
+  private String externalRouterIp;
+  @JsonProperty("management_flow_ip")
+  private String managementFlowIp;
   @JsonProperty("config")
   private JsonNode configuration;
 
@@ -125,6 +129,14 @@ public class VimApiConfiguration {
     return externalRouterId;
   }
 
+  public String getExternalRouterIp() {
+    return externalRouterIp;
+  }
+
+  public String getManagementFlowIp() {
+    return managementFlowIp;
+  }
+
   public JsonNode getConfiguration() {
         return configuration;
     }
@@ -192,6 +204,14 @@ public class VimApiConfiguration {
 
   public void setExternalRouterId(String externalRouterId) {
     this.externalRouterId = externalRouterId;
+  }
+
+  public void setExternalRouterIp(String externalRouterIp) {
+    this.externalRouterIp = externalRouterIp;
+  }
+
+  public void setManagementFlowIp(String managementFlowIp) {
+    this.managementFlowIp = managementFlowIp;
   }
 
   public void setConfiguration(JsonNode configuration) {

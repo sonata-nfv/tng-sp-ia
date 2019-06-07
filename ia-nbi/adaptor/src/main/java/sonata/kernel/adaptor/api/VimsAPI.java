@@ -794,6 +794,22 @@ public class VimsAPI {
         }
         config = config + "\"tenant_ext_router\":\"" + vimApiConfig.getExternalRouterId() + "\"";
       }
+      if (vimApiConfig.getExternalRouterIp() != null) {
+        if (config == null) {
+          config = "{";
+        } else {
+          config = config + ", ";
+        }
+        config = config + "\"router_ext_ip\":\"" + vimApiConfig.getExternalRouterIp() + "\"";
+      }
+      if (vimApiConfig.getManagementFlowIp() != null) {
+        if (config == null) {
+          config = "{";
+        } else {
+          config = config + ", ";
+        }
+        config = config + "\"management_flow_ip\":\"" + vimApiConfig.getManagementFlowIp() + "\"";
+      }
       if (config == null) {
         config = "{}";
       } else {
@@ -866,6 +882,12 @@ public class VimsAPI {
         if (object.has("tenant_ext_router")) {
           vimApiConfig.setExternalRouterId(object.getString("tenant_ext_router"));
         }
+        if (object.has("router_ext_ip")) {
+          vimApiConfig.setExternalRouterIp(object.getString("router_ext_ip"));
+        }
+        if (object.has("management_flow_ip")) {
+          vimApiConfig.setManagementFlowIp(object.getString("management_flow_ip"));
+        }
       } else {
         ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
         vimApiConfig.setConfiguration(mapper.readTree(vimWrapperConfig.getConfiguration()));
@@ -926,6 +948,12 @@ public class VimsAPI {
     }
     if (vimUpdateApiConfig.getExternalRouterId() != null) {
       vimApiConfig.setExternalRouterId(vimUpdateApiConfig.getExternalRouterId());
+    }
+    if (vimUpdateApiConfig.getExternalRouterIp() != null) {
+      vimApiConfig.setExternalRouterIp(vimUpdateApiConfig.getExternalRouterIp());
+    }
+    if (vimUpdateApiConfig.getManagementFlowIp() != null) {
+      vimApiConfig.setManagementFlowIp(vimUpdateApiConfig.getManagementFlowIp());
     }
     if (vimUpdateApiConfig.getNetworkEndpoint() != null) {
       vimApiConfig.setNetworkEndpoint(vimUpdateApiConfig.getNetworkEndpoint());
