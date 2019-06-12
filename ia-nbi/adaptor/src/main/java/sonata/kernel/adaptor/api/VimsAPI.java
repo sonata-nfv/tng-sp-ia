@@ -810,6 +810,14 @@ public class VimsAPI {
         }
         config = config + "\"management_flow_ip\":\"" + vimApiConfig.getManagementFlowIp() + "\"";
       }
+      if (vimApiConfig.getFloatingIpRanging() != null) {
+        if (config == null) {
+          config = "{";
+        } else {
+          config = config + ", ";
+        }
+        config = config + "\"floating_ip_ranging\":\"" + vimApiConfig.getFloatingIpRanging() + "\"";
+      }
       if (config == null) {
         config = "{}";
       } else {
@@ -888,6 +896,9 @@ public class VimsAPI {
         if (object.has("management_flow_ip")) {
           vimApiConfig.setManagementFlowIp(object.getString("management_flow_ip"));
         }
+        if (object.has("floating_ip_ranging")) {
+          vimApiConfig.setFloatingIpRanging(object.getString("floating_ip_ranging"));
+        }
       } else {
         ObjectMapper mapper = SonataManifestMapper.getSonataJsonMapper();
         vimApiConfig.setConfiguration(mapper.readTree(vimWrapperConfig.getConfiguration()));
@@ -954,6 +965,9 @@ public class VimsAPI {
     }
     if (vimUpdateApiConfig.getManagementFlowIp() != null) {
       vimApiConfig.setManagementFlowIp(vimUpdateApiConfig.getManagementFlowIp());
+    }
+    if (vimUpdateApiConfig.getFloatingIpRanging() != null) {
+      vimApiConfig.setFloatingIpRanging(vimUpdateApiConfig.getFloatingIpRanging());
     }
     if (vimUpdateApiConfig.getNetworkEndpoint() != null) {
       vimApiConfig.setNetworkEndpoint(vimUpdateApiConfig.getNetworkEndpoint());

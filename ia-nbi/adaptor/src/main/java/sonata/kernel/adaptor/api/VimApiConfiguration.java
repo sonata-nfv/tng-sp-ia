@@ -60,6 +60,8 @@ public class VimApiConfiguration {
   private String externalRouterIp;
   @JsonProperty("management_flow_ip")
   private String managementFlowIp;
+  @JsonProperty("floating_ip_ranging")
+  private String floatingIpRanging;
   @JsonProperty("config")
   private JsonNode configuration;
 
@@ -137,6 +139,10 @@ public class VimApiConfiguration {
     return managementFlowIp;
   }
 
+  public String getFloatingIpRanging() {
+    return floatingIpRanging;
+  }
+
   public JsonNode getConfiguration() {
         return configuration;
     }
@@ -212,6 +218,10 @@ public class VimApiConfiguration {
 
   public void setManagementFlowIp(String managementFlowIp) {
     this.managementFlowIp = managementFlowIp;
+  }
+
+  public void setFloatingIpRanging(String floatingIpRanging) {
+    this.floatingIpRanging = floatingIpRanging;
   }
 
   public void setConfiguration(JsonNode configuration) {
