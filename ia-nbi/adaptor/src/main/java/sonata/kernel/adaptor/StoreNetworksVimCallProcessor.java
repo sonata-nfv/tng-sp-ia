@@ -70,6 +70,8 @@ public class StoreNetworksVimCallProcessor extends AbstractCallProcessor {
       vimVendor = ComputeVimVendor.MOCK;
     } else if (message.getTopic().contains(".k8s.")) {
       vimVendor = ComputeVimVendor.K8S;
+    } else if (message.getTopic().contains(".emu.")) {
+      vimVendor = ComputeVimVendor.EMU;
     }
 
     if (vimVendor == null) {

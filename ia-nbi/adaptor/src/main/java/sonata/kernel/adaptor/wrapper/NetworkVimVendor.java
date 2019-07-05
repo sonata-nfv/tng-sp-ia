@@ -27,7 +27,7 @@
 package sonata.kernel.adaptor.wrapper;
 
 public enum NetworkVimVendor implements VimVendor {
-  NETWORKMOCK("networkmock"), OVS("ovs");
+  NETWORKMOCK("networkmock"), OVS("ovs"), EMU("emu");
   //NETWORKMOCK("networkmock"), OVS("ovs"), SPVIM("spvim");
 
   public static NetworkVimVendor getByName(String name) {
