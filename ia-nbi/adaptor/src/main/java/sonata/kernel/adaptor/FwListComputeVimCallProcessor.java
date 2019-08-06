@@ -77,6 +77,9 @@ public class FwListComputeVimCallProcessor extends AbstractCallProcessor {
     } else if (message.getTopic().contains(".k8s.")) {
       vimVendor = ComputeVimVendor.K8S;
       type = "container";
+    } else if (message.getTopic().contains(".emu.")) {
+      vimVendor = ComputeVimVendor.EMU;
+      type = "container";
     }
 
     if ((vimVendor == null) || (type == null)) {

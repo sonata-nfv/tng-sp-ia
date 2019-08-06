@@ -27,7 +27,7 @@
 package sonata.kernel.vimadaptor.wrapper;
 
 public enum ComputeVimVendor implements VimVendor {
-  HEAT("Heat"), MOCK("Mock"), K8S("k8s"), OPENMANO("OpenMANO"), OPENSTACK("OpenStack"), OPENVIM(
+  HEAT("Heat"), MOCK("Mock"), K8S("k8s"), EMU("emu"), OPENMANO("OpenMANO"), OPENSTACK("OpenStack"), OPENVIM(
       "OpenVIM"), SPVIM("SPVim");
 
   public static ComputeVimVendor getByName(String name) {

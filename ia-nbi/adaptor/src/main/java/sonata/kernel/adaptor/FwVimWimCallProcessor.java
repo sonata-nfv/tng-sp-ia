@@ -71,6 +71,8 @@ public class FwVimWimCallProcessor extends AbstractCallProcessor {
       vimVendor = ComputeVimVendor.MOCK;
     } else if (message.getTopic().contains(".k8s.")) {
       vimVendor = ComputeVimVendor.K8S;
+    } else if (message.getTopic().contains(".emu.")&& !message.getTopic().contains(".wan.")) {
+      vimVendor = ComputeVimVendor.EMU;
     } else if (message.getTopic().contains(".ovs.")) {
       vimVendor = NetworkVimVendor.OVS;
     } else if (message.getTopic().contains(".networkmock.")) {
@@ -81,6 +83,8 @@ public class FwVimWimCallProcessor extends AbstractCallProcessor {
       wimVendor = WimVendor.MOCK;
     } else if (message.getTopic().contains(".tapi.")) {
       wimVendor = WimVendor.TAPI;
+    } else if (message.getTopic().contains(".emu.") && message.getTopic().contains(".wan.")) {
+      wimVendor = WimVendor.EMU;
     }
 
 

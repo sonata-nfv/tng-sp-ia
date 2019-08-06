@@ -498,12 +498,17 @@ public class VimsAPI {
           WrapperBay.getInstance().registerNetworkWrapper(vimNetworkWrapperConfig, vimComputeWrapperConfig.getUuid());
         }
       }
-      // Use mock network wrapper
+      // Use mock/emu network wrapper
       if ((vimNetworkWrapperConfig.getVimEndpoint() == null) && !type.equals("endpoint")) {
         vimNetworkWrapperConfig.setUuid(UUID.randomUUID().toString());
-        vimNetworkWrapperConfig.setName("Mock-Net");
+        if (type.equals("emu")) {
+          vimNetworkWrapperConfig.setName("Emu-Net");
+          vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("emu"));
+        } else {
+          vimNetworkWrapperConfig.setName("Mock-Net");
+          vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("networkmock"));
+        }
         vimNetworkWrapperConfig.setWrapperType(WrapperType.getByName("network"));
-        vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("networkmock"));
         vimNetworkWrapperConfig.setVimEndpoint("");
         //vimNetworkWrapperConfig.setAuthUserName("");
         //vimNetworkWrapperConfig.setDomain("");
@@ -621,10 +626,15 @@ public class VimsAPI {
           flagMock = false;
         }
       }
-      // Use mock network wrapper
+      // Use mock/emu network wrapper
       if (flagMock && !type.equals("endpoint")) {
-        vimNetworkWrapperConfig.setName("Mock-Net");
-        vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("networkmock"));
+        if (type.equals("emu")) {
+          vimNetworkWrapperConfig.setName("Emu-Net");
+          vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("emu"));
+        } else {
+          vimNetworkWrapperConfig.setName("Mock-Net");
+          vimNetworkWrapperConfig.setVimVendor(NetworkVimVendor.getByName("networkmock"));
+        }
         vimNetworkWrapperConfig.setVimEndpoint("");
         WrapperBay.getInstance().getVimRepo().updateVimEntry(vimNetworkWrapperConfig.getUuid(),vimNetworkWrapperConfig);
 

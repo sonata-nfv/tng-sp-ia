@@ -29,7 +29,7 @@ package sonata.kernel.adaptor.wrapper;
 import java.util.ArrayList;
 
 public enum ComputeVimVendor implements VimVendor {
-  HEAT("heat"), MOCK("mock"), K8S("k8s");
+  HEAT("heat"), MOCK("mock"), K8S("k8s"), EMU("emu");
   //HEAT("heat"), MOCK("mock"), OPENMANO("openmano"), OPENSTACK("openstack"), OPENVIM(
   //    "openvim"), SPVIM("spvim");
 
