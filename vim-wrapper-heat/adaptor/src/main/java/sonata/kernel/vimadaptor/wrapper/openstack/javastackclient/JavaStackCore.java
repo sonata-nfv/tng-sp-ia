@@ -290,24 +290,32 @@ public class JavaStackCore {
 
       post = new HttpPost(buildUrl.toString());
       String body = String.format(
-        "{\n" + "    \"auth\": {\n" 
-              + "        \"identity\": {\n" 
+          "{\n" + "    \"auth\": {\n"
+              + "        \"identity\": {\n"
               + "            \"methods\": [\n"
-              + "                \"password\"\n" 
+              + "                \"password\"\n"
               + "            ],\n"
-              + "            \"password\": {\n" 
+              + "            \"password\": {\n"
               + "                \"user\": {\n"
-              + "                    \"name\": \"%s\",\n" 
+              + "                    \"name\": \"%s\",\n"
               + "                    \"domain\": {\n"
-              + "                        \"name\": \"%s\"\n" 
+              + "                        \"name\": \"%s\"\n"
               + "                    },\n"
-              + "                    \"password\": \"%s\"\n" 
+              + "                    \"password\": \"%s\"\n"
               + "                }\n"
-              + "            }\n" 
-              + "        }\n" 
-              + "    }\n" 
+              + "            }\n"
+              + "        },\n"
+              + "        \"scope\": {\n"
+              + "            \"project\": {\n"
+              + "                \"domain\": {\n"
+              + "                    \"name\": \"%s\"\n"
+              + "                },\n"
+              + "                \"name\": \"%s\"\n"
+              + "            }\n"
+              + "        }\n"
+              + "    }\n"
               + "}",
-          this.username, this.domain, this.password);
+          this.username, this.domain, this.password, this.domain, this.projectName);
 
       post.setEntity(new StringEntity(body, ContentType.APPLICATION_JSON));
 

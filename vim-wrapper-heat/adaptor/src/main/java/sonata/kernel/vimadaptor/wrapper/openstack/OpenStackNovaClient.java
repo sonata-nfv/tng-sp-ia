@@ -85,6 +85,7 @@ public class OpenStackNovaClient {
     javaStack.setUsername(userName);
     javaStack.setPassword(password);
     javaStack.setDomain(domain);
+    javaStack.setProjectName(tenantName);
     javaStack.setProjectId(null);
     javaStack.setAuthenticated(false);
     // javaStack.setTenantId(tenantName);

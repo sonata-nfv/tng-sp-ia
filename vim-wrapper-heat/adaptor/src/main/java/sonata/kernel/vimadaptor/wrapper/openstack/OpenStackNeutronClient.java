@@ -64,6 +64,7 @@ public class OpenStackNeutronClient {
     javaStack.setUsername(userName);
     javaStack.setPassword(password);
     javaStack.setDomain(domain);
+    javaStack.setProjectName(tenantName);
     javaStack.setProjectId(null);
     javaStack.setAuthenticated(false);
 
