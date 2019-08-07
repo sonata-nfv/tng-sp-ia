@@ -4,7 +4,7 @@
     <!-- encoders are assigned the type
          ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
     <encoder>
-      <pattern>{"type": "%.-1level", "timestamp": "%d{yyyy-MM-dd HH:mm:ss,UTC} UTC", "component": "vim-wrapper-heat", "operation": "[%thread]:%replace(%logger){'sonata.kernel.adaptor.',''}.%M", "message": "%replace(%replace(%msg %xEx){'\"','\\"'}){'\R',' \\n '}"}%nopex%n</pattern>
+      <pattern>{"type": "%.-1level", "timestamp": "%d{yyyy-MM-dd HH:mm:ss,UTC} UTC", "component": "vim-wrapper-heat", "operation": "[%thread]:%replace(%logger){'sonata.kernel.adaptor.',''}.%M", "message": "%replace(%replace(%replace(%msg %xEx){'\"','\\"'}){'\R',' \\n '}){'\t',' '}"}%nopex%n</pattern>
     </encoder>
   </appender>
 
