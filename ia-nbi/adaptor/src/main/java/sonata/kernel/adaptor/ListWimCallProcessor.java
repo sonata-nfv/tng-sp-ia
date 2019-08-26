@@ -29,12 +29,16 @@ package sonata.kernel.adaptor;
 import java.util.ArrayList;
 import java.util.Observable;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import sonata.kernel.adaptor.commons.SonataManifestMapper;
+import sonata.kernel.adaptor.commons.WimListResponse;
 import sonata.kernel.adaptor.commons.WimQos;
 import sonata.kernel.adaptor.commons.WimResources;
 import sonata.kernel.adaptor.messaging.ServicePlatformMessage;
@@ -108,11 +112,17 @@ public class ListWimCallProcessor extends AbstractCallProcessor {
       out.setQos(qosList);
       wimList.add(out);
     }
+    WimListResponse wimListResponse = new WimListResponse();
+    wimListResponse.setWimList(wimList);
 
-    ObjectMapper mapper = SonataManifestMapper.getSonataMapper();
-    String body;
     try {
-      body = mapper.writeValueAsString(wimList);
+      // Need a new mapper different from SonataManifestMapper for allow feature WRITE_EMPTY_JSON_ARRAYS
+      ObjectMapper mapperW = new ObjectMapper(new YAMLFactory());
+      mapperW.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+      mapperW.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+      mapperW.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+      String body;
+      body = mapperW.writeValueAsString(wimListResponse);
 
       //Logger.debug("Final Content: " + body);
       ServicePlatformMessage response = new ServicePlatformMessage(body, "application/x-yaml",
