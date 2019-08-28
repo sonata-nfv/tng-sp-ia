@@ -1,0 +1,851 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "5GTANGO, an H2020 5GPPP project",
+    "version": "5.0",
+    "title": "5GTANGO IA component REST API",
+    "termsOfService": "https://5gtango.eu/",
+    "license": {
+      "name": "Apache License 2.0",
+      "url": "https://github.com/sonata-nfv/tng-sp-ia/blob/master/LICENSE"
+    }
+  },
+  "host": "localhost:8083",
+  "basePath": "/api/ia/v1",
+  "tags": [
+    {
+      "name": "vims",
+      "description": "IA API to manage VIMs"
+    },
+    {
+      "name": "heat vims",
+      "description": "IA API to get heat VIMs details direcly from VIM"
+    },
+    {
+      "name": "wims",
+      "description": "IA API to manage WIMs"
+    }
+  ],
+  "paths": {
+    "/vims": {
+      "get": {
+        "tags": [
+          "vims"
+        ],
+        "summary": "Returns a list of VIMs existing in the DB",
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "The type of VIM",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "mock",
+              "heat",
+              "k8s",
+              "endpoint",
+              "emu"
+            ],
+            "x-example": "heat"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/vim_json_data"
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/vims/{vim_uuid}": {
+      "get": {
+        "tags": [
+          "vims"
+        ],
+        "summary": "Query a specific vim",
+        "parameters": [
+          {
+            "name": "vim_uuid",
+            "in": "path",
+            "description": "UUID of the vim which info is required",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/vim_json_data"
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "vims"
+        ],
+        "summary": "Delete a specific VIM",
+        "parameters": [
+          {
+            "name": "vim_uuid",
+            "in": "path",
+            "description": "UUID of the vim to delete",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/vims/{type}": {
+      "post": {
+        "tags": [
+          "vims"
+        ],
+        "summary": "Add new VIM",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "description": "The type of VIM is required",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "mock",
+              "heat",
+              "k8s",
+              "endpoint",
+              "emu"
+            ],
+            "x-example": "heat"
+          },
+          {
+            "name": "vim_json_data",
+            "in": "body",
+            "description": "Json file with information of VIM to store in the DB",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/vim_json_data"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/vim_json_data"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "405": {
+            "description": "Method Not Allowed"
+          }
+        }
+      }
+    },
+    "/vims/{type}/{vim_uuid}": {
+      "patch": {
+        "tags": [
+          "vims"
+        ],
+        "summary": "Update a specific VIM",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "description": "The type of VIM is required",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "mock",
+              "heat",
+              "k8s",
+              "endpoint",
+              "emu"
+            ],
+            "x-example": "heat"
+          },
+          {
+            "name": "vim_uuid",
+            "in": "path",
+            "description": "UUID of the vim to update",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "vim_json_data",
+            "in": "body",
+            "description": "Json file with information of VIM to update in the DB",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/vim_json_data"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/vim_json_data"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/vims/heat/networks": {
+      "get": {
+        "tags": [
+          "heat vims"
+        ],
+        "summary": "Returns a list of external networks in a given openstack",
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "endpoint",
+            "in": "query",
+            "description": "The endpoint of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "172.31.2.1"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "The username of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "tango"
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "description": "The password of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "t4ng0"
+          },
+          {
+            "name": "tenant",
+            "in": "query",
+            "description": "The tenant of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "5gtango"
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "description": "The domain of heat VIM",
+            "required": false,
+            "type": "string",
+            "x-example": "Default"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "example": {
+                  "name": "external",
+                  "uuid": "3283ec5d-984e-46e7-8eac-312a79b878f1"
+                },
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the external network"
+                  },
+                  "uuid": {
+                    "type": "string",
+                    "description": "The UUID of the external network"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/vims/heat/routers/{network_uuid}": {
+      "get": {
+        "tags": [
+          "heat vims"
+        ],
+        "summary": "Returns a list of routers from a given external network in a given openstack",
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "network_uuid",
+            "in": "path",
+            "description": "UUID of the external network",
+            "required": true,
+            "type": "string",
+            "format": "uuid",
+            "x-example": "3283ec5d-984e-46e7-8eac-312a79b878f1"
+          },
+          {
+            "name": "endpoint",
+            "in": "query",
+            "description": "The endpoint of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "172.31.2.1"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "The username of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "tango"
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "description": "The password of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "t4ng0"
+          },
+          {
+            "name": "tenant",
+            "in": "query",
+            "description": "The tenant of heat VIM",
+            "required": true,
+            "type": "string",
+            "x-example": "5gtango"
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "description": "The domain of heat VIM",
+            "required": false,
+            "type": "string",
+            "x-example": "Default"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "example": {
+                  "name": "tng-router",
+                  "uuid": "eecdb2e2-bae8-443e-b96a-bc8871cf4ddc"
+                },
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the router"
+                  },
+                  "uuid": {
+                    "type": "string",
+                    "description": "The UUID of the router"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/wims": {
+      "get": {
+        "tags": [
+          "wims"
+        ],
+        "summary": "Returns a list of WIMs existing in the DB",
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "The type of WIM",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "tapi",
+              "emu"
+            ],
+            "x-example": "tapi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/wim_json_data"
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/wims/{wim_uuid}": {
+      "get": {
+        "tags": [
+          "wims"
+        ],
+        "summary": "Query a specific wim",
+        "parameters": [
+          {
+            "name": "wim_uuid",
+            "in": "path",
+            "description": "UUID of the wim which info is required",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/wim_json_data"
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "wims"
+        ],
+        "summary": "Delete a specific WIM",
+        "parameters": [
+          {
+            "name": "wim_uuid",
+            "in": "path",
+            "description": "UUID of the wim to delete",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          }
+        ],
+        "consumes": [
+          "*/*"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/wims/{type}": {
+      "post": {
+        "tags": [
+          "wims"
+        ],
+        "summary": "Add new WIM",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "description": "The type of WIM is required",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "tapi",
+              "emu"
+            ],
+            "x-example": "tapi"
+          },
+          {
+            "name": "wim_json_data",
+            "in": "body",
+            "description": "Json file with information of WIM to store in the DB",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/wim_json_data"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/wim_json_data"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "405": {
+            "description": "Method Not Allowed"
+          }
+        }
+      }
+    },
+    "/wims/{type}/{wim_uuid}": {
+      "patch": {
+        "tags": [
+          "wims"
+        ],
+        "summary": "Update a specific WIM",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "description": "The type of WIM is required",
+            "required": true,
+            "type": "string",
+            "enum": [
+              "tapi",
+              "emu"
+            ],
+            "x-example": "tapi"
+          },
+          {
+            "name": "wim_uuid",
+            "in": "path",
+            "description": "UUID of the wim to update",
+            "required": true,
+            "type": "string",
+            "format": "uuid"
+          },
+          {
+            "name": "wim_json_data",
+            "in": "body",
+            "description": "Json file with information of WIM to update in the DB",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/wim_json_data"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/wim_json_data"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "405": {
+            "description": "Method Not Allowed"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "vim_json_data": {
+      "type": "object",
+      "example": {
+        "example for VIM with type heat": {
+          "uuid": "1111-22222222-33333333-4444",
+          "name": "MyOpenstackVIM",
+          "country": "Portugal",
+          "city": "Aveiro",
+          "endpoint": "172.31.2.1",
+          "username": "tango",
+          "password": "t4ng0",
+          "tenant": "5gtango",
+          "domain": "Default",
+          "network_endpoint": "172.31.2.2",
+          "private_network_prefix": "192.168.0.0",
+          "private_network_length": "16",
+          "external_network_id": "3283ec5d-984e-46e7-8eac-312a79b878f1",
+          "external_router_id": "eecdb2e2-bae8-443e-b96a-bc8871cf4ddc",
+          "external_router_ip": "172.31.2.3",
+          "management_flow_ip": "172.31.2.4",
+          "floating_ip_ranging": "172.31.2.5-172.31.2.15, 172.31.2.25-172.31.2.30"
+        },
+        "example for VIM with type mock": {
+          "uuid": "1111-22222222-33333333-3333",
+          "name": "Mock",
+          "country": "Greece",
+          "city": "Athens-North",
+          "endpoint": "10.100.32.200",
+          "username": "user",
+          "password": "pass",
+          "config": {}
+        },
+        "example for VIM with type k8s": {
+          "uuid": "1111-22222222-33333333-5555",
+          "name": "My K8s VIM",
+          "country": "Milky Way",
+          "city": "Random Galaxy",
+          "endpoint": "6.6.6.6",
+          "config": {}
+        },
+        "example for VIM with type endpoint": {
+          "uuid": "1111-22222222-33333333-6666",
+          "name": "NeP_1",
+          "country": "Spain",
+          "city": "Barcelona",
+          "endpoint": "",
+          "config": {}
+        },
+        "example for VIM with type emu": {
+          "uuid": "1111-22222222-33333333-7777",
+          "name": "Emulator",
+          "country": "Spain",
+          "city": "Barcelona",
+          "endpoint": "",
+          "config": {}
+        }
+      },
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the VIM -- required for type 'endpoint' and 'emu'"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the VIM -- required"
+        },
+        "country": {
+          "type": "string",
+          "description": "The country of the VIM -- optional"
+        },
+        "city": {
+          "type": "string",
+          "description": "The city of the VIM -- optional"
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "The endpoint of the VIM -- required"
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the VIM -- required for type 'heat'"
+        },
+        "password": {
+          "type": "string",
+          "description": "The password of the VIM -- required for type 'heat'"
+        },
+        "domain": {
+          "type": "string",
+          "description": "The domain of the VIM  -- optional"
+        },
+        "config": {
+          "type": "string",
+          "description": "The config of the VIM stored in DB -- required for type 'k8s', forbiden for type 'heat', optional for other types"
+        },
+        "tenant": {
+          "type": "string",
+          "description": "The tenant of the HEAT VIM  -- required for type 'heat', forbiden for other types"
+        },
+        "network_endpoint": {
+          "type": "string",
+          "description": "The network endpoint of the HEAT VIM  -- required for type 'heat', forbiden for other types -- if empy use mock network wrapper, else use ovs network wrapper"
+        },
+        "private_network_prefix": {
+          "type": "string",
+          "description": "The network prefix to create networks in HEAT VIM  -- required for type 'heat', forbiden for other types"
+        },
+        "private_network_length": {
+          "type": "string",
+          "description": "The network length to create networks in HEAT VIM  -- required for type 'heat', forbiden for other types"
+        },
+        "external_network_id": {
+          "type": "string",
+          "description": "The external network id in HEAT VIM  -- required for type 'heat', forbiden for other types"
+        },
+        "external_router_id": {
+          "type": "string",
+          "description": "The external router id in HEAT VIM  -- required for type 'heat', forbiden for other types"
+        },
+        "external_router_ip": {
+          "type": "string",
+          "description": "The external router IP in HEAT VIM  -- optional for type 'heat' (required if work with TAPI Wrapper), forbiden for other types"
+        },
+        "management_flow_ip": {
+          "type": "string",
+          "description": "The IP for manage the flows in HEAT VIM  -- optional for type 'heat'  (required if work with TAPI Wrapper), forbiden for other types"
+        },
+        "floating_ip_ranging": {
+          "type": "string",
+          "description": "The floating IP range in HEAT VIM  -- optional for type 'heat' (required if work with TAPI Wrapper), forbiden for other types"
+        }
+      }
+    },
+    "wim_json_data": {
+      "type": "object",
+      "example": {
+        "example for WIM with type tapi": {
+          "uuid": "1111-22222222-33333333-4444",
+          "name": "MyTAPIWIM",
+          "endpoint": "172.31.2.1:8080",
+          "username": "tango",
+          "password": "t4ng0",
+          "vim_list": [
+            "vim_uuid1",
+            "vim_uuid2",
+            "vim_uuid3"
+          ]
+        },
+        "example for WIM with type emu": {
+          "uuid": "1111-22222222-33333333-7777",
+          "name": "Emulator",
+          "endpoint": "",
+          "vim_list": [
+            "vim_uuid1",
+            "vim_uuid2",
+            "vim_uuid3"
+          ]
+        }
+      },
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the WIM -- optional"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the WIM -- required"
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "The endpoint of the WIM -- required"
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the WIM -- optional"
+        },
+        "password": {
+          "type": "string",
+          "description": "The password of the WIM -- optional"
+        },
+        "vim_list": {
+          "type": "array",
+          "description": "The list with VIMs UUIDs connected by this WIM -- required",
+          "items": {
+            "type": "string",
+            "description": "VIMs UUIDs connected by this WIM (This VIMs UUIDs must exist in the DB) -- required"
+          }
+        }
+      }
+    }
+  }
+}
