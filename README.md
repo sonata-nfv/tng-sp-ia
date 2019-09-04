@@ -43,7 +43,7 @@ This Software is published under Apache 2.0 license. Please see the LICENSE file
 #### Lead Developers
 
 The following lead developers are responsible for this repository and have admin rights. They can, for example, merge pull requests.
-
+* Carlos Marques (@carlos-martins-marques)
 
 #### Feedback-Channel
 
