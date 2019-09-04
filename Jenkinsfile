@@ -184,6 +184,53 @@ pipeline {
         }
       }
     }
+
+    stage('Promoting release v5.0') {
+      when {
+        branch 'v5.0'
+      }
+      stages {
+        stage('Generating release') {
+          steps {
+            sh 'docker tag registry.sonata-nfv.eu:5000/ia-nbi:latest registry.sonata-nfv.eu:5000/ia-nbi:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/ia-nbi:latest sonatanfv/ia-nbi:v5.0'
+            sh 'docker push registry.sonata-nfv.eu:5000/ia-nbi:v5.0'
+            sh 'docker push sonatanfv/ia-nbi:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/vim-wrapper-heat:latest registry.sonata-nfv.eu:5000/vim-wrapper-heat:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/vim-wrapper-heat:latest sonatanfv/vim-wrapper-heat:v5.0'
+            sh 'docker push registry.sonata-nfv.eu:5000/vim-wrapper-heat:v5.0'
+            sh 'docker push sonatanfv/vim-wrapper-heat:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/vim-wrapper-mock:latest registry.sonata-nfv.eu:5000/vim-wrapper-mock:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/vim-wrapper-mock:latest sonatanfv/vim-wrapper-mock:v5.0'
+            sh 'docker push registry.sonata-nfv.eu:5000/vim-wrapper-mock:v5.0'
+            sh 'docker push sonatanfv/vim-wrapper-mock:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/vim-wrapper-ovs:latest registry.sonata-nfv.eu:5000/vim-wrapper-ovs:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/vim-wrapper-ovs:latest sonatanfv/vim-wrapper-ovs:v5.0'
+            sh 'docker push registry.sonata-nfv.eu:5000/vim-wrapper-ovs:v5.0'
+            sh 'docker push sonatanfv/vim-wrapper-ovs:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/wim-wrapper-mock:latest registry.sonata-nfv.eu:5000/wim-wrapper-mock:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/wim-wrapper-mock:latest sonatanfv/wim-wrapper-mock:v5.0'
+            sh 'docker push registry.sonata-nfv.eu:5000/wim-wrapper-mock:v5.0'
+            sh 'docker push sonatanfv/wim-wrapper-mock:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/wim-wrapper-vtn:latest registry.sonata-nfv.eu:5000/wim-wrapper-vtn:v5.0'
+            sh 'docker tag registry.sonata-nfv.eu:5000/wim-wrapper-vtn:latest sonatanfv/wim-wrapper-vtn:v5.0'
+            sh 'docker push registry.sonata-nfv.eu:5000/wim-wrapper-vtn:v5.0'
+            sh 'docker push sonatanfv/wim-wrapper-vtn:v5.0'
+          }
+        }
+        stage('Deploying in v5.0 servers') {
+          steps {
+            sh 'rm -rf tng-devops || true'
+            sh 'git clone https://github.com/sonata-nfv/tng-devops.git'
+            dir(path: 'tng-devops') {
+              sh 'ansible-playbook roles/sp.yml -i environments -e "target=sta-sp-v5-0 component=infrastructure-abstraction"'
+            }
+          }
+        }
+      }
+    }
+
+
   }
   post {
     always {
