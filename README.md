@@ -32,8 +32,8 @@ Contributing to the son-sp-infrabstract is really easy. You must:
 3. Submit a Pull Request;
 4. Follow/answer related [issues](https://github.com/sonata-nfv/tng-sp-ia/issues) (see Feedback-Chanel, below).
 
-
-For information about **building**, **depedencies** and **usage**, please see the README file in the relevant component subfolder:
+### Building, Depedencies and Usage
+For information about building, depedencies and usage, please see the README file in the relevant component subfolder:
 
 * [ia-nbi readme](https://github.com/sonata-nfv/tng-sp-ia/blob/master/ia-nbi/README.md)
 * [vim-wrapper-heat readme](https://github.com/sonata-nfv/tng-sp-ia/blob/master/vim-wrapper-heat/README.md)
