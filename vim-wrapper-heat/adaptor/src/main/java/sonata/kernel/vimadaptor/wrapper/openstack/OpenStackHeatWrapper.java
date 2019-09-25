@@ -94,6 +94,8 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       String tenantNetId = object.getString("tenant_private_net_id");
       int tenantNetLength = object.getInt("tenant_private_net_length");
       tenantCidr = tenantNetId + "/" + tenantNetLength;
+    } else {
+      tenantCidr = "10.0.0.0/8";
     }
 
     this.myPool = "tango-subnet-pool";
