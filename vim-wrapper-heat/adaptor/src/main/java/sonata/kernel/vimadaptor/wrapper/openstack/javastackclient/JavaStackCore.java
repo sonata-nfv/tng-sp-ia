@@ -1169,4 +1169,137 @@ public class JavaStackCore {
     return response;
   }
 
+
+  /**
+   * NEUTRON method to list Subnet Pools
+   *
+   * @return
+   * @throws IOException
+   */
+  public synchronized HttpResponse listSubnetPools() throws IOException {
+    HttpGet getSubnetPools= null;
+    HttpResponse response = null;
+
+    HttpClient httpClient = HttpClientBuilder.create().build();
+    HttpResponseFactory factory = new DefaultHttpResponseFactory();
+
+    if (isAuthenticated) {
+      StringBuilder buildUrl = new StringBuilder();
+      buildUrl.append("http://");
+      buildUrl.append(endpoint);
+      buildUrl.append(":");
+      buildUrl.append(Network.getPORT());
+      buildUrl.append(String.format("/%s/subnetpools", Network.getVERSION()));
+
+      // Logger.debug("[JavaStack] Authenticating client...");
+      getSubnetPools = new HttpGet(buildUrl.toString());
+      getSubnetPools.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);
+      Logger.debug("[JavaStack] " + getSubnetPools.toString());
+
+      response = httpClient.execute(getSubnetPools);
+      Logger.debug("[JavaStack] GET Subnet Pools response:");
+      Logger.debug(response.toString());
+      int status_code = response.getStatusLine().getStatusCode();
+      return (status_code == 200)
+          ? response
+          : factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1, status_code,
+          "List Subnet Pools Failed with Status: " + status_code), null);
+    }
+    return response;
+  }
+
+
+  /**
+   * NEUTRON Method to create an Subnet Pool
+   *
+   * @param name
+   * @param prefixes
+   * @param defaultPrefixlen
+   * @return
+   * @throws IOException
+   */
+  public synchronized HttpResponse createSubnetPool(String name, ArrayList<String> prefixes, String defaultPrefixlen) throws IOException {
+    HttpPost createSubnetPool;
+    HttpClient httpClient = HttpClientBuilder.create().build();
+
+    if (this.isAuthenticated) {
+      StringBuilder buildUrl = new StringBuilder();
+      buildUrl.append("http://");
+      buildUrl.append(this.endpoint);
+      buildUrl.append(":");
+      buildUrl.append(Network.getPORT());
+      buildUrl.append(String.format("/%s/subnetpools", Network.getVERSION()));
+
+      createSubnetPool = new HttpPost(buildUrl.toString());
+
+      String prefixes_json = "";
+      for (String prefix : prefixes) {
+        if (!prefixes_json.equals("")) {
+          prefixes_json = prefixes_json + ",";
+        }
+        prefixes_json = prefixes_json + "\""+prefix+"\"";
+      }
+
+      String requestBody =
+          String.format("{ \"subnetpool\": { \"name\": \"%s\",\"prefixes\": [%s], \"default_prefixlen\": %s }}", name, prefixes_json, defaultPrefixlen);
+
+      createSubnetPool.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
+      createSubnetPool.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);
+
+      Logger.debug("[JavaStack] body " + requestBody);
+      Logger.debug("[JavaStack] " + createSubnetPool.toString());
+
+    } else {
+      throw new IOException(
+          "You must Authenticate before issuing this request, please re-authenticate. ");
+    }
+    return httpClient.execute(createSubnetPool);
+  }
+
+  /**
+   * NEUTRON Method to update an Subnet Pool
+   *
+   * @param id
+   * @param prefixes
+   * @return
+   * @throws IOException
+   */
+  public synchronized HttpResponse updateSubnetPool(String id, ArrayList<String> prefixes) throws IOException {
+    HttpPut createSubnetPool;
+    HttpClient httpClient = HttpClientBuilder.create().build();
+
+    if (this.isAuthenticated) {
+      StringBuilder buildUrl = new StringBuilder();
+      buildUrl.append("http://");
+      buildUrl.append(this.endpoint);
+      buildUrl.append(":");
+      buildUrl.append(Network.getPORT());
+      buildUrl.append(String.format("/%s/subnetpools/%s", Network.getVERSION(),id));
+
+      createSubnetPool = new HttpPut(buildUrl.toString());
+
+      String prefixes_json = "";
+      for (String prefix : prefixes) {
+        if (!prefixes_json.equals("")) {
+          prefixes_json = prefixes_json + ",";
+        }
+        prefixes_json = prefixes_json + "\""+prefix+"\"";
+      }
+
+      String requestBody =
+          String.format("{ \"subnetpool\": { \"prefixes\": [%s] }}", prefixes_json);
+
+      createSubnetPool.setEntity(new StringEntity(requestBody, ContentType.APPLICATION_JSON));
+      createSubnetPool.addHeader(Constants.AUTHTOKEN_HEADER.toString(), this.token_id);
+
+      Logger.debug("[JavaStack] body " + requestBody);
+      Logger.debug("[JavaStack] " + createSubnetPool.toString());
+
+    } else {
+      throw new IOException(
+          "You must Authenticate before issuing this request, please re-authenticate. ");
+    }
+    return httpClient.execute(createSubnetPool);
+  }
+
 }

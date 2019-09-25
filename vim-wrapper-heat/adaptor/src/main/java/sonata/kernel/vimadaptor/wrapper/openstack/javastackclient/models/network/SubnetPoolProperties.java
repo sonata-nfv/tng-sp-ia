@@ -20,54 +20,56 @@
  * would like to acknowledge the contributions of their colleagues of the SONATA partner consortium
  * (www.sonata-nfv.eu).
  *
- * @author Dario Valocchi (Ph.D.), UCL
- * 
- * @author Thomas Soenen, imec
- *
- * @author Guy Paz, Nokia
+ * @author Adel Zaalouk (Ph.D.), NEC
  * 
  */
 
-package sonata.kernel.vimadaptor.wrapper.openstack.heat;
+package sonata.kernel.vimadaptor.wrapper.openstack.javastackclient.models.network;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 
-@JsonPropertyOrder({"templateVersion", "resources"})
-public class HeatTemplate {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class SubnetPoolProperties {
 
-  private HashMap<String, Object> resources;
+  private String id;
+  private String name;
+  private ArrayList<String> prefixes;
 
-  @JsonProperty("heat_template_version")
-  private String templateVersion = "2016-04-08";
 
-  public HeatTemplate() {
-    resources = new HashMap<String, Object>();
+  public String getId() {
+    return id;
   }
 
-  public HashMap<String, Object> getResources() {
-    return resources;
+  public String getName() {
+    return name;
   }
 
-  public String getTemplateVersion() {
-    return templateVersion;
+  public ArrayList<String> getPrefixes() {
+    return prefixes;
   }
 
-  public void putResource(String key, Object value) {
-    this.resources.put(key, value);
+
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public void removeResource(String key) {
-    this.resources.remove(key);
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public void setResources(HashMap<String, Object> resources) {
-    this.resources = resources;
+  public void setPrefixes(ArrayList<String> prefixes) {
+    this.prefixes = prefixes;
   }
 
-  public void setTemplateVersion(String templateVersion) {
-    this.templateVersion = templateVersion;
+
+  @Override
+  public String toString() {
+    String out = "";
+
+    out += id + "   " + name + "   " + prefixes.toString() + " ";
+
+    return out;
   }
 }
