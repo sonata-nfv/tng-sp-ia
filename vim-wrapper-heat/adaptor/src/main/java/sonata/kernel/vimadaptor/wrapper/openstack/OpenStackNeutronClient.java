@@ -188,5 +188,96 @@ public class OpenStackNeutronClient {
 
   }
 
+  /**
+   * Get the Subnet Pools
+   *
+   * @return the Subnet Pools
+   */
+  public ArrayList<SubnetPool> getSubnetPools() {
+
+    SubnetPool outputSubnetPool = null;
+
+    ArrayList<SubnetPool> outputSubnetPools = new ArrayList<>();
+    Logger.info("Getting subnet pools");
+    try {
+      mapper = new ObjectMapper();
+      String listSubnetPools =
+          JavaStackUtils.convertHttpResponseToString(javaStack.listSubnetPools());
+      Logger.info(listSubnetPools);
+      SubnetPoolsData inputSubnetPools = mapper.readValue(listSubnetPools, SubnetPoolsData.class);
+      Logger.info(inputSubnetPools.getSubnetPools().toString());
+      for (SubnetPoolProperties inputSubnetPool : inputSubnetPools.getSubnetPools()) {
+        Logger.info(inputSubnetPool.getId() + ": " + inputSubnetPool.getName());
+
+        outputSubnetPool = new SubnetPool(inputSubnetPool.getName(), inputSubnetPool.getId(), inputSubnetPool.getPrefixes());
+        outputSubnetPools.add(outputSubnetPool);
+      }
+
+    } catch (Exception e) {
+      Logger.error("Runtime error getting openstack subnet pools" + " error message: " + e.getMessage());
+    }
+
+    return outputSubnetPools;
+
+  }
+
+  /**
+   * Create a Subnet Pool
+   *
+   * @param name - the name
+   * @param prefixes - A list of subnet prefixes to assign to the subnet pool
+   * @param defaultPrefixlen - The size of the prefix to allocate when you create the subnet
+   * @return - the uuid of the created subnet pool, if the process failed the returned value is null
+   */
+  public String createSubnetPool(String name, ArrayList<String> prefixes, String defaultPrefixlen) {
+    String uuid = null;
+
+    Logger.info("Creating subnet pool: " + name);
+
+    try {
+      mapper = new ObjectMapper();
+      String createSubnetPoolResponse =
+          JavaStackUtils.convertHttpResponseToString(javaStack.createSubnetPool(name,prefixes,defaultPrefixlen));
+      Logger.info(createSubnetPoolResponse);
+      SubnetPoolData inputSubnetPool = mapper.readValue(createSubnetPoolResponse, SubnetPoolData.class);
+       uuid = inputSubnetPool.getSubnetPool().getId();
+
+    } catch (Exception e) {
+      Logger.error(
+          "Runtime error creating subnet pool : " + name + " error message: " + e.getMessage());
+      return null;
+    }
+
+    return uuid;
+  }
+
+  /**
+   * Update a Subnet Pool
+   *
+   * @param id - the id
+   * @param prefixes - A list of subnet prefixes to assign to the subnet pool
+   * @return - the uuid of the created subnet pool, if the process failed the returned value is null
+   */
+  public String updateSubnetPool(String id, ArrayList<String> prefixes) {
+    String uuid = null;
+
+    Logger.info("Updating subnet pool id: " + id);
+
+    try {
+      mapper = new ObjectMapper();
+      String updateSubnetPoolResponse =
+          JavaStackUtils.convertHttpResponseToString(javaStack.updateSubnetPool(id,prefixes));
+      Logger.info(updateSubnetPoolResponse);
+      SubnetPoolData inputSubnetPool = mapper.readValue(updateSubnetPoolResponse, SubnetPoolData.class);
+      uuid = inputSubnetPool.getSubnetPool().getId();
+
+    } catch (Exception e) {
+      Logger.error(
+          "Runtime error updating subnet pool id: " + id + " error message: " + e.getMessage());
+      return null;
+    }
+
+    return uuid;
+  }
 
 }

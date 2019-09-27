@@ -26,6 +26,8 @@
 
 package sonata.kernel.vimadaptor.commons;
 
+import sonata.kernel.vimadaptor.wrapper.WrapperConfiguration;
+
 import java.util.Hashtable;
 
 public class VimNetTable {
@@ -36,7 +38,7 @@ public class VimNetTable {
   /**
    * get Singleton instance method.
    * 
-   * @return the singleton instance of IpNetPool
+   * @return the singleton instance of VimNetTable
    */
   public static VimNetTable getInstance() {
     if (myInstance == null) {
@@ -49,23 +51,25 @@ public class VimNetTable {
     myInstance = null;
   }
 
-  private Hashtable<String, IpNetPool> vimTable;
+  private Hashtable<String, String> vimTable;
 
   private VimNetTable() {
-    this.vimTable = new Hashtable<String, IpNetPool>();
+    this.vimTable = new Hashtable<String, String>();
   }
 
   public void deregisterVim(String vimUuid) {
     this.vimTable.remove(vimUuid);
   }
 
-  public IpNetPool getNetPool(String vimUuid) {
+  public String getCidr(String vimUuid) {
     return vimTable.get(vimUuid);
   }
 
+  public Boolean containsVim(String vimUuid) {
+    return this.vimTable.containsKey(vimUuid);
+  }
+
   public void registerVim(String vimUuid, String cidr) {
-    if (this.vimTable.containsKey(vimUuid)) return;
-    IpNetPool pool = new IpNetPool(cidr);
-    this.vimTable.put(vimUuid, pool);
+    this.vimTable.put(vimUuid, cidr);
   }
 }

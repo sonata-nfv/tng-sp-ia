@@ -68,12 +68,14 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.sun.tools.doclint.Entity.or;
+
 public class OpenStackHeatWrapper extends ComputeWrapper {
 
   private static final org.slf4j.Logger Logger =
       LoggerFactory.getLogger(OpenStackHeatWrapper.class);
 
-  private IpNetPool myPool;
+  private String myPool;
 
   /**
    * Standard constructor for an Compute Wrapper of an OpenStack VIM using Heat.
@@ -92,9 +94,22 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       String tenantNetId = object.getString("tenant_private_net_id");
       int tenantNetLength = object.getInt("tenant_private_net_length");
       tenantCidr = tenantNetId + "/" + tenantNetLength;
+    } else {
+      tenantCidr = "10.0.0.0/8";
     }
-    VimNetTable.getInstance().registerVim(this.getConfig().getUuid(), tenantCidr);
-    this.myPool = VimNetTable.getInstance().getNetPool(this.getConfig().getUuid());
+
+    this.myPool = "tango-subnet-pool";
+    // If vim not exist or cidr change
+    if (!VimNetTable.getInstance().containsVim(this.getConfig().getUuid()) ||
+        (VimNetTable.getInstance().containsVim(this.getConfig().getUuid()) &&
+            !VimNetTable.getInstance().getCidr(this.getConfig().getUuid()).equals(tenantCidr))) {
+
+      // create/update the pool
+      if (this.createOrUpdateSubnetPools(myPool,tenantCidr,"27")) {
+        VimNetTable.getInstance().registerVim(this.getConfig().getUuid(), tenantCidr);
+      }
+    }
+
   }
 
   /*
@@ -252,11 +267,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     Logger.info("body");
 
     WrapperBay.getInstance().getVimRepo().removeFunctionInstanceEntry(data.getVnfUuid(), this.getConfig().getUuid());
-    try {
-      myPool.freeSubnets(data.getVnfUuid());
-    } catch (Exception e) {
-      Logger.info(e.getMessage());
-    }
     WrapperStatusUpdate update = new WrapperStatusUpdate(sid, "SUCCESS", body);
     this.markAsChanged();
     this.notifyObservers(update);
@@ -1154,19 +1164,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             return false;
           }
 
-          ArrayList<String> functionInstanceUUids = WrapperBay.getInstance().getVimRepo().getFunctionUuidByServiceInstanceIdAndVimUuid(instanceId, this.getConfig().getUuid());
-          for (String  functionInstanceUUid : functionInstanceUUids) {
-            try {
-              myPool.freeSubnets(functionInstanceUUid);
-            } catch (Exception e) {
-              Logger.info(e.getMessage());
-            }
-          }
-          try {
-            myPool.freeSubnets(instanceId);
-          } catch (Exception e) {
-            Logger.info(e.getMessage());
-          }
           WrapperBay.getInstance().getVimRepo().removeServiceInstanceEntry(instanceId, this.getConfig().getUuid());
         }
       } catch (Exception e) {
@@ -1267,19 +1264,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           return;
         }
 
-        ArrayList<String> functionInstanceUUids = repo.getFunctionUuidByServiceInstanceIdAndVimUuid(data.getServiceInstanceId(), this.getConfig().getUuid());
-        for (String  functionInstanceUUid : functionInstanceUUids) {
-          try {
-            myPool.freeSubnets(functionInstanceUUid);
-          } catch (Exception e) {
-            Logger.info(e.getMessage());
-          }
-        }
-        try {
-          myPool.freeSubnets(data.getServiceInstanceId());
-        } catch (Exception e) {
-          Logger.info(e.getMessage());
-        }
         repo.removeServiceInstanceEntry(data.getServiceInstanceId(), this.getConfig().getUuid());
         this.setChanged();
         String body =
@@ -1436,6 +1420,95 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     return output;
   }
 
+  public Boolean createOrUpdateSubnetPools(String name, String prefix, String defaultPrefixlen) {
+
+    long start = System.currentTimeMillis();
+    // TODO This values should be per User, now they are per VIM. This should be re-designed once
+    // user management is in place.
+    JSONTokener tokener = new JSONTokener(getConfig().getConfiguration());
+    JSONObject object = (JSONObject) tokener.nextValue();
+    String tenant = object.getString("tenant");
+    String identityPort = null;
+    if (object.has("identity_port")) {
+      identityPort = object.getString("identity_port");
+    }
+
+    ArrayList<String> prefixes = new ArrayList<>();
+    String id = null;
+
+    boolean output = false;
+    OpenStackNeutronClient neutronClient = null;
+    try {
+      neutronClient = new OpenStackNeutronClient(getConfig().getVimEndpoint().toString(),
+          getConfig().getAuthUserName(), getConfig().getAuthPass(), getConfig().getDomain(), tenant, identityPort);
+    } catch (IOException e) {
+      Logger.error("OpenStack wrapper - Unable to connect to PoP.");;
+      long stop = System.currentTimeMillis();
+      Logger.info("[OpenStackWrapper]createOrUpdateSubnetPools-time: " + (stop - start) + " ms");
+      return output;
+    }
+    Logger.info("OpenStack wrapper - List Subnet Pools ...");
+    ArrayList<SubnetPool> subnetPools = null;
+    try {
+      subnetPools = neutronClient.getSubnetPools();
+
+      Logger.info("OpenStack wrapper - Subnet Pools Listed.");
+    } catch (Exception e) {
+      Logger.error("OpenStack wrapper - Unable to list subnet. ERROR:"+e.getMessage());;
+      output = false;
+    }
+
+    if (subnetPools != null) {
+      for (SubnetPool inputSubnetPool : subnetPools) {
+        if (inputSubnetPool.getName().equals(name)) {
+          id = inputSubnetPool.getId();
+          prefixes = inputSubnetPool.getPrefixes();
+          break;
+        }
+      }
+    }
+
+    if (id == null) {
+      // create
+      prefixes.add(prefix);
+      Logger.info("OpenStack wrapper - Creating Subnet Pool ...");
+      try {
+        String uuid = neutronClient.createSubnetPool(name, prefixes, defaultPrefixlen);
+        if (uuid != null) {
+          output = true;
+          Logger.info("OpenStack wrapper - Subnet Pool Created.");
+        }
+      } catch (Exception e) {
+        Logger.error("OpenStack wrapper - Unable to create subnet. ERROR:"+e.getMessage());;
+        output = false;
+      }
+
+    } else {
+      // update if prefix not exist
+      if (!prefixes.contains(prefix)) {
+        prefixes.add(prefix);
+        Logger.info("OpenStack wrapper - Updating Subnet Pool ...");
+        try {
+          String uuid = neutronClient.updateSubnetPool(id, prefixes);
+          if (uuid != null) {
+            output = true;
+            Logger.info("OpenStack wrapper - Subnet Pool Updated.");
+          }
+        } catch (Exception e) {
+          Logger.error("OpenStack wrapper - Unable to update subnet. ERROR:"+e.getMessage());;
+          output = false;
+        }
+      } else {
+        // already exist with this prefix
+        output = true;
+      }
+    }
+
+    long stop = System.currentTimeMillis();
+    Logger.info("[OpenStackWrapper]createOrUpdateSubnetPools-time: " + (stop - start) + " ms");
+    return output;
+  }
+
   @Deprecated
   private HeatTemplate createInitStackTemplate(String instanceId, ArrayList<VirtualLink> virtualLinks, ArrayList<QosPolicy> policies) throws Exception {
 
@@ -1504,13 +1577,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       if (link.getCidr() != null) {
         subnet.putProperty("cidr", link.getCidr());
       } else {
-        ArrayList<String> subnets = myPool.reserveSubnets(instanceId, 1);
-        if (subnets == null) {
-          throw new Exception("Unable to allocate internal addresses. Too many service instances");
-        }
-        String cidr = subnets.get(0);
-        subnet.putProperty("cidr", cidr);
-        subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
+        subnet.putProperty("subnetpool", myPool);
       }
       if (link.isDhcp() != null) {
         subnet.putProperty("enable_dhcp", link.isDhcp());
@@ -1691,11 +1758,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
         }
       }
     }
-    ArrayList<String> subnets = myPool.reserveSubnets(nsd.getInstanceUuid(), numberOfSubnets);
-
-    if (subnets == null) {
-      throw new Exception("Unable to allocate internal addresses. Too many service instances");
-    }
 
     // Create the management Net and subnet for all the VNFCs and VNFs
     HeatResource mgmtNetwork = new HeatResource();
@@ -1713,9 +1775,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     mgmtSubnet.setType("OS::Neutron::Subnet");
     mgmtSubnet.setName(nsd.getName() + ".mgmt.subnet." + nsd.getInstanceUuid());
     mgmtSubnet.putProperty("name", nsd.getName() + ".mgmt.subnet." + nsd.getInstanceUuid());
-    String cidr = subnets.get(subnetIndex);
-    mgmtSubnet.putProperty("cidr", cidr);
-    mgmtSubnet.putProperty("gateway_ip", myPool.getGateway(cidr));
+    mgmtSubnet.putProperty("subnetpool", myPool);
 
     // mgmtSubnet.putProperty("cidr", "192.168." + subnetIndex + ".0/24");
     // mgmtSubnet.putProperty("gateway_ip", "192.168." + subnetIndex + ".1");
@@ -1737,7 +1797,6 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
     mgmtRouterInterface.putProperty("router", tenantExtRouter);
     model.addResource(mgmtRouterInterface);
 
-    cidr = null;
     // One virtual router for NSD virtual links connecting VNFS (no router for external virtual
     // links and management links)
 
@@ -1780,8 +1839,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           subnet.setName(vnfd.getName() + "." + link.getId() + ".subnet." + nsd.getInstanceUuid());
           subnet.putProperty("name",
               vnfd.getName() + "." + link.getId() + ".subnet." + nsd.getInstanceUuid());
-          cidr = subnets.get(subnetIndex);
-          subnet.putProperty("cidr", cidr);
+          subnet.putProperty("subnetpool", myPool);
           // getConfig() parameter
           // String[] dnsArray = { "10.30.0.11", "8.8.8.8" };
           // TODO DNS should not be hardcoded, VMs should automatically get OpenStack subnet DNS.
@@ -2293,10 +2351,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
             if (link.getCidr() != null) {
               subnet.putProperty("cidr", link.getCidr());
             } else {
-              ArrayList<String> subnets = myPool.reserveSubnets(vnfd.getInstanceUuid(), 1);
-              String cidr = subnets.get(0);
-              subnet.putProperty("cidr", cidr);
-              subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
+              subnet.putProperty("subnetpool", myPool);
             }
             if (link.isDhcp() != null) {
               subnet.putProperty("enable_dhcp", link.isDhcp());
@@ -2491,13 +2546,7 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
       if (link.getCidr() != null) {
         subnet.putProperty("cidr", link.getCidr());
       } else {
-        ArrayList<String> subnets = myPool.reserveSubnets(instanceId, 1);
-        if (subnets == null) {
-          throw new Exception("Unable to allocate internal addresses. Too many service instances");
-        }
-        String cidr = subnets.get(0);
-        subnet.putProperty("cidr", cidr);
-        subnet.putProperty("gateway_ip", myPool.getGateway(cidr));
+        subnet.putProperty("subnetpool", myPool);
       }
       if (link.isDhcp() != null) {
         subnet.putProperty("enable_dhcp", link.isDhcp());
