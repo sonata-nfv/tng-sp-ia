@@ -2447,8 +2447,13 @@ public class OpenStackHeatWrapper extends ComputeWrapper {
           port.putProperty("qos_policy", qosPolicy);
         }
         if (vduCp.getSecurityGroups() != null) {
-          // add the security groups to the port
-          port.putProperty("security_groups", vduCp.getSecurityGroups());
+          if (vduCp.getSecurityGroups().isEmpty()) {
+            // disable port security
+            port.putProperty("port_security_enabled", "False");
+          } else {
+            // add the security groups to the port
+            port.putProperty("security_groups", vduCp.getSecurityGroups());
+          }
         }
         model.addResource(port);
 
