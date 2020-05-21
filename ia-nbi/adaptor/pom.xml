@@ -55,7 +55,7 @@
 		<commons.lang3.version>3.8.1</commons.lang3.version>
 		<jsch.version>0.1.55</jsch.version>
 		<asm.version>7.0</asm.version>
-		<tomcat.version>8.5.50</tomcat.version>
+		<tomcat.version>8.5.55</tomcat.version>
 		<jersey.version>2.27</jersey.version>
 
 		<!-- The versions of ALL the plugins used by this project. -->
