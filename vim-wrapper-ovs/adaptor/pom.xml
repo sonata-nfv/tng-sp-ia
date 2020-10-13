@@ -43,7 +43,7 @@
 		<powermock.all.version>1.6.5</powermock.all.version>
 		<mockito.all.version>1.9.5</mockito.all.version>
 		<postgresql.version>9.4.1208.jre7</postgresql.version>
-		<junit.version>4.12</junit.version>
+		<junit.version>4.13.1</junit.version>
 		<json.version>20160212</json.version>
 		<amqp.client.version>4.8.3</amqp.client.version>
 		<jackson.databind.version>2.9.10.1</jackson.databind.version>
