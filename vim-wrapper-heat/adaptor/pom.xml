@@ -57,7 +57,7 @@
 		<!--google.guava.version>19.0</google.guava.version-->
 		<!--pacesys.openstack4j.version>2.20</pacesys.openstack4j.version-->
 		<org.slf4j.version>1.7.26</org.slf4j.version>
-		<jboss.resteasy.version>3.0.16.Final</jboss.resteasy.version>
+		<jboss.resteasy.version>4.5.7.Final</jboss.resteasy.version>
 		<commons.lang3.version>3.1</commons.lang3.version>
 		<!--springframework.spring.version>4.3.17</springframework.spring.version-->
 		<!--jetbrains.annotations.version>13.0</jetbrains.annotations.version-->
